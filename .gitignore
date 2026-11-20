@@ -1,8 +1,22 @@
 .DS_Store
 .env
+.env.*
+!.env.example
 .venv/
 __pycache__/
+*.py[cod]
 .pytest_cache/
-data/raw/
-checkpoints/
-wandb/
+
+# Local reading copies, course material, and downloaded inputs.
+/local/
+/data/
+/.cache/
+
+# Generated runs, model weights, and experiment tracking.
+/artifacts/
+/outputs/
+/runs/
+/models/
+/checkpoints/
+/wandb/
+*.safetensors
