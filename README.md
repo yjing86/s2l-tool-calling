@@ -23,6 +23,31 @@ The only training corpus is Amazon’s **Turnstile-Synthetic-Domains**. The pinn
 
 Before training the target, we test it on 200 held-out single-call requests. If it answers at least 180 correctly, the experiment switches to independent double-call requests. We also reserve selected BFCL v4 single-turn categories for external evaluation. Scores will be reported by category. [Experiment protocol](docs/research-plan.md) · [BFCL](https://gorilla.cs.berkeley.edu/leaderboard.html)
 
+## 下载实验材料
+
+在项目根目录运行 `python3 scripts/download_inputs.py`，需要 Python 3 和 curl。脚本从发布者的固定版本下载约 6.74 GB 文件，逐个核对长度和哈希，通过后才移入正式路径。再次运行会跳过校验通过的文件。数据、模型与外测各有单独目录。
+
+| 材料 | 本地位置 | 用途 |
+|---|---|---|
+| Amazon Turnstile | `local/data/turnstile/` | 唯一训练语料。保留原始 JSONL、API 定义、数据卡和许可信息。 |
+| Qwen3.5-0.8B | `local/models/Qwen3.5-0.8B/` | 代理训练及四个时刻的损失打分。 |
+| Qwen3.5-2B | `local/models/Qwen3.5-2B/` | 未微调基线及 A/B/C 等组的共同起点。 |
+| BFCL v4 | `local/tools/bfcl/` | 官方评测器、题目和参考答案，仅用于外测。 |
+| S2L 作者参考实现 | `local/tools/s2l-reference/` | 对照原论文的轨迹提取、聚类与抽样代码。[固定版本](https://github.com/BigML-CS-UCLA/S2L/tree/2bc84dda1a054d0ff0e704ae9658ee700d5c25fa) |
+| Python 安装包 | `local/tools/wheels/` | ms-swift、Transformers、PEFT、qwen-vl-utils 的固定版本通用 wheel。 |
+
+在新机器上可用以下命令获取 S2L 参考实现、BFCL 和通用安装包。BFCL 固定在方案使用的提交；三个预选类别为 `simple_python`、`multiple`、`parallel_multiple`，具体启用条件和盲测抽样规则见[实验方案](docs/research-plan.md)。训练机上的 PyTorch、torchvision 和 CUDA 环境请按显卡镜像配置；本地缓存的四个 wheel 仍需配套依赖。[训练环境版本与复跑命令](docs/field-loss-validation.md)
+
+```bash
+mkdir -p local/tools/bfcl local/tools/wheels local/tools/s2l-reference
+curl -fL --retry 4 https://codeload.github.com/BigML-CS-UCLA/S2L/tar.gz/2bc84dda1a054d0ff0e704ae9658ee700d5c25fa -o local/tools/s2l-reference.tar.gz
+tar -xzf local/tools/s2l-reference.tar.gz -C local/tools/s2l-reference --strip-components=1
+curl -fL --retry 4 https://codeload.github.com/ShishirPatil/gorilla/tar.gz/f7cf7359b7ac615a0b294831c5ba2bc95ee4a000 -o local/tools/bfcl.tar.gz
+tar -xzf local/tools/bfcl.tar.gz -C local/tools/bfcl --strip-components=2 gorilla-f7cf7359b7ac615a0b294831c5ba2bc95ee4a000/berkeley-function-call-leaderboard
+tar -xOf local/tools/bfcl.tar.gz gorilla-f7cf7359b7ac615a0b294831c5ba2bc95ee4a000/LICENSE > local/tools/bfcl/LICENSE
+python3 -m pip download --no-deps --only-binary=:all: -d local/tools/wheels ms-swift==4.6.1 transformers==5.3.0 peft==0.18.1 qwen-vl-utils==0.0.14
+```
+
 ## Run the field-loss check
 
 From the repository root, the verifier can export the built-in order-tracking example with Python’s standard library. This creates one local JSONL file and requires no model download.
