@@ -58,7 +58,7 @@ The original experiment included B′ only at seed 42. At this seed the pooled-f
 
 ### Three-seed field and length controls
 
-After the primary test was opened, we registered a follow-up and completed five additional fits: B′ at seeds 43 and 44 and length-matched random sampling (E2) at all three seeds. E2 sampled uniformly without replacement within value-token length bins, matching the number of training requests B selected in each bin at the same seed. All new targets used the original training-token budget and the same 2,000 test requests. B′ answered **1,099, 1,115 and 1,072** correctly at seeds 42, 43 and 44 (54.77% mean accuracy). E2 answered **1,081, 1,114 and 1,071** correctly (54.43%). [Follow-up registration](../results/followup/phase1-registration.json)
+After the primary test was opened, the registered follow-up added eight fits for these controls: B′ at seeds 43 and 44, and three seeds each for length-matched random sampling (E2) and residualized whole-answer trajectories (E3). E2 sampled uniformly without replacement within value-token length bins, matching the number of training requests B selected in each bin at the same seed. All new targets used the original training-token budget and the same 2,000 test requests. B′ answered **1,099, 1,115 and 1,072** correctly at seeds 42, 43 and 44 (54.77% mean accuracy). E2 answered **1,081, 1,114 and 1,071** correctly (54.43%). E3 answered **1,109, 1,083 and 1,062** correctly (54.23%). [Follow-up registration](../results/followup/phase1-registration.json)
 
 | Accuracy difference (pp) | Seed 42 | Seed 43 | Seed 44 | Mean | 95% request-group interval, fixed trained seeds | 95% seed t interval, fixed requests |
 |---|---:|---:|---:|---:|---:|---:|
@@ -66,10 +66,16 @@ After the primary test was opened, we registered a follow-up and completed five 
 | C − B′ | +0.15 | −0.15 | +1.40 | +0.47 | [−0.40, +1.32] | [−1.58, +2.51] |
 | E2 − B | +1.35 | +1.15 | −0.30 | +0.73 | [−0.15, +1.62] | [−1.50, +2.97] |
 | E2 − A | −1.85 | −0.75 | −1.15 | −1.25 | [−2.15, −0.40] | [−2.63, +0.13] |
+| E3 − B | +2.75 | −0.40 | −0.75 | +0.53 | [−0.27, +1.35] | [−4.26, +5.32] |
+| E3 − A | −0.45 | −2.30 | −1.60 | −1.45 | [−2.37, −0.58] | [−3.77, +0.87] |
 
 Averaged over these trained runs, restricting scores to the field tokens gained 1.07 pp over B. The sign reversed at seed 44, where separating the fields contributed the largest gain. The extra benefit of separate trajectories averaged 0.47 pp, with both intervals spanning zero. The seed t intervals have two degrees of freedom and describe sensitivity to the three observed seed pairs. The request-group intervals are pointwise across these post hoc comparisons.
 
 E2 fell below unrestricted random selection (A) at every seed. Adopting B's length-bin quotas therefore had an observed cost for this random-within-bin sampling policy. E2 still led B by 0.73 pp on average. The registered equivalence rule required an unrounded paired 90% request-group interval strictly inside **(−1, +1) pp**. E2−B gave **[−0.02, +1.50]** and E2−A gave **[−1.98, −0.55]** after rounding. Neither met that rule. The results leave open how much of B's deficit to A is attributable to the quotas. E2 matched binned lengths while changing individual requests, difficulty and tool mix; its mean value length was 18.51 tokens versus 19.58 for B. [Selection and matching](../scripts/select_followup.py) · [Paired intervals and equivalence rule](../scripts/summarize_followup.py)
+
+**Does removing predictable length-related variation from B's features help?** For E3 we fit a separate ordinary least-squares regression on all 4,000 training candidates at each of the five proxy checkpoints. The outcome was the whole-answer mean loss. The predictors were an intercept, log(1 + number of value tokens), the share of supervised answer tokens belonging to names or values, and log(total supervised answer tokens). We then standardized the five residuals, clustered them and applied B's sampling quotas. The 2B target still trained on complete calls.
+
+E3 gained +2.75 pp over B at seed 42 but lost ground at seeds 43 and 44. Its mean gain of **+0.53 pp** fell short of the registered +1 pp threshold. E3 scored below A at every seed. The E3−A 90% paired group interval was **[−2.22, −0.70] pp**, outside the prespecified equivalence margin on the lower side. The fixed-test, three-seed 95% t interval was much wider, **[−3.77, +0.87] pp**. Neither criterion for the proposed residualization strategy was met. This result concerns removal of the fitted linear associations from the proxy features. Nonlinear relationships and changes in the selected examples' difficulty or tool mix remain possible. [Residualization and sampling](../scripts/select_followup.py)
 
 ## What happens when the target can train on the whole pool?
 
