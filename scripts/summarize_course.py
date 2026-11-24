@@ -48,17 +48,10 @@ def quantile(xs, p):
     return xs[lo] + (index - lo) * (xs[hi] - xs[lo])
 
 
-def paired(left, right, groups, boot_seed):
-    deltas = Counter()
-    discordance = Counter()
-    for key, group in groups.items():
-        a, b = left[key], right[key]
-        deltas[group] += int(a) - int(b)
-        discordance[a, b] += 1
-    sizes = Counter(groups.values())
-    ordered = sorted(sizes)
-    by_group = [(deltas[g], sizes[g]) for g in ordered]
-    rng = random.Random(boot_seed)
+def cluster_interval(group_totals, seed):
+    """Bootstrap the request-weighted ratio of summed deltas to exposure."""
+    rng = random.Random(seed)
+    by_group = [group_totals[k] for k in sorted(group_totals)]
     # Each draw selects whole groups; divide by the number of requests in that
     # draw to preserve the pre-registered request-level estimand.
     draws = []
@@ -69,11 +62,40 @@ def paired(left, right, groups, boot_seed):
             den += n
         draws.append(100 * num / den)
     draws.sort()
+    return [quantile(draws, .025), quantile(draws, .975)]
+
+
+def paired(left, right, groups, boot_seed):
+    deltas = Counter()
+    discordance = Counter()
+    for key, group in groups.items():
+        a, b = left[key], right[key]
+        deltas[group] += int(a) - int(b)
+        discordance[a, b] += 1
+    sizes = Counter(groups.values())
+    group_totals = {g: (deltas[g], size) for g, size in sizes.items()}
     return {"requests": len(groups), "groups": len(sizes),
             "only_left_correct": discordance[True, False], "only_right_correct": discordance[False, True],
             "both_correct": discordance[True, True], "both_wrong": discordance[False, False],
             "difference_pp": 100 * sum(deltas.values()) / len(groups),
-            "paired_cluster_ci95_pp": [quantile(draws, .025), quantile(draws, .975)]}
+            "paired_cluster_ci95_pp": cluster_interval(group_totals, boot_seed)}
+
+
+def fixed_seed_summary(seed_values, differences, groups, boot_seed):
+    """Use one joint draw of test groups across all paired, fixed seed results."""
+    seeds = sorted(seed_values)
+    sizes = Counter(groups.values())
+    sums = Counter()
+    for left, right in differences:
+        for i, group in groups.items():
+            sums[group] += int(left[i]) - int(right[i])
+    group_totals = {g: (sums[g], size * len(seeds)) for g, size in sizes.items()}
+    values = [seed_values[s] for s in seeds]
+    return {"seeds": len(seeds), "seed_differences_pp": seed_values,
+            "mean": statistics.mean(values), "min": min(values), "max": max(values),
+            "sample_sd_pp": statistics.stdev(values) if len(seeds) > 1 else None,
+            "test_requests": len(groups), "near_duplicate_groups": len(sizes),
+            "fixed_seed_mean_paired_cluster_ci95_pp": cluster_interval(group_totals, boot_seed)}
 
 
 def read_model(folder, groups, source_hash, checksums):
@@ -128,7 +150,8 @@ def summary(course, test, boot_seed):
         raise ValueError("Frozen test split must contain nonempty near-duplicate groups")
     groups = {i: str(r["group_id"]) for i, r in rows.items()}
     source_hash = digest(test)
-    checksums = {"frozen_test_split": source_hash, "locked-models.json": digest(lock_path)}
+    checksums = {"frozen_test_split": source_hash, "locked-models.json": digest(lock_path),
+                 "summarize_course.py": digest(Path(__file__))}
     stats, predictions, phase_results = {}, {}, {}
     common_protocol = None
     for phase, labels in phases.items():
@@ -150,7 +173,7 @@ def summary(course, test, boot_seed):
             if not match:
                 raise ValueError(f"{phase}: unsupported model label {label}")
             by_seed[int(match[1])][match[2]] = name
-        comparisons, aggregated = {}, defaultdict(list)
+        comparisons, aggregated, paired_predictions = {}, defaultdict(dict), defaultdict(list)
         for seed, methods in sorted(by_seed.items()):
             comparisons[str(seed)] = {}
             for l, r in (("C", "B"), ("B", "A"), ("C", "A"), ("Bprime", "B"), ("C", "Bprime")):
@@ -158,11 +181,12 @@ def summary(course, test, boot_seed):
                     continue
                 result = paired(predictions[methods[l]], predictions[methods[r]], groups, boot_seed)
                 comparisons[str(seed)][f"{l}-{r}"] = result
-                aggregated[f"{l}-{r}"].append(result["difference_pp"])
+                aggregated[f"{l}-{r}"][seed] = result["difference_pp"]
+                paired_predictions[f"{l}-{r}"].append((predictions[methods[l]], predictions[methods[r]]))
         phase_results[phase] = {"locked": labels, "paired_by_seed": comparisons,
-                                "across_seed_differences_pp": {pair: {"seeds": len(vals), "mean": statistics.mean(vals),
-                                                                   "min": min(vals), "max": max(vals)}
-                                                                for pair, vals in aggregated.items()}}
+                                "across_seed_differences_pp": {
+                                    pair: fixed_seed_summary(vals, paired_predictions[pair], groups, boot_seed)
+                                    for pair, vals in aggregated.items()}}
     ledger = summarize_ledger(course / "ledger.jsonl")
     if ledger["recorded"]:
         checksums["ledger.jsonl"] = ledger["sha256"]
@@ -189,9 +213,16 @@ def markdown(summary, ledger):
                 ci = v["paired_cluster_ci95_pp"]
                 lines.append(f"| {seed} | {pair} | {v['only_left_correct']} | {v['only_right_correct']} | "
                              f"{v['difference_pp']:+.2f} | [{ci[0]:+.2f}, {ci[1]:+.2f}] |")
-        lines += ["", "| Contrast | Seeds | Mean (pp) | Range (pp) |", "|---|---:|---:|---:|"]
+        lines += ["", "| Contrast | Matched seeds | Mean (pp) | 95% CI of fixed-seed mean (pp) | Seed range (pp) | Seed SD (pp) |", "|---|---:|---:|---:|---:|---:|"]
         for pair, v in result["across_seed_differences_pp"].items():
-            lines.append(f"| {pair} | {v['seeds']} | {v['mean']:+.2f} | [{v['min']:+.2f}, {v['max']:+.2f}] |")
+            lo, hi = v["fixed_seed_mean_paired_cluster_ci95_pp"]
+            sd = "—" if v["sample_sd_pp"] is None else f"{v['sample_sd_pp']:.2f}"
+            lines.append(f"| {pair} | {v['seeds']} | {v['mean']:+.2f} | [{lo:+.2f}, {hi:+.2f}] | "
+                         f"[{v['min']:+.2f}, {v['max']:+.2f}] | {sd} |")
+    lines += ["", "The interval for each mean resamples whole held-out request groups together for every "
+              "method and every matched seed. It measures question-set uncertainty conditional on these trained runs. "
+              "Seed-specific differences, their range and sample standard deviation describe variation across observed "
+              "seeds. Additional seed runs evaluate the same requests, so the number of distinct test requests stays fixed."]
     if ledger["recorded"]:
         lines += ["", f"Completed task wall time recorded in the local ledger: "
                   f"{ledger['completed_task_wall_seconds']/3600:.3f} hours. Billing may include idle time and failed attempts."]
