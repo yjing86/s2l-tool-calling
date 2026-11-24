@@ -1,0 +1,295 @@
+{
+  "unit": "unweighted training candidates within each proxy checkpoint; no target results or selection step",
+  "whole_observed": "all_sum / all_tokens, including all supervised answer positions",
+  "whole_fixed_weights": "sum of each observed field mean times one shared field weight. Weight = total field tokens across the full training pool / total all_tokens.",
+  "missing_fields": "Count and sum identities cover all candidates. Fixed-mixture comparisons, correlations and mean NLL summaries use only rows with all three fields present. No means are imputed.",
+  "pearson_r": "Pearson correlation across the complete candidates at each checkpoint; no cross-checkpoint pooling",
+  "other": "supervised positions outside the function-name and scalar argument-value token masks, including argument names, nested object keys and serialization syntax",
+  "checkpoints": [
+    {
+      "step": 0,
+      "candidates": 4000,
+      "complete_fields": 4000,
+      "zero_token_rows": {
+        "function": 0,
+        "value": 0,
+        "other": 0
+      },
+      "all_sum_exactly_equals_sum_of_fields_rows": 3998,
+      "max_abs_sum_error": 2.842170943040401e-14,
+      "max_abs_whole_mean_identity_error": 2.220446049250313e-16,
+      "pool_token_weights": {
+        "function": 0.06792277273784601,
+        "value": 0.19253253510608342,
+        "other": 0.7395446921560705
+      },
+      "mean_nll_across_candidates": {
+        "whole_observed": 0.09698930563557057,
+        "whole_fixed_weights": 0.10465845589925772,
+        "function_nll": 0.07605898144926342,
+        "value_nll": 0.39408117994007336,
+        "other_nll": 0.03193704265159402
+      },
+      "other_nll_p50_p90_max": [
+        0.0211180086134259,
+        0.07470264400419435,
+        0.29681032125922635
+      ],
+      "other_nll_ge_value_nll_rows": 850,
+      "other_nll_ge_function_nll_rows": 2489,
+      "value_nll_equals_other_nll_rows": 0,
+      "pearson_r": {
+        "all_tokens": {
+          "whole_observed": 0.19460644853104936,
+          "whole_fixed_weights": 0.01933747173040312,
+          "function_nll": 0.11924062233874995,
+          "value_nll": 0.025574936728161895,
+          "other_nll": -0.08062351886806333
+        },
+        "value_tokens": {
+          "whole_observed": 0.33583814381876564,
+          "whole_fixed_weights": 0.03492856495708726,
+          "function_nll": 0.12524213460605912,
+          "value_nll": 0.02336452638625071,
+          "other_nll": -0.0051505657430422624
+        },
+        "value_fraction": {
+          "whole_observed": 0.31406854884086466,
+          "whole_fixed_weights": -0.015041297160787385,
+          "function_nll": 0.05505285449270597,
+          "value_nll": -0.025984590144734022,
+          "other_nll": 0.009079518020761818
+        }
+      },
+      "pearson_r_observed_vs_fixed": 0.8142144349896533
+    },
+    {
+      "step": 10,
+      "candidates": 4000,
+      "complete_fields": 4000,
+      "zero_token_rows": {
+        "function": 0,
+        "value": 0,
+        "other": 0
+      },
+      "all_sum_exactly_equals_sum_of_fields_rows": 3998,
+      "max_abs_sum_error": 1.4210854715202004e-14,
+      "max_abs_whole_mean_identity_error": 4.440892098500626e-16,
+      "pool_token_weights": {
+        "function": 0.06792277273784601,
+        "value": 0.19253253510608342,
+        "other": 0.7395446921560705
+      },
+      "mean_nll_across_candidates": {
+        "whole_observed": 0.06515829259035935,
+        "whole_fixed_weights": 0.0652661980107114,
+        "function_nll": 0.027533556027958084,
+        "value_nll": 0.2591668725917123,
+        "other_nll": 0.018251753666177904
+      },
+      "other_nll_p50_p90_max": [
+        0.007058437859425151,
+        0.049600546362049656,
+        0.35668577274526014
+      ],
+      "other_nll_ge_value_nll_rows": 481,
+      "other_nll_ge_function_nll_rows": 3042,
+      "value_nll_equals_other_nll_rows": 0,
+      "pearson_r": {
+        "all_tokens": {
+          "whole_observed": 0.24342411197275765,
+          "whole_fixed_weights": 0.11750781142373816,
+          "function_nll": 0.09270372834443427,
+          "value_nll": 0.10493259176382755,
+          "other_nll": 0.04539063664913257
+        },
+        "value_tokens": {
+          "whole_observed": 0.3992454618983475,
+          "whole_fixed_weights": 0.15495782095506253,
+          "function_nll": 0.15841284118489898,
+          "value_nll": 0.13208051200651635,
+          "other_nll": 0.06795625824468209
+        },
+        "value_fraction": {
+          "whole_observed": 0.3746197116948042,
+          "whole_fixed_weights": 0.12896665307992058,
+          "function_nll": 0.08509465609010733,
+          "value_nll": 0.11650792805659486,
+          "other_nll": 0.05251876359775825
+        }
+      },
+      "pearson_r_observed_vs_fixed": 0.841705849537627
+    },
+    {
+      "step": 30,
+      "candidates": 4000,
+      "complete_fields": 4000,
+      "zero_token_rows": {
+        "function": 0,
+        "value": 0,
+        "other": 0
+      },
+      "all_sum_exactly_equals_sum_of_fields_rows": 3995,
+      "max_abs_sum_error": 1.1368683772161603e-13,
+      "max_abs_whole_mean_identity_error": 2.220446049250313e-16,
+      "pool_token_weights": {
+        "function": 0.06792277273784601,
+        "value": 0.19253253510608342,
+        "other": 0.7395446921560705
+      },
+      "mean_nll_across_candidates": {
+        "whole_observed": 0.05786119003683034,
+        "whole_fixed_weights": 0.05847974463189776,
+        "function_nll": 0.020826349405142316,
+        "value_nll": 0.24598928038446102,
+        "other_nll": 0.013121886446997766
+      },
+      "other_nll_p50_p90_max": [
+        0.004668214898184906,
+        0.036150425652628354,
+        0.2966895324139492
+      ],
+      "other_nll_ge_value_nll_rows": 444,
+      "other_nll_ge_function_nll_rows": 2855,
+      "value_nll_equals_other_nll_rows": 0,
+      "pearson_r": {
+        "all_tokens": {
+          "whole_observed": 0.2464090326163393,
+          "whole_fixed_weights": 0.11190069893044997,
+          "function_nll": 0.10140319993310963,
+          "value_nll": 0.0947113266982491,
+          "other_nll": 0.07709997802831955
+        },
+        "value_tokens": {
+          "whole_observed": 0.40315881859598035,
+          "whole_fixed_weights": 0.1497082005188994,
+          "function_nll": 0.17838396962217515,
+          "value_nll": 0.122629882561571,
+          "other_nll": 0.10326856860206159
+        },
+        "value_fraction": {
+          "whole_observed": 0.37420456767386373,
+          "whole_fixed_weights": 0.12103203729626878,
+          "function_nll": 0.10307308096725883,
+          "value_nll": 0.10147894964832804,
+          "other_nll": 0.09122491135165821
+        }
+      },
+      "pearson_r_observed_vs_fixed": 0.830726713558341
+    },
+    {
+      "step": 80,
+      "candidates": 4000,
+      "complete_fields": 4000,
+      "zero_token_rows": {
+        "function": 0,
+        "value": 0,
+        "other": 0
+      },
+      "all_sum_exactly_equals_sum_of_fields_rows": 3998,
+      "max_abs_sum_error": 2.842170943040401e-14,
+      "max_abs_whole_mean_identity_error": 4.440892098500626e-16,
+      "pool_token_weights": {
+        "function": 0.06792277273784601,
+        "value": 0.19253253510608342,
+        "other": 0.7395446921560705
+      },
+      "mean_nll_across_candidates": {
+        "whole_observed": 0.04918091031877681,
+        "whole_fixed_weights": 0.04873071328033022,
+        "function_nll": 0.01097909956070646,
+        "value_nll": 0.20469930538790482,
+        "other_nll": 0.01159322254104576
+      },
+      "other_nll_p50_p90_max": [
+        0.00344022831516903,
+        0.03374657737850619,
+        0.3002750699045951
+      ],
+      "other_nll_ge_value_nll_rows": 557,
+      "other_nll_ge_function_nll_rows": 3055,
+      "value_nll_equals_other_nll_rows": 0,
+      "pearson_r": {
+        "all_tokens": {
+          "whole_observed": 0.2440420879736961,
+          "whole_fixed_weights": 0.11251409741664405,
+          "function_nll": 0.0391044827956149,
+          "value_nll": 0.10673178108998932,
+          "other_nll": 0.05086139155476187
+        },
+        "value_tokens": {
+          "whole_observed": 0.4031158900243017,
+          "whole_fixed_weights": 0.1514036476801256,
+          "function_nll": 0.09241015071016635,
+          "value_nll": 0.1376337403103925,
+          "other_nll": 0.08331516308834805
+        },
+        "value_fraction": {
+          "whole_observed": 0.3625785028602264,
+          "whole_fixed_weights": 0.1260097921138991,
+          "function_nll": 0.04905106206425605,
+          "value_nll": 0.11778149079387289,
+          "other_nll": 0.06359952804571847
+        }
+      },
+      "pearson_r_observed_vs_fixed": 0.8335395663012758
+    },
+    {
+      "step": 250,
+      "candidates": 4000,
+      "complete_fields": 4000,
+      "zero_token_rows": {
+        "function": 0,
+        "value": 0,
+        "other": 0
+      },
+      "all_sum_exactly_equals_sum_of_fields_rows": 3999,
+      "max_abs_sum_error": 2.842170943040401e-14,
+      "max_abs_whole_mean_identity_error": 2.220446049250313e-16,
+      "pool_token_weights": {
+        "function": 0.06792277273784601,
+        "value": 0.19253253510608342,
+        "other": 0.7395446921560705
+      },
+      "mean_nll_across_candidates": {
+        "whole_observed": 0.03447096872229585,
+        "whole_fixed_weights": 0.033381495900038645,
+        "function_nll": 0.0033284687082859097,
+        "value_nll": 0.14021928404000397,
+        "other_nll": 0.008327614158738447
+      },
+      "other_nll_p50_p90_max": [
+        0.0020123394492180015,
+        0.024457732802719043,
+        0.22287876569245235
+      ],
+      "other_nll_ge_value_nll_rows": 478,
+      "other_nll_ge_function_nll_rows": 2999,
+      "value_nll_equals_other_nll_rows": 0,
+      "pearson_r": {
+        "all_tokens": {
+          "whole_observed": 0.24317380702288405,
+          "whole_fixed_weights": 0.12747900113141364,
+          "function_nll": -0.006560777477928283,
+          "value_nll": 0.12252508015613688,
+          "other_nll": 0.06747943484273619
+        },
+        "value_tokens": {
+          "whole_observed": 0.4026657057267574,
+          "whole_fixed_weights": 0.16721764937463537,
+          "function_nll": 0.025122613874618793,
+          "value_nll": 0.1593986415265577,
+          "other_nll": 0.08914126300577283
+        },
+        "value_fraction": {
+          "whole_observed": 0.3559366141396632,
+          "whole_fixed_weights": 0.14481824814658714,
+          "function_nll": 0.035862807916720016,
+          "value_nll": 0.14091155752337686,
+          "other_nll": 0.06157598692197659
+        }
+      },
+      "pearson_r_observed_vs_fixed": 0.8425795860191284
+    }
+  ]
+}

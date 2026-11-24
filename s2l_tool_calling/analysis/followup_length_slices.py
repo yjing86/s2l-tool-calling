@@ -157,6 +157,47 @@ def summarize_slice(ids, groups, outcomes, seed):
     }
 
 
+def short_minus_long(short, long, groups, outcomes, seed):
+    """Compare the B−A gaps directly, keeping each request group and its three seeds together."""
+    import numpy as np
+    from summarize_followup import seed_sensitivity
+
+    # Each group contributes paired wins and counts to both bins in the same draw.
+    totals = {}
+    seed_gaps = {s: 0.0 for s in SEEDS}
+    for bin_index, ids in enumerate((short, long)):
+        for key in ids:
+            group = totals.setdefault(groups[key], [0, 0, 0, 0])
+            group[2 * bin_index + 1] += 1
+            for s in SEEDS:
+                delta = int(outcomes[f"s{s}-B"][key]) - int(outcomes[f"s{s}-A"][key])
+                group[2 * bin_index] += delta
+                seed_gaps[s] += (1 if bin_index == 0 else -1) * 100 * delta / len(ids)
+
+    # Pool groups with equal contributions; their multinomial resampling law is identical.
+    counts = Counter(tuple(row) for row in totals.values())
+    patterns = sorted(counts)
+    probabilities = np.array([counts[p] for p in patterns], dtype=float) / len(totals)
+    rng = np.random.default_rng(seed)
+    draws = rng.multinomial(len(totals), probabilities, size=10_000) @ np.array(patterns)
+    valid = draws[(draws[:, 1] > 0) & (draws[:, 3] > 0)]
+    require(len(valid) > 0, "No joint resampling draw included both length bins")
+    gaps = (100 / len(SEEDS)) * (valid[:, 0] / valid[:, 1] - valid[:, 2] / valid[:, 3])
+    return {
+        "contrast": "(B minus A, shortest bin) minus (B minus A, longest bin), percentage points",
+        "scope": "Exploratory contrast chosen after inspection of the original four bins.",
+        "seed_differences_pp": seed_gaps,
+        "mean_pp": mean(seed_gaps.values()),
+        "fixed_seed_group_bootstrap_ci95_pp": np.quantile(gaps, [0.025, 0.975]).tolist(),
+        "fixed_requests_three_seed_t_ci95_pp": seed_sensitivity(list(seed_gaps.values()))["ci95_pp"],
+        "groups_in_both_bins": sum(row[1] > 0 and row[3] > 0 for row in totals.values()),
+        "group_union_size": len(totals),
+        "bootstrap_seed": seed,
+        "bootstrap_draws": len(draws),
+        "draws_with_both_bins": len(valid),
+    }
+
+
 def compute(course, model, seed):
     lengths, groups, provenance = reference_lengths(course, model)
     outcomes = load_outcomes(course, groups, provenance)
@@ -207,6 +248,8 @@ def compute(course, model, seed):
         "seeds": list(SEEDS),
         "quartiles": records,
         "all": overall,
+        "short_minus_long_B_minus_A": short_minus_long(buckets[0], buckets[3], groups, outcomes, seed)
+        if buckets[0] and buckets[3] else None,
     }
 
 
@@ -258,6 +301,15 @@ def markdown(summary):
             "",
         ]
     )
+    interaction = summary.get("short_minus_long_B_minus_A")
+    if interaction:
+        lo, hi = interaction["fixed_seed_group_bootstrap_ci95_pp"]
+        t_lo, t_hi = interaction["fixed_requests_three_seed_t_ci95_pp"]
+        lines.append(
+            f"The exploratory shortest-minus-longest difference in B−A was {interaction['mean_pp']:+.2f} pp "
+            f"(paired request-group 95% interval [{lo:+.2f}, {hi:+.2f}]; "
+            f"three-seed t interval [{t_lo:+.2f}, {t_hi:+.2f}]).\n"
+        )
     return "\n".join(lines)
 
 

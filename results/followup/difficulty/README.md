@@ -37,7 +37,25 @@ For each pair and seed, look up whether each test question’s reference functio
 
 For A vs. B, the common unadapted 2B model already scored 56.29% on the A-only exposure stratum and 39.66% on the B-only stratum. This shows that the two collections of questions differed in baseline performance. A also gained 57 net wins on questions whose function both models saw. For B vs. C, 65 of C’s 92 net wins occurred when both saw the function. Simple comparisons of one model’s accuracy on seen and unseen functions mix changes in request composition with any potential exposure effect. These observations support further controlled comparisons and do not separately identify causal effects of exposure, length, or difficulty. [Per-seed counts and exact-match rates](shared-exposure-by-seed.csv) · [Totals and baseline accuracy](shared-exposure-totals.csv)
 
-## Reproduce the six aggregate files
+## Does the whole-answer denominator favor long values?
+
+For each request, the whole-answer mean equals the sum of three within-field mean losses, each weighted by that field’s fraction of supervised answer tokens. The fields are function name, scalar argument values and all remaining supervised tokens. The last group includes argument names and nested object keys, alongside markup and separators. Across all 20,000 request/checkpoint records, the three counts added exactly to the whole-answer count. The largest absolute discrepancy in the loss sums was 1.14 × 10⁻¹³, and in the reconstructed whole-answer mean it was 4.45 × 10⁻¹⁶ or less.
+
+We recomputed each request’s mean with **one fixed set of weights** using the corresponding token totals over the entire training pool. Function names received 6.792%, values 19.253%, and remaining tokens 73.954% (rounded). The within-field losses for each request stayed the same. Every request contained all three fields. The implementation excludes rows lacking a field from the comparison, because the corresponding mean is undefined. Each correlation below is Pearson’s r across the same 4,000 equally weighted requests at one checkpoint. **Value share** means value tokens divided by all supervised answer tokens.
+
+| Proxy step | Mean function / value / remaining NLL | r(value share, observed) | r(value share, fixed) | r(answer length, observed) | r(answer length, fixed) |
+| ---: | --- | ---: | ---: | ---: | ---: |
+| 0 | .076 / .394 / .032 | .314 | −.015 | .195 | .019 |
+| 10 | .028 / .259 / .018 | .375 | .129 | .243 | .118 |
+| 30 | .021 / .246 / .013 | .374 | .121 | .246 | .112 |
+| 80 | .011 / .205 / .012 | .363 | .126 | .244 | .113 |
+| 250 | .003 / .140 / .008 | .356 | .145 | .243 | .128 |
+
+Fixing field weights nearly removed the value-share association at step 0. A positive association remained at all four later checkpoints. Candidate-specific losses also vary with length. At step 250, value length had r = .403 with observed whole-answer loss, .167 with fixed-weight loss and .159 with the within-value mean itself. Remaining positions were usually easier than value positions on average, but their per-request mean exceeded the value mean on 850/4,000 requests at step 0 and 478/4,000 at step 250. Holding all field means constant, transferring weight from remaining tokens to value tokens increases the combined loss only when the value mean is higher.
+
+B standardizes the five observed whole-answer losses, clusters their trajectories with K-means and draws examples in rounds across clusters. Ranking by the largest loss is a different procedure. This CPU calculation changes only the arithmetic of the score. It provides evidence about the length–loss association, with the downstream effect on subset membership and model accuracy still unmeasured. [Checkpoint-level identities, distributions and correlations](denominator-audit.json)
+
+## Reproduce the seven aggregate files
 
 From the repository root, use Python 3.12 with the pinned CPU selection dependencies. Set `PRIMARY_RUN` to your archived primary run if it lives outside `local/course-run`. The analysis reads the original five proxy scores, selected subsets, locked primary predictions and their receipts, plus the registered E2 selection under `local/followup/phase1`.
 
@@ -48,4 +66,4 @@ python3 -m s2l_tool_calling.analysis.followup_difficulty \
   --out local/followup/phase0/difficulty-replay
 ```
 
-The output consists of the five CSV tables linked above and the [metric definitions](diagnostic-definitions.json). The published tables contain counts, rates, thresholds and loss summaries. [Full reproduction guide](../../../docs/reproduce.md)
+The output consists of the five CSV tables, the [metric definitions](diagnostic-definitions.json) and the [denominator audit](denominator-audit.json). The published files contain counts, rates, thresholds and loss summaries. [Full reproduction guide](../../../docs/reproduce.md)

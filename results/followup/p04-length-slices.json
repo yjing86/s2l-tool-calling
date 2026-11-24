@@ -380,5 +380,28 @@
         ]
       }
     }
+  },
+  "short_minus_long_B_minus_A": {
+    "contrast": "(B minus A, shortest bin) minus (B minus A, longest bin), percentage points",
+    "scope": "Exploratory contrast chosen after inspection of the original four bins.",
+    "seed_differences_pp": {
+      "42": -3.916679479380444,
+      "43": -2.9326630612804268,
+      "44": -0.5294436162603364
+    },
+    "mean_pp": -2.4595953856404025,
+    "fixed_seed_group_bootstrap_ci95_pp": [
+      -4.923591545925118,
+      0.03336369733979821
+    ],
+    "fixed_requests_three_seed_t_ci95_pp": [
+      -6.788119965467137,
+      1.8689291941863324
+    ],
+    "groups_in_both_bins": 0,
+    "group_union_size": 1103,
+    "bootstrap_seed": 31415,
+    "bootstrap_draws": 10000,
+    "draws_with_both_bins": 10000
   }
 }

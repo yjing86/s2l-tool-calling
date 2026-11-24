@@ -66,13 +66,59 @@ def add_e2(phase1, selections, bins):
             raise ValueError(f"Seed {seed}: E2 and B length-bin counts differ")
 
 
+def denominator_audit(data, step):
+    """Use all verified candidates, independent of their subset or downstream outcome."""
+    fields = ("function", "value", "other")
+    seq = list(data.values())
+    n = np.array([[r[f + "_tokens"] for f in fields] for r in seq], dtype=int)
+    s = np.array([[r[f + "_sum"] for f in fields] for r in seq], dtype=float)
+    total = np.array([r["all_tokens"] for r in seq])
+    loss = np.array([r["all_sum"] for r in seq])
+    if ((total <= 0).any() or (n < 0).any() or not np.array_equal(n.sum(axis=1), total)
+            or not np.isfinite(s).all() or (s < 0).any() or (s[n == 0] != 0).any()
+            or not np.allclose(loss, s.sum(axis=1), rtol=1e-12, atol=1e-12)):
+        raise ValueError(f"Step {step}: invalid additive field decomposition")
+    fixed_weights = n.sum(axis=0) / total.sum()
+    complete = (n > 0).all(axis=1)
+    if not np.any(complete):
+        raise ValueError("No rows have an observed within-field mean for every field")
+    means = s[complete] / n[complete]
+    fn, value, other = means.T
+    observed = loss[complete] / total[complete]
+    fixed = (means * fixed_weights).sum(axis=1)
+    fractions = n[complete] / total[complete, None]
+    weighted = (means * fractions).sum(axis=1)
+    if not np.allclose(observed, weighted, rtol=1e-12, atol=1e-12):
+        raise ValueError(f"Step {step}: weighted means do not reproduce whole-answer loss")
+    measures = {"whole_observed": observed, "whole_fixed_weights": fixed,
+                "function_nll": fn, "value_nll": value, "other_nll": other}
+    predictors = {"all_tokens": total[complete], "value_tokens": n[complete, 1], "value_fraction": fractions[:, 1]}
+    def corr(x, y):
+        return float(np.corrcoef(x, y)[0, 1]) if np.ptp(x) and np.ptp(y) else None
+    return {
+        "step": step, "candidates": len(seq), "complete_fields": int(complete.sum()),
+        "zero_token_rows": dict(zip(fields, (n == 0).sum(axis=0).tolist())),
+        "all_sum_exactly_equals_sum_of_fields_rows": int((loss == s.sum(axis=1)).sum()),
+        "max_abs_sum_error": float(np.max(np.abs(loss - s.sum(axis=1)))),
+        "max_abs_whole_mean_identity_error": float(np.max(np.abs(observed - weighted))),
+        "pool_token_weights": dict(zip(fields, fixed_weights.tolist())),
+        "mean_nll_across_candidates": {k: float(x.mean()) for k, x in measures.items()},
+        "other_nll_p50_p90_max": np.quantile(other, [.5, .9, 1.]).tolist(),
+        "other_nll_ge_value_nll_rows": int((other >= value).sum()),
+        "other_nll_ge_function_nll_rows": int((other >= fn).sum()),
+        "value_nll_equals_other_nll_rows": int((value == other).sum()),
+        "pearson_r": {a: {b: corr(x, y) for b, y in measures.items()} for a, x in predictors.items()},
+        "pearson_r_observed_vs_fixed": corr(observed, fixed),
+    }
+
+
 def training_metrics(primary, selections, lengths, bins):
     groups = defaultdict(list)
     for k, n in lengths.items():
         if n > 0:
             groups[n].append(k)
     sets = {(0, "pool"): set(lengths), **selections}
-    cells, thresholds = [], []
+    cells, thresholds, denominators = [], [], []
     registered = read_json(primary / "selection/42/selection.json")["receipts"]
     for step in STEPS:
         path = primary / "scores" / f"step-{step}.jsonl"
@@ -81,6 +127,7 @@ def training_metrics(primary, selections, lengths, bins):
                 registered[str(step)] != {"step": step, "sha256": digest(path), "rows": len(lengths)} or
                 data.keys() != lengths.keys() or any(r["value_tokens"] != lengths[k] for k, r in data.items())):
             raise ValueError(f"Step {step}: score identity or token counts differ")
+        denominators.append(denominator_audit(data, step))
         raw = {k: r["value_sum"] / lengths[k] for k, r in data.items() if lengths[k]}
         if not all(math.isfinite(x) and x >= 0 for x in raw.values()):
             raise ValueError("Invalid mean value loss")
@@ -111,7 +158,7 @@ def training_metrics(primary, selections, lengths, bins):
             averages.append({"step": step, "method": arm, "replicates": len(entries),
                              "selection_seeds": ",".join(str(r["seed"]) for r in entries) if arm != "pool" else "",
                              **metrics})
-    return cells, averages, thresholds
+    return cells, averages, thresholds, denominators
 
 
 def common_exposure(primary, groups, gold, freq, preds):
@@ -172,7 +219,7 @@ def main():
     edges, indices = length_strata(np.array(list(lengths.values())))
     bins = dict(zip(lengths, map(int, indices)))
     add_e2(args.phase1, selections, bins)
-    cells, averages, thresholds = training_metrics(primary, selections, lengths, bins)
+    cells, averages, thresholds, denominators = training_metrics(primary, selections, lengths, bins)
     paired, totals = common_exposure(primary, groups, gold, freq, preds)
     out = args.out
     out.mkdir(parents=True, exist_ok=True)
@@ -192,6 +239,19 @@ def main():
                 "training_selections": "A/B/C/E2 seeds 42,43,44; historical pooled Bprime only at 42; E2 selection composition only",
                 "coverage": "Each seed and pair shares requests within each exposure stratum. Totals reuse the same 2,000 requests three times."}
     (out / "diagnostic-definitions.json").write_text(json.dumps(metadata, indent=2) + "\n")
+    audit = {
+        "unit": "unweighted training candidates within each proxy checkpoint; no target results or selection step",
+        "whole_observed": "all_sum / all_tokens, including all supervised answer positions",
+        "whole_fixed_weights": "sum of each observed field mean times one shared field weight. "
+                               "Weight = total field tokens across the full training pool / total all_tokens.",
+        "missing_fields": "Count and sum identities cover all candidates. Fixed-mixture comparisons, correlations "
+                          "and mean NLL summaries use only rows with all three fields present. No means are imputed.",
+        "pearson_r": "Pearson correlation across the complete candidates at each checkpoint; no cross-checkpoint pooling",
+        "other": "supervised positions outside the function-name and scalar argument-value token masks, "
+                 "including argument names, nested object keys and serialization syntax",
+        "checkpoints": denominators,
+    }
+    (out / "denominator-audit.json").write_text(json.dumps(audit, indent=2, allow_nan=False) + "\n")
     print(f"Wrote {len(cells)} training-subset rows and {len(paired)} paired exposure strata to {out}.")
 
 
