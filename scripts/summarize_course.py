@@ -152,6 +152,7 @@ def summary(course, test, boot_seed):
     source_hash = digest(test)
     checksums = {"frozen_test_split": source_hash, "locked-models.json": digest(lock_path),
                  "summarize_course.py": digest(Path(__file__))}
+    base = phases["main"].get("base")
     stats, predictions, phase_results = {}, {}, {}
     common_protocol = None
     for phase, labels in phases.items():
@@ -168,6 +169,8 @@ def summary(course, test, boot_seed):
                     raise ValueError(f"{name}: generation protocol changed between internal exams")
                 common_protocol = protocol
             if label == "base":
+                if name != base or stats[name]["adapter_sha256"]:
+                    raise ValueError(f"{phase}: baseline must be the shared locked unadapted model")
                 continue
             match = re.fullmatch(r"s(\d+)-(A|B|C|Bprime)", label)
             if not match:
@@ -176,14 +179,17 @@ def summary(course, test, boot_seed):
         comparisons, aggregated, paired_predictions = {}, defaultdict(dict), defaultdict(list)
         for seed, methods in sorted(by_seed.items()):
             comparisons[str(seed)] = {}
-            for l, r in (("C", "B"), ("B", "A"), ("C", "A"), ("Bprime", "B"), ("C", "Bprime")):
+            if base is not None:
+                methods["base"] = base
+            for l, r in (("C", "B"), ("B", "A"), ("C", "A"), ("Bprime", "B"), ("C", "Bprime"),
+                         ("A", "base"), ("B", "base"), ("C", "base")):
                 if l not in methods or r not in methods:
                     continue
                 result = paired(predictions[methods[l]], predictions[methods[r]], groups, boot_seed)
                 comparisons[str(seed)][f"{l}-{r}"] = result
                 aggregated[f"{l}-{r}"][seed] = result["difference_pp"]
                 paired_predictions[f"{l}-{r}"].append((predictions[methods[l]], predictions[methods[r]]))
-        phase_results[phase] = {"locked": labels, "paired_by_seed": comparisons,
+        phase_results[phase] = {"locked": labels, "reference_base": base, "paired_by_seed": comparisons,
                                 "across_seed_differences_pp": {
                                     pair: fixed_seed_summary(vals, paired_predictions[pair], groups, boot_seed)
                                     for pair, vals in aggregated.items()}}
@@ -202,6 +208,9 @@ def summary(course, test, boot_seed):
 def markdown(summary, ledger):
     lines = ["# Course experiment results", "",
              f"Internal test: {summary['test_requests']} requests across {summary['near_duplicate_groups']} groups.", "",
+             "The primary comparison is C−B at equal target training tokens (main). The A−base, B−base and "
+             "C−base comparisons are supplementary. Each uses the same frozen, unadapted 2B predictions on "
+             "the same requests across all matched seeds.", "",
              "| Evaluated checkpoint | Correct | Requests | Accuracy |", "|---|---:|---:|---:|"]
     for model, m in summary["models"].items():
         lines.append(f"| {model} | {m['correct']} | {m['requests']} | {m['accuracy_pct']:.2f}% |")
