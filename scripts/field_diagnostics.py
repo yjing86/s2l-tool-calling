@@ -281,28 +281,41 @@ def analyze(args, data):
                                "percent_argument_error": 100 * argument_counts[arm][kind] / wrong if wrong else None}
                         for kind in kinds},
         }
-    lines = ["# 单调用参数诊断", "", f"全卷共 {len(data)} 道，已复核来源标签的题目有 {len(labels)} 道。结构分层覆盖全卷。配对差以百分点计，按近重复题组重采样 2,000 次。", "",
-             "| 参考参数结构 | 请求数 | B 整题答对 | C 整题答对 | C−B（百分点） |", "|---|---:|---:|---:|---:|"]
+    lines = ["# Single-call argument diagnostics", "",
+             f"The evaluation covers {len(data)} requests. Reviewed argument-source labels are available for {len(labels)} of them. "
+             "The structural breakdown covers every request. Paired differences are in percentage points, "
+             "with 2,000 bootstrap draws over groups of near-duplicate requests.", "",
+             "| Reference argument structure | Requests | Correct calls (B) | Correct calls (C) | C−B (pp) |",
+             "|---|---:|---:|---:|---:|"]
     for s, r in report["structural"].items():
         lines.append(f"| {s} | {r['requests']} | {r['B_correct']} | {r['C_correct']} | {fmt(r['C_minus_B_pp'])} |")
-    lines += ["", "以下为主评测开始后增设的次要描述性分解。两组均只调用一次且均选对工具时，整题正确等价于全部参数正确。条件分组由两个模型的输出共同决定。", "",
-              "| 请求范围 | 请求数 | B 整题答对 | C 整题答对 | 仅 B 对 | 仅 C 对 | 净多答对 | C−B（百分点） |",
+    lines += ["", "This secondary analysis was added after the main evaluation started. When both models call the "
+              "correct tool exactly once, complete-call correctness depends entirely on the arguments. "
+              "The outputs of both models determine which requests enter that group.", "",
+              "| Request group | Requests | Correct calls (B) | Correct calls (C) | B only | C only | Net correct (C−B) | C−B (pp) |",
               "|---|---:|---:|---:|---:|---:|---:|---:|"]
-    for key, label in (("both_tools_correct", "共同选对工具"), ("remaining", "其余请求")):
+    for key, label in (("both_tools_correct", "Both called the correct tool once"), ("remaining", "Remaining requests")):
         r = partitions[key]
         lines.append(f"| {label} | {r['denominator']} | {r['B_correct']} | {r['C_correct']} | {r['B_only_correct']} | {r['C_only_correct']} | {r['net_correct']:+d} | {fmt(r['C_minus_B_pp'])} |")
-    lines += ["", f"全卷正确数净变化为 {net:+d} 道，已核对两部分的请求数与净变化之和。"]
-    lines += ["", "下表只细分首次判为参数错误的请求。每题在同一类别中只计一次，一题可能同时涉及多类，因此各行不能相加。对象缺键与多键通过原始错误路径区分；数组长度差沿用评分器的值错误。", "",
-              "| 组别 | 错误类别 | 涉及请求数 | 占全部请求（%） | 占参数错误请求（%） |",
+    lines += ["", f"Across all requests, the net difference is {net:+d} correct calls. "
+              "The group counts and both net differences reconcile with the full split."]
+    lines += ["", "The following counts cover requests whose first failure was an argument error. A request counts once "
+              "per error kind and can contribute to several rows. The recorded error paths distinguish missing from extra "
+              "object keys. The scorer classifies array-length mismatches as value errors.", "",
+              "| Method | Error kind | Affected requests | % of all requests | % of requests with an argument error |",
               "|---|---|---:|---:|---:|"]
     for arm, summary in report["argument_error_requests"].items():
         for kind, stats in summary["by_kind"].items():
             lines.append(f"| {arm} | {kind} | {stats['requests']} | {fmt(stats['percent_all'])} | {fmt(stats['percent_argument_error'])} |")
     for arm, summary in report["argument_error_requests"].items():
-        lines += ["", f"{arm} 组共有 {summary['total_requests']} 道请求，其中 {summary['argument_error_requests']} 道首次判为参数错误。"]
+        lines += ["", f"For {arm}, an argument error was the first failure on {summary['argument_error_requests']} "
+                  f"of {summary['total_requests']} requests."]
     if strata:
-        lines += ["", "每类分别按请求和标量叶值计数。“共同选对工具”只纳入两组均调用一次且选择正确工具的请求。一题可包含多类参数。", "",
-                  "| 来源 | 范围 | 单位 | B 正确/分母 | C 正确/分母 | C−B | 95% 区间 |", "|---|---|---|---:|---:|---:|---|"]
+        lines += ["", "For each source category, we count requests and individual scalar values separately. "
+                  "The both_tools_correct group contains requests where both models called the correct tool exactly once. "
+                  "A request may contain arguments from more than one source category.", "",
+                  "| Argument source | Request group | Unit | B correct/total | C correct/total | C−B (pp) | 95% interval (pp) |",
+                  "|---|---|---|---:|---:|---:|---|"]
         for cls, result in strata.items():
             for cohort in ("all","both_tools_correct"):
                 for unit in ("request","leaf"):
@@ -310,7 +323,8 @@ def analyze(args, data):
                     ci = r["ci95_pp"]
                     lines.append(f"| {cls} | {cohort} | {unit} | {r['B_correct']}/{r['denominator']} | {r['C_correct']}/{r['denominator']} | {fmt(r['C_minus_B_pp'])} | {', '.join(fmt(x) for x in ci) if ci else '—'} |")
     else:
-        lines += ["", "参数来源分析待人工标注。仅凭预测结果无法区分请求明示、格式规范化和需要推导的值。"]
+        lines += ["", "Analysis by argument source requires human annotations that distinguish values stated in the request, "
+                  "values requiring format normalization, and values that require inference."]
     if args.out.exists():
         raise ValueError("Select a new output directory")
     args.out.parent.mkdir(parents=True, exist_ok=True)

@@ -1,123 +1,124 @@
-# 四篇论文精读：小模型怎样给大模型挑训练题
+# How can a small model choose training examples for a larger one?
 
-这四篇合起来回答一个问题：假设手里有 4,000 道工具调用题，只能精调其中的 1,000 道，怎样知道多花时间挑题值得？S2L 提供一种选法；Compute-Constrained 追问它花了多少算力；ToolACE-R 用模型实际作答来判断一道工具题的难度；Chasing Random 检查所谓提升能不能经得起更换数据、评测和随机样本。四篇各自研究的任务、模型和评测不同。以下数字均注明对应实验，自编例子用于理解方法。
+Suppose you have 4,000 tool-calling requests and can fine-tune a model on 1,000. What evidence would justify spending time choosing which 1,000 to keep? **SmallToLarge (S2L)** proposes a selection method. **Compute-Constrained Data Selection** asks how much compute that method consumes. **ToolACE-R** estimates the difficulty of a request by having a model actually answer it. **Chasing Random** tests whether a selection method's advantage survives changes in the dataset, evaluation and random sample. Each paper studies a different task and model. The results below are tied to the experiments that produced them. The worked examples are illustrative.
 
-本地阅读时打开项目的 `local/papers/`：编号 01–04 的 PDF 是英文会议版，文件名带 `.zh.pdf` 的是逐页中文对照版。后者每段中文前附对应英文原页，图、表、公式可直接对照。译文由本机离线模型生成，可能误译术语或打乱复杂图表的阅读顺序；下面精读中的关键设置和数字按英文原文核对。公开仓库的读者可从每节末尾的出版社链接获取论文。
+The four sections below link to the authors' papers and explain which experimental comparisons each paper motivated. Consult the published figures and equations for the original definitions and numerical results.
 
-## 01　SmallToLarge：一道题是怎样被学会的？
+## 01 · SmallToLarge — what does it look like when a model learns an example?
 
-**阅读位置**：算法 1 → 图 4、表 1 和表 2 → 图 8、9 → 附录 B.3。Yang、Mishra、Chiang 和 Mirzasoleiman，NeurIPS 2024。
+**Yu Yang, Siddhartha Mishra, Jeffrey Chiang and Baharan Mirzasoleiman, NeurIPS 2024.** Start with Algorithm 1, then Figure 4 and Tables 1–2, Figures 8–9, and Appendix B.3.
 
-### 为什么要保存一条曲线？
+### Why keep a curve for each example?
 
-微调时，模型看到问题和正确答案的前半句，要预测下一个正确词元。给正确词元的概率越低，这一位置的损失 −log(p) 就越大。把答案上的损失取平均，得到模型在这道题上的一个数。训练前、中、后反复测量**同一道题**，就有了它的学习轨迹。一个检查点能告诉你“此刻还难不难”，多个检查点还能帮助区分“原本就会”和“通过训练才学会”。
+During fine-tuning, a model receives the prompt and the correct answer prefix and predicts the next reference token. A reference token assigned probability *p* contributes a loss of −log(*p*). Averaging over the answer tokens gives one loss for the example. Repeating that measurement on **the same example** throughout training produces a *learning trajectory*. A single checkpoint tells us how difficult the example is at that moment. Multiple checkpoints help distinguish examples the model already handled well from ones it learned during training.
 
-举一个自编的三时刻例子。甲的损失为 [0.3, 0.2, 0.2]，乙为 [2.4, 1.2, 0.2]，丙为 [2.5, 1.3, 0.3]。甲和乙的末次损失一样；乙和丙在学习过程中却更像。若训练池里有几百道像甲的题，只有十几道像乙的题，均匀随机抽题很可能继续偏向甲。按轨迹分组给了后者进入训练集的机会。这些簇没有人工命名，同一簇可以同时有几道题材截然不同的题。
+Consider three illustrative trajectories measured at three checkpoints. Example A has losses [0.3, 0.2, 0.2], B has [2.4, 1.2, 0.2] and C has [2.5, 1.3, 0.3]. A and B finish with the same loss, yet B and C follow much more similar paths. If the training pool contains hundreds of examples like A and just a dozen like B, a uniform random sample will tend to preserve that imbalance. Allocating places by trajectory cluster gives the less common learning pattern more representation. No human labels the clusters. Questions about unrelated topics can end up together.
 
-### 算法 1 到底做了什么？
+### How Algorithm 1 selects a subset
 
-1. 用较小的代理模型在训练集上微调，并记录各题的损失随训练的变化。附录 B.3 中，MathInstruct 和 MIMIC-III 使用 Pythia-70M，每 **500 次训练迭代**记录一次。记录间隔是主实验设置，作者另用五时刻做密度消融。
-2. 把每题的轨迹看作向量，用欧氏距离衡量两条曲线相隔多远。作者用 Faiss 做 K-means，主设置 **100 簇、20 次聚类迭代**，也比较过 50、100、200 簇。这里“20 次”说的是聚类算法更新中心的次数。
-3. 按簇大小从小到大分配预算。在当前簇中抽取“剩余名额除以剩余簇数”所给的份额；小簇不够就拿完，大簇在各自名额内随机抽。例如簇大小为 2、20、100，要抽 12 道，会分成 2、5、5。这个规则既照顾稀少轨迹，也允许一个簇内保留多种具体样本。
-4. 用选出的**原始训练样本**微调较大的目标模型。代理输出的是训练题名单；目标模型学的是每道入选题的参考答案。换大模型仍能获益，取决于小模型看出的差异是否也能代表大模型所需的训练变化。
+1. Fine-tune a small proxy model on the training pool and record each example's loss at several points. In the MathInstruct and MIMIC-III settings in Appendix B.3, the authors used Pythia-70M and recorded losses every **500 training iterations**. A separate sampling-density ablation uses five observations.
+2. Treat each trajectory as a vector and compare vectors by Euclidean distance. The authors used Faiss K-means with **100 clusters and 20 clustering iterations** in the main setting. They also compared 50, 100 and 200 clusters. The 20 iterations update cluster centers.
+3. Allocate the selection budget starting with the smallest cluster. At each cluster, divide the remaining places by the number of remaining clusters. Take the whole cluster if it contains fewer examples than its allocation. Otherwise, sample randomly within its allocation. For example, with cluster sizes 2, 20 and 100 and a budget of 12, the quotas become 2, 5 and 5. This preserves rare trajectories while allowing variation within a cluster.
+4. Fine-tune the larger target on the selected **original examples and their reference answers**. The proxy supplies the list of examples. The practical question is whether learning patterns visible to the small model also matter to the larger one.
 
-### 作者用什么证据支持这件事？
+### What evidence supports the method?
 
-理论部分从梯度入手：每道题都会给参数一个更新方向；若簇内样本给出的更新足够相似，抽取代表样本后形成的更新与全量更新之间就能建立误差界。作者在给定条件下讨论收敛到最优解附近。实验中还比较了小模型和大模型的轨迹分组现象。这给“小模型可代理”提供了理由，但具体到不同分词器、LoRA 和工具字段，还需要下游实验。
+The theoretical argument starts with the gradient each example contributes to a parameter update. If examples within a cluster induce sufficiently similar updates, it is possible to bound the discrepancy between the update from representatives and the full-data update. The authors discuss convergence to a neighborhood of the optimum under their assumptions. They also empirically compare trajectory grouping across small and large models. Whether those observations transfer to different tokenizers, LoRA fine-tuning or particular fields in a tool call requires downstream evaluation.
 
-在 MathInstruct 上，Pythia-70M 为 Pythia-410M 选约 3 万题，约占原数据的 **11%**，在六项数学评测的平均表现上达到全量训练水平。图 4 与表 1 固定目标训练步数，选出的小集合可以重复见到。表 2 固定 epoch 数，子集更小时更新通常更少。回答“要多少种不同的题”时看前者；回答“每道题看同样次数、少做更新还能保住多少成绩”时看后者。临床摘要实验把相似思路用于另一种输出，比较三项摘要指标；摘要任务的分数不能直接换算成工具调用正确率。
+On MathInstruct, Pythia-70M selected roughly 30,000 examples for Pythia-410M, about **11%** of the original dataset. The selected subset matched full-data training on average across six math evaluations. Figure 4 and Table 1 hold target training steps fixed, so the smaller subset can be revisited. Table 2 holds the number of epochs fixed, so smaller subsets generally entail fewer updates. The first comparison addresses how many *distinct* examples are needed for a given number of updates. The second asks how much performance remains when each example gets the same number of passes and the subset gets fewer updates. The clinical summarization experiment applies the idea to a different output and compares three summarization metrics. Those scores use a different scale from exact tool-call accuracy.
 
-图 8 研究轨迹长度；图 9 把长度固定为四，再改记录位置。在该实验中，连续较密的五个时刻比跨训练期稀疏记录更有利。**我们采用第 0、10、30、80、250 步来观察早期变化并保留训练终点。** 若效果不明显，快照间隔本身是后续可检验的原因。
+Figure 8 studies trajectory length. Figure 9 fixes the length at four and varies the checkpoint positions. In the reported experiments, five closely spaced observations were more useful than observations distributed sparsely across training. **Our experiment measures steps 0, 10, 30, 80 and 250** to capture early changes while retaining the endpoint. Checkpoint spacing is a variable a follow-up experiment can test.
 
-### 这篇论文留下了哪个问题给我们？
+### What question does this leave for tool calling?
 
-同一道工具题可能已选对函数、却一直填错日期。若格式词元很多，整答平均值会掩盖日期上的困难。B 组保留整答轨迹，C 组分开保留函数名和参数值轨迹，其他条件一致。C 胜 B 说明改变表示后选出的题在本设置更有用；追加 B′ 把相同字段合成一个数，才更有助于识别收益究竟来自去掉格式，还是来自保留字段差异。[NeurIPS 会议原文](https://proceedings.neurips.cc/paper_files/paper/2024/hash/97fe251c25b6f99a2a23b330a75b11d4-Abstract-Conference.html)
+A model can choose the right tool and repeatedly fill in the wrong date. Averaging over many formatting tokens can obscure difficulty on that date. Group B in this project keeps the whole-answer trajectory. Group C keeps separate trajectories for the function name and argument values. A C advantage over B would show that changing the representation produced a more useful subset under these conditions. The B′ control pools exactly the same field tokens into one mean. Comparing C with B′ helps distinguish the effect of retaining separate field signals from the effect of excluding syntax and other tokens. [NeurIPS conference paper](https://proceedings.neurips.cc/paper_files/paper/2024/hash/97fe251c25b6f99a2a23b330a75b11d4-Abstract-Conference.html)
 
-## 02　Compute-Constrained Data Selection：挑题花掉的钱还能收回来吗？
+## 02 · Compute-Constrained Data Selection — when does selection pay for itself?
 
-**阅读位置**：表 1 的成本拆解 → 表 2 的实验设置 → 图 5 的两种预算 → 附录的 break-even 分析。Junjie Oscar Yin 与 Alexander M. Rush，ICLR 2025。
+**Junjie Oscar Yin and Alexander M. Rush, ICLR 2025.** Read the cost breakdown in Table 1, the experimental settings in Table 2, the two budgets in Figure 5, and the break-even analysis in the appendix.
 
-### 一个会改变结论的比较方式
+### Two budget choices answer different questions
 
-假设两组都训练了 1,000 道题，认真选题的一组考了 72 分，随机组考了 70 分。若选题之前额外花了两小时，团队真正关心的另一个问题是：把这两小时也交给随机组，它最后会考几分？前一个比较测**给定目标训练量时的数据价值**，后一个比较测**给定总预算时整条方法的价值**。72 和 70 是教学例子。
+Imagine that two systems train on 1,000 examples each. The system with carefully selected data scores 72, and the random baseline scores 70. Now suppose selection took two extra hours. What score could the random baseline have achieved if it had used those two hours for training? The first comparison measures the value of the data at a given target training budget. The second measures the performance of the entire strategy at a given *total* budget. The scores of 72 and 70 are illustrative.
 
-作者把选择和训练放进一个算式：总计算预算 ≥ 选样开销 ＋ 所选样本的训练开销。在相同总预算下，把更多计算放在选择阶段，就要减少用于目标微调的计算。图上的 Pareto 前沿可以读成“横轴只允许花这么多算力时，已测试的方案中纵轴最高能到哪里”。只有比较预算相近的点，才能判断在那个预算下的优胜者。
+The authors require that *selection cost + training cost on the selected examples ≤ total compute budget*. At fixed total compute, a more expensive selection step leaves fewer resources for target fine-tuning. To read the Pareto frontier, pick a budget on the horizontal axis and find the best performance among tested configurations that fit it. Compare methods at similar budgets before declaring one preferable for that budget.
 
-### 四种选法为什么成本相差这么多？
+### Why do selection methods cost different amounts?
 
-| 方法 | 怎样给训练题评分 | 主要付出 |
-|---|---|---|
-| BM25 | 看候选题与目标示例词汇的匹配。 | 统计词频和检索即可，额外模型计算很少。 |
-| Embed | 把题编码成向量，与目标示例比较余弦相似度。 | 要运行编码器，但表示可以缓存。 |
-| PPL | 用语言模型衡量候选文本有多难预测，再按设定选取。 | 每条候选都要前向；评分模型大小和文本长度都会影响成本。 |
-| 梯度方法，如 LESS | 比较候选题与目标示例的参数更新方向是否一致。 | 需要损失梯度和表示，评分比只跑前向昂贵。 |
+| Method | How it scores a candidate | Main computational expense |
+| --- | --- | --- |
+| BM25 | Measures lexical overlap between the candidate and target examples. | Term statistics and retrieval, with little additional model compute. |
+| Embed | Encodes examples as vectors and compares them to target examples using cosine similarity. | Running the encoder. The embeddings can be cached. |
+| PPL | Uses a language model to estimate how difficult the candidate text is to predict, then selects according to the specified rule. | A forward pass on each candidate. Cost depends on the scoring model and the text length. |
+| Gradient methods such as LESS | Compare the parameter-update directions for candidates and target examples. | Computing loss gradients and their representations costs more than a forward pass alone. |
 
-他们比较了不同训练 token 量、选样策略和从 7B 到 70B 的目标设置，评测包括知识问答 MMLU、复杂推理 BBH、指令遵循 IFEval。目标能力不同，哪些题算“相关”也会变。图 5 显示，固定数据量时昂贵方法可能占优；在小到中等总预算下，BM25 或 Embed 可以因为把更多计算留给训练而领先。预算增大、或把选择成本分摊到多个用途，结论可能改变。
+The authors vary training-token budgets, selection methods and target sizes from 7B to 70B. Their evaluations cover knowledge on MMLU, reasoning on BBH and instruction following on IFEval. A change in the target capability can change which examples count as relevant. Figure 5 shows that an expensive method can perform well at a fixed amount of training data, while BM25 or Embed can lead at small or moderate total budgets because they leave more compute for training. A larger budget, or amortizing selection across downstream uses, can change the ordering.
 
-文中约 **5 倍、10 倍**分别指其分析中 PPL、梯度方法变得具有计算竞争力时的**目标模型与选样模型规模比**。模型家族、任务与硬件都有限定。用 2B 除以 0.8B 得到 2.5，不能据此推出我们一定亏钱；S2L 还包括训练代理和多次前向，与论文中的两种评分设定也不同。
+The paper's approximate **5× and 10×** figures refer to the *target-to-selector model-size ratios* at which PPL and gradient selection, respectively, became compute-competitive in its analysis. Those values depend on the models, tasks and hardware studied. Our target-to-proxy ratio is 2B / 0.8B = 2.5. S2L also requires proxy training and repeated forward passes. Evaluating its cost requires measuring that pipeline directly.
 
-### 怎样移植到我们的实验？
+### How should this project account for compute?
 
-给每条路线记三笔主要账：代理训练、五次全池打分、目标训练。我们用同型号 GPU 实测卡时，并记录开发评测与公共成本。B、C 在一次研究里共享代理，团队账单只发生一次；若向另一个团队推荐“单独采用 C”，这条路线就应承担完整代理成本。两张账表回答不同问题。随机组可把节省时间用于继续读全池；必须报告它见过的不同题数。最有用的图是开发正确率对累计卡时，同图标出等训练 token 的快照和等总卡时的快照。即使 C 在第一处领先、在第二处被 A 追平，两条结果也完全相容。[ICLR 会议原文](https://proceedings.iclr.cc/paper_files/paper/2025/hash/5acb720a361eecb34ee62d356859d246-Abstract-Conference.html)
+Record proxy training, five scoring passes over the full pool and target training. Measure GPU time on the same hardware and record development evaluation and shared costs separately. The research team's actual bill includes one proxy run shared by B and C. A team deploying C alone would have to pay the full proxy cost. Report both views when they answer different decisions.
 
-## 03　ToolACE-R：怎样知道一道工具调用题对当前模型有多难？
+An equal-time experiment could let the random baseline spend its savings on additional training from the full pool. Such an experiment needs the number of distinct examples that baseline actually sees. A development-accuracy curve against cumulative GPU time can mark the equal-training-token and equal-total-time checkpoints where both were measured. C could lead at the former and be caught by A at the latter. [ICLR conference paper](https://proceedings.iclr.cc/paper_files/paper/2025/hash/5acb720a361eecb34ee62d356859d246-Abstract-Conference.html)
 
-**阅读位置**：图 1 的训练和推理两半 → 式 2–5 → 表 3、4、5、6。Xingshan Zeng 等，AAAI 2026。
+## 03 · ToolACE-R — how hard is a request for the model answering it?
 
-### 先让模型真的答，再衡量难度
+**Xingshan Zeng and colleagues, AAAI 2026.** Read the training and inference halves of Figure 1, Equations 2–5, then Tables 3–6.
 
-给模型用户请求和候选工具说明，让它独立生成工具名及参数。同一道题采样多次，有时全对，有时工具正确但参数缺失。比较每份调用与金标就能定义一道题**对当前这个模型**有多难。等模型经过一轮训练，再测它，适合下一阶段的题也可能改变。
+### Estimate difficulty from generated answers
 
-遇到多调用，简单地把预测第一个与标准第一个硬比，可能仅因为排列变化而错判。论文为预测调用和参考调用建立两两匹配分，先看工具名，匹配时再对参数算类似交并比的重叠程度。然后用匈牙利算法找总分最大的配对，用预测和参考调用数中较大的那个作分母，漏调用、多调用都会扣分。每个回答产生一个介于 0 和 1 的重叠分 O。对同题生成 k 次，难度 D = 1 − 平均 O。自编例子：8 次的平均重叠为 0.75，则 D 为 0.25。这样可以区分“总差一个参数”和“工具都选不对”两种整题同样得零的情况。
+Give a model the user request and candidate tool descriptions and let it generate the tool name and arguments. Sample several answers to the same request. Some answers may be fully correct, while others choose the right tool and omit an argument. Comparing each answer to the reference estimates difficulty **for that model at that point in training**. After training, another measurement may identify a different set of useful requests.
 
-### 训练、再选样、自我修正分别做什么？
+For requests with multiple calls, simply comparing predictions and references position by position can penalize an otherwise valid reordering. The paper computes pairwise matching scores for predicted and reference calls. It checks tool names first and, when they match, computes an intersection-over-union-like measure of argument overlap. The Hungarian algorithm chooses the assignment with the largest total score. Dividing by the larger of the predicted and reference call counts penalizes both missing and extra calls. One answer receives an overlap score *O* between 0 and 1. For *k* sampled answers, the difficulty is *D = 1 − mean(O)*. For example, a mean overlap of 0.75 across eight answers gives *D = 0.25*. This distinguishes repeatedly missing one argument from choosing the wrong tool, even when both answers fail strict exact match.
 
-作者按难度区间筛当前阶段的训练请求，更新模型，再随其能力变化调整数据。表 4 的主设置保留 **0 < D < 0.9**；D 为 0 的题在所采样的回答中已完全匹配，接近 1 则很少匹配。阈值的作用是控制当前训练题构成。它是该文的实验选择，不等于“容易题没有价值”。另外，作者构造自我修正对话，把第一次输出、要求检查的提示、修正后的回答组织成训练材料，使模型能根据已有调用再检查一次。
+### What changes during training and inference?
 
-推理时还有单独的一步：让模型迭代检查，若相邻两次调用一致即可提前停止，也设最大次数。相邻答案一致代表模型不再修改；它仍可能连续两次犯同一个错。作者报告在最大 5 次的设置下平均约 2.4 次，体现了推理成本与改进机会的取舍。
+The authors select requests in a difficulty range for the current stage, update the model and adjust the data as its abilities change. The main setting in Table 4 keeps **0 < D < 0.9**. When *D* is zero, all sampled answers matched completely. Near one, the answers rarely matched. The threshold controls the composition of that experiment's training set. The authors also construct self-correction dialogues containing an initial prediction, a request to check it and a revised answer. These teach the model to revisit an existing call.
 
-### 最值得读的是表 3 和表 6
+At inference time a separate procedure asks the model to check its answer iteratively. It can stop when consecutive calls agree or when it reaches the iteration limit. Agreement signals that the model stopped changing its prediction, which can also happen if it repeats the same mistake. With a maximum of five iterations, the authors report about 2.4 on average.
 
-表 3 的 BFCL 单轮综合成绩中，基础 Llama 3.1 8B Instruct 为 **76.83%**，完整训练方案在普通推理下为 **86.33%**，再加自适应修正为 **86.83%**。表中撤去数据选择时为 **85.04%**，进一步撤去修正训练数据时为 **84.42%**。因此整套系统相对基模的收益还含有微调、训练内容等作用；推理修正单独对应的差是 0.50 个百分点。表 5 把估计难度的生成次数从八次改为一次，普通推理结果为 85.96%，展示多次采样的收益与成本。
+### Reading Tables 3 and 6
 
-表 6 固定 8B 目标模型，由目标模型自己选题时为 86.33%；换 Qwen2.5-3B 和 7B 选题，分别为 85.50% 和 85.97%。对应首轮题数为 120K、125K、134K。不同选样者确实可能训练出不同结果，但这张表还同时改变了选入题数。因此我们固定入选 1,000 题，再固定目标训练 token，为比较字段信号创造更干净的条件。
+For the BFCL single-turn aggregate in Table 3, base Llama 3.1 8B Instruct scores **76.83%**. The full training recipe with standard inference scores **86.33%**. Adding adaptive correction gives **86.83%**. Removing data selection yields **85.04%**. Also removing correction training data yields **84.42%**. The comparison against the base therefore includes the combined effects of fine-tuning and changes to training content. Adaptive inference correction accounts for a 0.50 percentage-point increment in this comparison. Table 5 changes the number of generations used to estimate difficulty from eight to one. Standard-inference performance with one sample is 85.96%, illustrating the trade-off between difficulty-estimation cost and downstream performance.
 
-**和我们的根本区别。** ToolACE-R 观察模型在自由生成中实际写了什么；我们的代理始终看到正确前文，记录正确字段下一个词元的损失。同一个日期，在给出正确前缀时可能很好预测，模型独立生成时却可能先选错工具，根本没机会填这个日期。这正是要用自由生成的 2B 完整调用做最终评测的理由。[作者原文与公式](https://arxiv.org/html/2504.01400v2)
+Table 6 holds the target at 8B. Using the target itself for selection gives 86.33%. Using Qwen2.5-3B and Qwen2.5-7B gives 85.50% and 85.97%, respectively. First-round selected counts are 120K, 125K and 134K in that order. Both the selector and the number of selected examples vary. Our study fixes the subset at 1,000 and matches target training tokens to isolate the effect of the selection signal more directly.
 
-## 04　Chasing Random：凭什么相信一套复杂选样法比抽签更好？
+ToolACE-R observes what the model writes during free generation. Our proxy sees the correct answer prefix and scores the next reference tokens in specific fields. The right date may be easy to predict given the correct prefix, while the model might choose the wrong tool when generating freely and never reach the date field. This is why our endpoint evaluates the larger model's freely generated, complete calls. [Authors' paper and equations](https://arxiv.org/html/2504.01400v2)
 
-**阅读位置**：表 1 → 图 2 和图 3 → 表 2 的时间与成本 → Limitations。Harshita Diddee 与 Daphne Ippolito，Findings of NAACL 2025。
+## 04 · Chasing Random — does selection still beat a random draw under a different evaluation?
 
-### 为什么一篇论文里好用的筛法，换个地方就可能失效？
+**Harshita Diddee and Daphne Ippolito, Findings of NAACL 2025.** Read Table 1, Figures 2–3, Table 2 on time and cost, and the limitations section.
 
-假设一个筛法偏好长回复。在需要完整解释的评测中，它或许有帮助；若考试只看能否严格按格式返回一个数字，长回复训练的好处就可能消失。数据源本身也重要：有的指令集覆盖广，有的主题集中。作者固定 LLaMA-7B，在 FLAN、Dolly、Evol、Alpaca 四个来源上改变样本预算和评测，询问同一策略的相对优势能否保持。
+### Why might a selector lose its advantage in a new setting?
 
-作者比较了四种思路：AlpaGasus 用 GPT 给指令对打质量分；Longest 直接选最长的回答；Cherry 先构造小集合、训练评分模型，再以指令条件下的难度筛选；DEITA 在选例过程中考虑质量与样本间差异。与它们相比的还有随机子集、全量训练等。模型在所选集合上训练三个 epoch，因此同样的题数仍可能对应不同 token 量，尤其要留心 Longest。
+Imagine a method that favors long responses. It might help on an evaluation that rewards complete explanations. Its advantage could disappear when the evaluation requires returning a single number in a strict format. The source dataset matters as well. Some instruction datasets cover broad topics, while others concentrate on a narrower set. The authors hold LLaMA-7B fixed and vary the sample budget and evaluation across four data sources, FLAN, Dolly, Evol and Alpaca.
 
-### 图 2 与图 3 分别在问什么？
+They study four approaches. AlpaGasus asks GPT to score instruction pairs for quality. Longest takes the longest responses. Cherry builds a small set, trains a scoring model and filters by difficulty conditioned on the instruction. DEITA considers both quality and differences between examples. Comparisons include random subsets and full-data training. Training each selected set for three epochs means equal example counts can entail different token budgets, especially for Longest.
 
-图 2 比较选择模型和随机模型的回答在 AlpacaEval 上谁更受评审模型偏好。作者专门抽取一部分评测请求以控制评审开销，处理平局，并在 1,000 和 10,000 两档预算下查看不同数据源。部分策略在某些格子领先，换数据源或预算后优势变化。图 3 换成知识与推理基准：单看 MMLU 时，随机策略显得较弱；综合一组任务时，它的竞争力更强。**评测选了哪类能力，会直接影响谁被称为赢家。** 这也解释了为什么不应从某一张图推出“所有任务都该随机”。
+### What do Figures 2 and 3 measure?
 
-一个值得留心的实验细节：作者报告多个随机种子，并对与策略子集重合过高的随机名单做过重抽，Dolly 又受数据规模限制。这会影响“随机”具体代表什么。我们预先冻结均匀、无放回的随机名单并报告重叠率，即便随机结果碰巧和 C 接近也保留。固定同一批考试题，再统计“仅 C 答对”和“仅 B 答对”，能判断成绩差由多少具体请求支持。
+Figure 2 compares a model judge's preference for answers from selected-data and random-data models on AlpacaEval. The authors sample evaluation requests to control judging costs, account for ties and compare source datasets at budgets of 1,000 and 10,000 examples. Some methods lead in individual settings, and their advantage changes with the source or budget. Figure 3 shifts to knowledge and reasoning benchmarks. Random selection looks comparatively weak on MMLU alone and more competitive across a collection of tasks. The capabilities represented in an evaluation help determine which selector looks strongest.
 
-### 表 2 怎样读，负结果怎样写？
+The authors report multiple random seeds and redraw some random subsets that overlap too much with method-selected subsets. Dolly's size also constrains sampling. These choices affect the meaning of a random baseline. In this project, we freeze uniform samples drawn without replacement and report overlap, keeping each sample even when it happens to resemble group C. Using the same held-out requests for every model allows us to count requests answered correctly by C alone and by B alone, showing how many individual outcomes support a score difference.
 
-在 Alpaca 的成本估算中，Cherry 选样约 **111.15 美元**，该表对全量训练给出的估价约 **15.60 美元**；Dolly 上相应约为 32.07 与 5.20 美元。这是论文当时的配置与估算，不能拿来当你们今天的租卡价。它说明如果筛选比直接训练还贵，单报“我只用了少量训练题”不足以支持节省算力的说法。
+### Reading Table 2 and reporting negative findings
 
-该文集中于通用指令遵循、一个基础模型，且全面人工评测成本高。工具调用有结构化参考答案，评分更可核查，所以论文提出了一个需要重测的风险，而没有替我们得出结果。若内部测试 C 胜 B、外部 BFCL 持平，就分别报告两种题型及分母；若 C 与随机接近，先核对子集重叠和基模上限，再报告配对差与区间。区间很宽表示数据允许多种解释，不能写成“两种方法等效”。[ACL Anthology 会议原文](https://aclanthology.org/2025.findings-naacl.103/)
+On Alpaca, the authors estimate about **$111.15** for Cherry selection and about **$15.60** for full-data training. The corresponding estimates on Dolly are about $32.07 and $5.20. These are estimates for the paper's configurations at the time. A smaller selected set, on its own, does not establish compute savings when selection costs can exceed the cost of full-data training.
 
-## 合上论文后，试着回答这四个问题
+The study covers general instruction following with one base model, and extensive human evaluation is expensive. Tool calling offers structured reference answers that make scoring more auditable. The paper identifies a risk worth testing on this task. If C beats B internally and ties on external BFCL data, report the two tasks and their denominators separately. If C and random look close, examine subset overlap and baseline headroom, then report the paired difference and interval. A wide interval can encompass several plausible effects and cannot establish equivalence. [ACL Anthology conference paper](https://aclanthology.org/2025.findings-naacl.103/)
 
-| 问题 | 能讲清楚的答案 |
-|---|---|
-| 聚类是不是在给题目标注“日期类、订单类”？ | 聚类输入是学习轨迹。事后可统计工具与参数类别来解释簇；主题没有直接作为 S2L 轨迹坐标。 |
-| C 用两条 loss 训练两个模型吗？ | 代理只进行一次普通完整答案微调。分字段 loss 在冻结的检查点上统计，用来选题；每组目标模型仍接受完整答案监督。 |
-| 一道题参数的 teacher-forced loss 很低，为什么整题可能错？ | 打分时已经提供正确前文；自由生成时前面的工具选择、调用次数或结构就可能错。两种测量各回答一个问题。 |
-| 如果目标模型训练量相同，是否已经比较了成本？ | 还需要把代理训练、五次打分和目标训练一起计时，给随机策略同样的总预算。 |
+## Four questions to check your understanding
 
+| Question | Answer |
+| --- | --- |
+| Does clustering label examples as “dates,” “orders” and similar topics? | The inputs to clustering are learning trajectories. Tool or argument categories can be summarized afterward to interpret clusters. Topics do not enter S2L directly as trajectory coordinates. |
+| Does C train two models with two different losses? | The proxy undergoes one ordinary fine-tuning run with complete-answer supervision. Field losses are measured at frozen checkpoints to select data. Each target model is still supervised on complete answers. |
+| How can teacher-forced loss on an argument be low while the model answers the request incorrectly? | Scoring supplies the correct prefix. Free generation can fail earlier on tool choice, number of calls or structure. Each measure captures a different behavior. |
+| Does matching target training volume settle the cost comparison? | A total-budget comparison also counts proxy training and five scoring passes and gives the random strategy access to the same total compute. |
 
-## 延伸阅读：字段信号与数据来源
+## Additional reading on field signals and data provenance
 
-- **Getting the Parameters Right**。Yu 等人在模型生成参数值时，用隐状态上的线性探针预测该值能否填对，域内 AUC 为 0.986，同一设置下词元对数概率为 0.914。论文还用探针筛选自生成训练答案和重排推理候选。本项目已有参考调用，用多个代理训练时刻的字段损失来选训练题，评价终点是下游 2B 的完整调用正确率。[探针实验 §4](https://arxiv.org/html/2608.03071v1#S4)
-- **AgentFlux 与 BalanceSFT**。AgentFlux 分别训练工具选择与参数生成的 LoRA 适配器。BalanceSFT 调整推理文本和调用词元的训练权重，并针对错误补充难例。两者都说明调用内部的不同部分值得单独研究。我们的主要比较让所有 2B 使用相同训练目标，只改变进入训练集的题。[AgentFlux](https://arxiv.org/abs/2510.00229) · [BalanceSFT](https://aclanthology.org/2026.findings-acl.900/)
-- **Data Turnstile**。Ramakrishnan 与 Sharma 给出了从 API 定义生成、校验工具交互记录的方法。主实验取 Amazon 公开的 Synthetic Domains 数据，保留用户请求、系统日期和候选工具说明，从 `API_CALL` 读取参考调用。数据卡所报分数使用指定模型、训练语料和 BFCL 版本；本项目需要单独测量 Qwen3.5-2B 的基线与组间差异。[生成方法](https://arxiv.org/abs/2607.29250) · [Amazon 数据与结果表](https://huggingface.co/datasets/amazon/Turnstile-Synthetic-Domains)
+- **Getting the Parameters Right.** Yu and colleagues use a linear probe on hidden states during argument-value generation to predict whether a value will be correct. They report in-domain AUC of 0.986, compared with 0.914 for token log probabilities in the same setting. They also use the probe to filter self-generated training answers and rerank inference candidates. Our project starts with reference calls and uses field losses across multiple proxy checkpoints to select requests. Its downstream endpoint is complete-call accuracy of a 2B model. [Probe experiments, Section 4](https://arxiv.org/html/2608.03071v1#S4)
+- **AgentFlux and BalanceSFT.** AgentFlux trains separate LoRA adapters for tool selection and argument generation. BalanceSFT adjusts training weights for reasoning text and tool-call tokens and adds difficult examples that target errors. Both motivate studying the component parts of a call. Our primary comparison keeps the target training objective fixed for every 2B model and varies which examples enter training. [AgentFlux](https://arxiv.org/abs/2510.00229) · [BalanceSFT](https://aclanthology.org/2026.findings-acl.900/)
+- **Data Turnstile.** Ramakrishnan and Sharma describe generating tool interactions from API definitions and validating those records. Our primary experiment uses Amazon's public Synthetic Domains data. We preserve the user request, system date and candidate tool descriptions and extract the reference call from `API_CALL`. The dataset card's scores depend on its stated model, training corpus and BFCL version. Our study separately measures the Qwen3.5-2B baseline and differences across selection methods. [Data generation paper](https://arxiv.org/abs/2607.29250) · [Amazon dataset and results table](https://huggingface.co/datasets/amazon/Turnstile-Synthetic-Domains)

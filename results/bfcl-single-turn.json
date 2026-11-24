@@ -1,0 +1,89 @@
+{
+  "scope": "Exploratory; inference conditional on the three trained seeds. Within-category matched-item resampling, category weights fixed 0.5 and 0.5; all models and seeds for an item kept together.",
+  "draws": 10000,
+  "rng_seed": 31415,
+  "comparisons": {
+    "C-B": {
+      "simple_python": {
+        "unique_items": 100,
+        "delta_pp_by_seed": {
+          "42": -1.0,
+          "43": -2.0,
+          "44": -3.0
+        },
+        "mean_delta_pp": -2.0,
+        "item_bootstrap_ci95_pp": [
+          -4.333333333333333,
+          0.0
+        ]
+      },
+      "multiple": {
+        "unique_items": 100,
+        "delta_pp_by_seed": {
+          "42": -1.0,
+          "43": 0.0,
+          "44": -1.0
+        },
+        "mean_delta_pp": -0.6666666666666666,
+        "item_bootstrap_ci95_pp": [
+          -3.0,
+          1.6666666666666665
+        ]
+      },
+      "balanced": {
+        "unique_items": 200,
+        "delta_pp_by_seed": {
+          "42": -1.0,
+          "43": -1.0,
+          "44": -2.0
+        },
+        "mean_delta_pp": -1.3333333333333333,
+        "item_bootstrap_ci95_pp": [
+          -3.0,
+          0.33333333333333326
+        ]
+      }
+    },
+    "C-A": {
+      "simple_python": {
+        "unique_items": 100,
+        "delta_pp_by_seed": {
+          "42": 3.0,
+          "43": 0.0,
+          "44": -4.0
+        },
+        "mean_delta_pp": -0.3333333333333333,
+        "item_bootstrap_ci95_pp": [
+          -2.333333333333333,
+          1.6666666666666665
+        ]
+      },
+      "multiple": {
+        "unique_items": 100,
+        "delta_pp_by_seed": {
+          "42": -2.0,
+          "43": -2.0,
+          "44": 0.0
+        },
+        "mean_delta_pp": -1.3333333333333333,
+        "item_bootstrap_ci95_pp": [
+          -3.666666666666666,
+          0.6666666666666665
+        ]
+      },
+      "balanced": {
+        "unique_items": 200,
+        "delta_pp_by_seed": {
+          "42": 0.5,
+          "43": -1.0,
+          "44": -2.0
+        },
+        "mean_delta_pp": -0.8333333333333334,
+        "item_bootstrap_ci95_pp": [
+          -2.333333333333333,
+          0.6666666666666666
+        ]
+      }
+    }
+  }
+}

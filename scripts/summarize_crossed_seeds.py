@@ -10,14 +10,14 @@ from summarize_course import cluster_interval, digest, indexed, paired, read_jso
 # Cell order is (selection, target): (42,42), (42,43), (43,42), (43,43).
 CELLS = ((42, 42), (42, 43), (43, 42), (43, 43))
 CONTRASTS = [
-    ("grid_mean", "四格平均 C−B", (.25, .25, .25, .25)),
-    ("selection_at_target42", "训练固定 42，选样由 42 换到 43", (-1, 0, 1, 0)),
-    ("selection_at_target43", "训练固定 43，选样由 42 换到 43", (0, -1, 0, 1)),
-    ("target_at_selection42", "选样固定 42，训练由 42 换到 43", (-1, 1, 0, 0)),
-    ("target_at_selection43", "选样固定 43，训练由 42 换到 43", (0, 0, -1, 1)),
-    ("selection_marginal", "选样种子 43−42，对两种训练种子平均", (-.5, -.5, .5, .5)),
-    ("target_marginal", "训练种子 43−42，对两种选样种子平均", (-.5, .5, -.5, .5)),
-    ("interaction", "交互：训练 43 时的选样变化 − 训练 42 时的选样变化", (1, -1, -1, 1)),
+    ("grid_mean", "Mean C−B across all four cells", (.25, .25, .25, .25)),
+    ("selection_at_target42", "Selection seed 43 minus 42 at training seed 42", (-1, 0, 1, 0)),
+    ("selection_at_target43", "Selection seed 43 minus 42 at training seed 43", (0, -1, 0, 1)),
+    ("target_at_selection42", "Training seed 43 minus 42 at selection seed 42", (-1, 1, 0, 0)),
+    ("target_at_selection43", "Training seed 43 minus 42 at selection seed 43", (0, 0, -1, 1)),
+    ("selection_marginal", "Selection seed 43 minus 42, averaged over training seeds", (-.5, -.5, .5, .5)),
+    ("target_marginal", "Training seed 43 minus 42, averaged over selection seeds", (-.5, .5, -.5, .5)),
+    ("interaction", "Change with selection seed at training seed 43 minus the change at training seed 42", (1, -1, -1, 1)),
 ]
 
 
@@ -108,10 +108,11 @@ def summarize(primary, crossed, dev, boot_seed):
 
 
 def markdown(report):
-    out = ["# 选样种子与训练种子的交叉诊断", "",
-           f"四格都在同一份开发集上评估，含 {report['requests']} 道请求、{report['request_groups']} 个近重复题组。"
-           "B 表示整答轨迹选样，C 表示分字段轨迹选样。差值以百分点计。",
-           "", "| 选样种子 | 训练种子 | B 正确数 | C 正确数 | 仅 C 对 | 仅 B 对 | C−B | 95% 区间 |",
+    out = ["# Crossed selection and training seeds", "",
+           f"All four cells use the same development split of {report['requests']} requests in "
+           f"{report['request_groups']} near-duplicate groups. B selects by whole-answer loss trajectories. "
+           "C selects by separate field trajectories. Differences are in percentage points (pp).",
+           "", "| Selection seed | Training seed | B correct | C correct | Only C correct | Only B correct | C−B (pp) | 95% interval (pp) |",
            "|---:|---:|---:|---:|---:|---:|---:|---:|"]
     for s, t in CELLS:
         cell = report["cells"][f"selection{s}-target{t}"]
@@ -119,14 +120,17 @@ def markdown(report):
         lo, hi = p["paired_cluster_ci95_pp"]
         out.append(f"| {s} | {t} | {cell['arms']['B']['correct']} | {cell['arms']['C']['correct']} | "
                    f"{p['only_left_correct']} | {p['only_right_correct']} | {p['difference_pp']:+.2f} | [{lo:+.2f}, {hi:+.2f}] |")
-    out += ["", "| 对 C−B 的比较 | 点估计（百分点） | 95% 区间 |", "|---|---:|---:|"]
-    for v in report["contrasts"].values():
+    out += ["", "| Contrast in C−B | Estimate (pp) | 95% interval (pp) |", "|---|---:|---:|"]
+    # Read the stable contrast key so older reports render in the current language.
+    labels = {key: label for key, label, _ in CONTRASTS}
+    for key, v in report["contrasts"].items():
         lo, hi = v["group_paired_ci95_pp"]
-        out.append(f"| {v['description']} | {v['estimate_pp']:+.2f} | [{lo:+.2f}, {hi:+.2f}] |")
-    out += ["", "每次重抽同时保留同一题组在四格、两种方法下的结果。区间来自 2,000 次题组配对重采样，各行分别计算。"
-            "这项探索性诊断只覆盖 42、43 两个种子和这份固定开发集。"
-            "交互衡量一个因素的变化在另一因素的两个设定下相差多少。"
-            "这些数值无法估计两类随机性在总体方差中的占比，也无法代替封存考试成绩。"]
+        out.append(f"| {labels.get(key, v['description'])} | {v['estimate_pp']:+.2f} | [{lo:+.2f}, {hi:+.2f}] |")
+    out += ["", "Each of the 2,000 paired bootstrap draws keeps each sampled request group together across all four "
+            "cells and both methods. Each interval applies to one row. The interaction measures how much the change "
+            "in C−B from switching the selection seed depends on the training seed. This exploratory diagnostic covers "
+            "seeds 42 and 43 on one fixed development split. It cannot estimate population variance shares. "
+            "The held-out test provides the separate assessment of generalization."]
     return "\n".join(out) + "\n"
 
 

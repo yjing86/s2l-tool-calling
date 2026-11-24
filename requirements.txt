@@ -1,3 +1,4 @@
-# Versions used for the Hugging Face field-loss smoke test.
+# Hugging Face field-loss smoke test on a workstation.
+# For the full Linux GPU experiment, follow docs/environment.md.
 torch==2.11.0
 transformers==5.3.0

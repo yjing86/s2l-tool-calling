@@ -1,95 +1,94 @@
-# A40 实验日志
+# A40 experiment log
 
-本日志记录本轮实际执行的操作和所生成的证据。研究假设、正式对照和停止规则见[实验方案](research-plan.md)。远端日志使用 UTC，2026 年 11 月洛杉矶使用 PST（UTC−8）。下述 11 月 24 日 00:51 UTC 对应洛杉矶 11 月 23 日 16:51。
+This log records what ran and where to verify it. The [research plan](research-plan.md) defines the hypotheses, comparisons and stopping rules. All server times use UTC. Los Angeles was on PST (UTC−8) in November 2026, so November 24 at 00:51 UTC was November 23 at 16:51 in Los Angeles.
 
-## 数据与软件
+## Data and software
 
-| 项目 | 实际值 | 可复核的证据 |
+| Component | Observed configuration | Evidence |
 |---|---|---|
-| 单卡环境 | NVIDIA A40，46,068 MiB，驱动 595.112.07，Python 3.12.3。驱动报告支持 CUDA 13.2，训练环境 PyTorch 为 2.8.0+cu128。 | GPU 持久盘的 `/workspace/cs260d/logs/preflight.txt`，每 30 秒一次的 `gpu.csv`，以及训练运行目录中的 `run.json` |
-| 模型快照 | Qwen3.5‑0.8B `2fc06364715b967f1860aea9cf38778875588b17`，Qwen3.5‑2B `15852e8c16360a2fea060d615a32b45270f8a8fc`。两份快照均在 Pod 完成校验。 | `logs/download.txt` |
-| 数据快照 | Turnstile `70bf9e9a6234e694efa36d1ec6c207c65a695f5b`。分组种子 31415。输入和输出合计上限 4,096 token，输出最多 512 token。 | 项目下 `local/prepared/manifest.json`、`rows.audit.jsonl` |
-| 实验代码 | 初始方案 `b923536`，训练器 `5939492`，数据及推理代码 `6598260`，打分、选样与 BFCL 程序 `fae15e0`。 | 每次实际运行的参数、文件哈希和版本另存于该轮运行目录。 |
+| Single GPU | NVIDIA A40, 46,068 MiB, driver 595.112.07, Python 3.12.3. The driver reported support for CUDA 13.2. The training environment used PyTorch 2.8.0+cu128. | `/workspace/cs260d/logs/preflight.txt` on the persistent GPU volume, `gpu.csv` sampled every 30 seconds, and each training run's `run.json` |
+| Model snapshots | Qwen3.5-0.8B `2fc06364715b967f1860aea9cf38778875588b17` and Qwen3.5-2B `15852e8c16360a2fea060d615a32b45270f8a8fc`. Both snapshots were verified on the pod. | `logs/download.txt` |
+| Dataset snapshot | Turnstile `70bf9e9a6234e694efa36d1ec6c207c65a695f5b`. Split seed 31415. The combined input/output limit was 4,096 tokens, with at most 512 output tokens. | `local/prepared/manifest.json` and `rows.audit.jsonl` |
+| Experiment code | Initial plan `b923536`, trainer `5939492`, data and inference code `6598260`, scoring/selection/BFCL utilities `fae15e0`. | Each run directory contains its actual arguments, file hashes and software versions. |
 
-### 冻结的评测清单
+### Frozen evaluation manifests
 
-Turnstile 的 8,728 条单调用候选中，29 条参数键不符合 schema，14 条超输出窗口，2 条在类型校验阶段失败。合格候选中另去掉 4 条同组重复样本，并将调试样本与正式划分隔离。保留 3 道调试题、200 道摸底题、4,000 道候选训练题、400 道开发题和 2,000 道封存测试题。合法但多余的组留在划分之外。训练池、摸底集及封存集文件的 SHA‑256 已在 Mac 和 GPU 两端核对一致。
+Of 8,728 single-call Turnstile candidates, 29 had argument keys outside their schemas, 14 exceeded the output window and 2 failed type validation. Four additional eligible examples duplicated others in their group. We isolated debugging examples from all formal splits. The resulting splits contained 3 debug examples, 200 pilot requests, 4,000 candidate training requests, 400 development requests and 2,000 held-out test requests. Remaining eligible groups were unused. The training, pilot and test files produced identical SHA-256 hashes on the local machine and the GPU server.
 
-| 划分 | SHA-256 |
+| Split | SHA-256 |
 |---|---|
-| 训练池 | `fd0ee69020ff537165b0fc405883f33ea2269ccc14cd4a231f62e5aff32e6001` |
-| 摸底集 | `525aebaa6ef83dce9152eabbb89ebe99b5614947eddd78358333606dd8da6476` |
-| 封存测试集 | `000c29f46a06a35146d8d369e4ff763226bf66a690a7339680e32fc8b779407c` |
+| Training pool | `fd0ee69020ff537165b0fc405883f33ea2269ccc14cd4a231f62e5aff32e6001` |
+| Pilot | `525aebaa6ef83dce9152eabbb89ebe99b5614947eddd78358333606dd8da6476` |
+| Held-out test | `000c29f46a06a35146d8d369e4ff763226bf66a690a7339680e32fc8b779407c` |
 
-BFCL 外测预先冻结 `simple_python` 和 `multiple` 各 100 题。生成端使用仅含题面和工具的文件，SHA‑256 为 `626b8855e169b2c0aefef13517946ab50100e277f48d55ac461569c78ca695ad`。与训练池比较，规定的题面、工具名和带名签名匹配数均为零。官方 AST 评分器通过每类 6 项自编输入检验；把 200 条输出全部改成无法解析时，两类分母均保持 100。这些是评分器的功能检查。记录见 `local/bfcl/manifest.json`、`local/bfcl/validation.json`。
+For the external BFCL evaluation, we fixed 100 requests each from `simple_python` and `multiple`. The generation input contained only the requests and tools. Its SHA-256 was `626b8855e169b2c0aefef13517946ab50100e277f48d55ac461569c78ca695ad`. Comparing these requests with the training pool yielded zero matches under the specified prompt, tool-name and named-signature checks. The official AST scorer passed six hand-written functional test cases per category. Replacing all 200 predictions with unparseable outputs left both denominators at 100. The manifests and scorer tests are in `local/bfcl/manifest.json` and `local/bfcl/validation.json`.
 
-## 时间线
+## Timeline
 
-| UTC（2026-11-24） | 实际操作与结果 |
+| UTC on 2026-11-24 | Operation and outcome |
 |---|---|
-| 00:51 | GPU、驱动、磁盘、Python 和原始包版本写入预检日志。代码和实验输出分别位于 `/workspace/cs260d/repo` 及其 `local/runs`，安装、作业控制台和显卡遥测位于 `/workspace/cs260d/logs`。 |
-| 00:54–00:56 | 第一次 0.8B 单步训练与安装重叠，缺失 `torch.torch_version`，保留 `logs/smoke1.log`。安装完成后在单独目录 `local/runs/proxy-smoke2` 重跑。第 49 行，训练一步，loss 0.1016、梯度范数 4.352、有效步用时约 4.45 秒。ms-swift 成功写出 `checkpoint-1`。 |
-| 00:56 | 重新加载同一个 0.8B adapter，通过 ms-swift 的实际模板复算第 49 行。1,438 个输入 token 中有 79 个受监督位置。整答手算 0.0222907234，模型自带 loss 0.0222907215，绝对差约 1.9×10⁻⁹。函数名 6 个 token，平均 0.006271；参数值 12 个，平均 0.074211；其余 61 个，平均 0.013653。证据为 `logs/gpu-probe.log`。 |
-| 00:56 | 2B 在同一调试样本完成一次训练并保存 LoRA。运行目录 `local/runs/target-smoke`，记录 1,438 个输入、79 个受监督词元、峰值张量显存 5,256,627,712 字节。单题计时不能直接外推完整训练吞吐。 |
-| 00:57 | 原始 2B 摸底生成进入 vLLM 初始化，准备文件和逐题提示词元已生成。启动日志为 `logs/pilot.log`，完成后的逐题生成与评分写入 `local/runs/pilot-base`。 |
+| 00:51 | Recorded the GPU, driver, disk, Python and initial package versions. The checkout was at `/workspace/cs260d/repo`, with run artifacts under `local/runs`. Installation logs, job output and GPU telemetry were stored in `/workspace/cs260d/logs`. |
+| 00:54–00:56 | A 0.8B one-step training check overlapped with package installation and failed to import `torch.torch_version`. The first log is `logs/smoke1.log`. After installation, we reran it in `local/runs/proxy-smoke2`. One step on row 49 produced loss 0.1016, gradient norm 4.352 and an active step time of about 4.45 seconds. ms-swift wrote `checkpoint-1`. |
+| 00:56 | Reloaded the same 0.8B adapter and scored row 49 with the actual ms-swift template. Of 1,438 input tokens, 79 received supervision. The manually computed whole-answer loss was 0.0222907234 and the model's reported loss was 0.0222907215, an absolute difference of about 1.9×10⁻⁹. The six function-name tokens averaged 0.006271, the 12 argument-value tokens 0.074211 and the other 61 tokens 0.013653. See `logs/gpu-probe.log`. |
+| 00:56 | The 2B model completed one training step on the same debug request and saved its LoRA adapter to `local/runs/target-smoke`. The run recorded 1,438 input tokens, 79 supervised tokens and a peak tensor allocation of 5,256,627,712 bytes. The single-example measurement is insufficient to estimate full-run throughput. |
+| 00:57 | vLLM began initializing the base 2B pilot after the input files and per-request prompt tokens were generated. Startup output was recorded in `logs/pilot.log`. Predictions and scores were configured to go to `local/runs/pilot-base`. |
 
-**模板口径。** 早期 HF 模板的第 49 行有 78 个受监督位置。本轮以正式 ms-swift 标签计算有 79 个。两次使用的权重也有区别，先前是未训练权重，本轮复算用了第 1 步 adapter。单个结果不能用来估计筛选优势；A/B/C 的字段损失及选样比较将共用同一模板、同一组代理快照。
+**Template and weight versions.** The early Hugging Face template produced 78 supervised positions on row 49. The production ms-swift labels gave 79. The earlier observation used the base weights, while the repeat used the one-step adapter. This check establishes a measurement procedure. Estimating selection benefits requires comparable target runs. All three A/B/C comparisons share a template and proxy checkpoints.
 
-**计时口径。** 首次安装、下载、失败重跑、训练、固定答案打分、生成及等待分开记录。正式卡时依赖实测，单轮训练内部报告的显存和耗时与完整系统用量分开列示。
+**Timing.** We tracked installation, downloads, failed attempts, training, teacher-forced scoring, generation and waiting separately. GPU time uses observed durations. The memory and time a trainer reports cover a narrower scope than the full system.
 
+### Environment repair and generation retry
 
-### 环境修复与生成重试
+We pinned Transformers 5.3.0 for training. Installing Flash Linear Attention 0.6 would have upgraded Transformers, potentially changing the model code and chat template. We switched the acceleration candidate to 0.4.2 and repeated numerical and throughput checks. The kernel decision depended on these checks on identical inputs and the A40 benchmark.
 
-正式训练的 Transformers 版本锁定为 5.3.0。尝试加入 Flash Linear Attention 0.6 时，依赖解析会升级 Transformers，可能同时改变模型代码和模板行为。将候选加速包改为 0.4.2 后重新验证数值与吞吐。采用哪种内核，由相同输入的校验和 A40 基准确定。
+On first startup, vLLM 0.19.1 sent a synthetic visual input to Qwen3VLProcessor and failed with `ValueError: Failed to apply Qwen3VLProcessor`. For this text-only task, the retry used `language_model_only=True` and `max_lora_rank=16`. The two startup logs are `logs/pilot.log` and `logs/pilot2.log`. We recorded accuracy only after both `predictions.jsonl` and `metrics.json` appeared in `local/runs/pilot-base` with the expected request count.
 
-vLLM 0.19.1 首次启动时对模拟视觉输入调用 Qwen3VLProcessor，报错 `ValueError: Failed to apply Qwen3VLProcessor`。本任务只使用文本，重试时启用 `language_model_only=True`，并明确 `max_lora_rank=16`。首次及重试的控制台分别记录于 `logs/pilot.log` 和 `logs/pilot2.log`。输出目录为 `local/runs/pilot-base`。只有完整落盘的 `predictions.jsonl`、`metrics.json` 与实际题目数吻合时才登记准确率。
+## Base 2B pilot and budget revision
 
-## 原始 2B 摸底与预算调整
+The text-only engine initialized at 01:01 UTC on November 24 (17:01 in Los Angeles on November 23). vLLM reported 133.52 seconds for profiling, KV-cache initialization and warm-up. All 200 reserved single-call pilot requests completed by 01:03 UTC. Predictions and per-request scores are in `local/runs/pilot-base/predictions.jsonl`, with aggregate metrics in the same directory's `metrics.json`.
 
-2026-11-24 01:01 UTC（洛杉矶 11 月 23 日 17:01），文本模式引擎初始化成功。vLLM 单独报告 profiling、KV 初始化和预热约 133.52 秒。01:03 UTC 时 200 道预留单调用摸底题已完成，逐题生成与评分保存在 `local/runs/pilot-base/predictions.jsonl`，汇总为同目录 `metrics.json`。
-
-| 未微调 2B 的结果 | 题数 | 占全部 200 题 |
+| Base 2B outcome | Requests | Share of 200 requests |
 |---|---:|---:|
-| 完整调用正确 | 93 | 46.5% |
-| 参数错误 | 95 | 47.5% |
-| 调用次数错误 | 5 | 2.5% |
-| 函数选择错误 | 4 | 2.0% |
-| 输出无法解析 | 3 | 1.5% |
+| Complete call correct | 93 | 46.5% |
+| Incorrect arguments | 95 | 47.5% |
+| Incorrect number of calls | 5 | 2.5% |
+| Incorrect function | 4 | 2.0% |
+| Unparseable output | 3 | 1.5% |
 
-五类合计 200。46.5% 低于方案预先设定的 90% 天花板阈值，后续保持单调用主任务。参数错误占本次 107 道错题中的 95 道，约 88.8%。这项观察支持继续检验分字段方法；能否提高完整调用正确率仍取决于 B 与 C 的配对比较。
+The five outcomes account for all 200 requests. Accuracy of 46.5% was below the preregistered 90% ceiling, so we retained the single-call task. Argument errors accounted for 95 of 107 incorrect requests (88.8%). This motivated testing the field-level selector. The paired C–B comparison measures its effect on complete calls.
 
-脚本计时从创建推理引擎开始。引擎加载 **150.599 秒**（含上述初始化与预热），总耗时 **238.845 秒**，其差 **88.246 秒** 包含批量生成和输出处理。按 200 / 88.246 计约 **2.27 题/秒**。若题长、输出量和调用方式保持本轮水平，30,000–40,000 次生成约需 **3.7–4.9 GPU 小时**，还要另计各个新进程的加载时间。后续按已注册的推理配置记录实际吞吐，再决定可纳入预算的对照数。早期评审中的 1–2 小时估算没有得到本轮数据支持。
+The timer started at engine creation. Engine loading, including initialization and warm-up, took **150.599 seconds**. Total elapsed time was **238.845 seconds**. The remaining **88.246 seconds** covered batch generation and output handling, or approximately **2.27 requests/s** (200/88.246). At similar prompt and output lengths, 30,000–40,000 generations would take roughly **3.7–4.9 GPU-hours** plus new processes' loading costs. This measurement exceeded the initial review estimate of 1–2 hours. The later budget decision used measured throughput under the registered inference settings.
 
-### 摸底错题复核
+### Pilot error audit
 
-对逐题预测独立重做结构化比较，得到与原评分器一致的正确数。95 道参数错误中，85 道有值不匹配、17 道有键不匹配、2 道有类型不匹配；一道题可涉及多种差异，三个分子不能相加。4 道只差大小写，1 道仅涉及可选空数组的省略；没有题只差数组顺序。3 道解析失败均已生成到 512 token 的上限，应与输出未达上限的语法错误分开统计。按当前严格标准，这些样本全部留在分母和既定错误类别内。
+Independent structural rescoring reproduced the original count. Of the 95 argument errors, 85 involved incorrect values, 17 incorrect keys and 2 incorrect types. Categories overlap. Four differed only in letter case and one only in the omission of an optional empty list. None differed only in array order. All three parse failures reached the 512-token limit. We kept them in the denominator and distinguished them from syntax failures below the limit.
 
-题 38751 需要将 3.5 小时换算为整数 210 分钟，模型却返回 3.5。题 3495 要求以 km/s 传入 3,000 m/s，正确值为 3。此类错误会改变传给工具的数量，值得与仅有表示差异的预测区分观察。Mac 归档文件为 `local/runpod/repo/local/runs/pilot-base/pilot-audit.json`。
+Request 38751 required conversion of 3.5 hours to the integer 210 minutes. The model returned 3.5. Request 3495 required expressing 3,000 m/s in km/s, giving 3. Such errors change the quantity supplied to the tool. The local report is `local/runpod/repo/local/runs/pilot-base/pilot-audit.json`.
 
-## 代理训练、选样和开发集结果（03:41 UTC）
+## Proxy training, selection and initial development results at 03:41 UTC
 
-截至 2026-11-24 03:41 UTC（洛杉矶 11 月 23 日 19:41），0.8B 已训练 250 步，五个冻结时刻各对 4,000 道训练池题打分，共完成 20,000 个样本前向。种子 42、43、44 的选样清单均已生成。容量决定保留完整的 4,000 选 1,000、2,000 道内部考试及三组配对种子；B′ 仅在剩余预算允许时追加。按冻结的耗时估算，本轮关闭训练到相同卡时的延长阶段。因此本轮主要比较是相同目标训练词元预算下的选样效果，不能据此宣称计入选样时间后仍优于随机训练。预算估算与最终账单、各阶段实测占卡时长分别记录。
+By 03:41 UTC on November 24 (19:41 on November 23 in Los Angeles), the 0.8B proxy had completed 250 updates. At each of five frozen steps we scored all 4,000 training candidates, for 20,000 example-level forward passes. Selections for seeds 42, 43 and 44 were complete. The budget admitted the full 4,000-to-1,000 selection, 2,000 internal test requests and all three paired seeds. B′ was conditional on remaining time. The frozen estimate disabled the equal-total-GPU-time extension. The primary comparison matches target training tokens. It cannot establish that the selector beats random after charging for its own compute. Estimated budget, measured stage durations and provider billing are separate quantities.
 
-| 模型 / 种子 42 的等词元终点 | 训练步 | 400 道开发题完整正确数 | 开发正确率 |
+| Model at the seed-42 matched-token endpoint | Update | Complete calls correct on 400 development requests | Accuracy |
 |---|---:|---:|---:|
-| 原始 2B | 0 | 193 | 48.25% |
-| A 随机选样 | 126 | 227 | 56.75% |
-| B 整答轨迹选样 | 125 | 208 | 52.00% |
-| C 分字段轨迹选样 | 126 | 225 | 56.25% |
+| Base 2B | 0 | 193 | 48.25% |
+| A, random selection | 126 | 227 | 56.75% |
+| B, whole-answer trajectory | 125 | 208 | 52.00% |
+| C, separate field trajectories | 126 | 225 | 56.25% |
 
-同一开发集上，种子 42 的 C−B 为 +4.25 个百分点，C−A 为 −0.50 个百分点。三组末步不同来自按词元计量及更新步取整。开发结果仅用于过程记录。种子 43 的 A 已训练到第 127 步，其他组仍在推进。此时尚未读取封存考试结果。
+For seed 42, C−B was +4.25 percentage points (pp) and C−A was −0.50 pp. Final step counts differed because the shared token budget is checked at update boundaries. These scores were development diagnostics. Seed 43's A run had reached update 127, and the other arms were still in progress. Held-out results had not yet been viewed.
 
-**实际运行成本与入选样本重叠。** 按团队实测，启动器计时的代理训练耗时 1,260.77 秒，五个时刻打分耗时 1,172.93 秒，合计 2,433.70 秒（40.56 分钟），同一份轨迹供各组选样复用。种子 42 的 A、B、C 目标训练分别耗时 954.88、971.43、965.66 秒，每组约 16 分钟，均不含开发集生成。单种子下，公共挑题计算比任一组目标训练更久；跨种子或多个目标模型复用时，其分摊成本会改变。该比较单列耗时，尚未测量随机组若继续训练 40.56 分钟的成绩。
+**Compute and subset overlap.** The launcher measured 1,260.77 seconds for proxy training and 1,172.93 seconds for scoring the five checkpoints, for a total of 2,433.70 seconds (40.56 minutes). All trajectory selectors reused this computation. At seed 42, A/B/C target training took 954.88, 971.43 and 965.66 seconds, respectively, approximately 16 minutes each before development generation. For a single seed, selecting data with the proxy took longer than any target fit. Reusing it across seeds or models changes the amortized cost. We did not measure accuracy after letting A spend those additional 40.56 minutes on training.
 
-种子 42 的 B 和 C 分别选出 1,000 题，交集为 428 题，各自独选 572 题。Jaccard 相似度为 428 / 1,572 ≈ 0.2723。两种轨迹确实产生了不同的训练子集，这项统计本身无法说明哪个子集更有价值。
+B and C each selected 1,000 requests at seed 42, of which 428 were shared and 572 were unique to each arm. Their Jaccard similarity was 428/1,572 ≈ 0.2723. This measures a change in the training set. Downstream evaluation determines whether that change was beneficial.
 
-### 函数名和参数值何时变得容易预测？
+### When do the function name and argument values become predictable?
 
-![0.8B 五个时刻在同一 4,000 道候选题上的代理损失分布](figures/proxy-dynamics.png)
+![Proxy loss distributions at five checkpoints on the same 4,000 candidates](figures/proxy-dynamics.png)
 
-每个单元格给出 4,000 道题的**损失中位数 / 损失低于 0.01 的题目比例**。损失按每题相应字段的有效词元各自求平均，各字段在五个时刻均有 4,000 个有效观测值。完整打分文件已独立复核题号、哈希、词元总损失与计数，以及 P10/P50/P90 和阈值比例。
+Each cell gives the **median request loss / share of requests with loss below 0.01**. The loss averages the supervised tokens of the indicated field within each request. Every field had 4,000 valid observations at every checkpoint. An independent audit of the score files checked IDs, hashes, token-loss sums and counts, the P10/P50/P90 quantiles and threshold proportions.
 
-| 0.8B 更新步 | 整答 | 函数名 | 参数值 |
+| 0.8B update | Whole answer | Function name | Argument values |
 |---:|---:|---:|---:|
 | 0 | 0.064800 / 10.88% | 0.008072 / 53.35% | 0.194511 / 16.93% |
 | 10 | 0.030758 / 24.98% | 0.000572 / 84.85% | 0.092482 / 15.88% |
@@ -97,142 +96,153 @@ vLLM 0.19.1 首次启动时对模拟视觉输入调用 Qwen3VLProcessor，报错
 | 80 | 0.017270 / 38.42% | 0.000326 / 92.58% | 0.054199 / 26.65% |
 | 250 | 0.010648 / 48.75% | 0.000218 / 96.35% | 0.034129 / 29.70% |
 
-即使尚未微调，已有 53.35% 的题在给定正确前文时，函数名损失低于 0.01。前 10 步这个比例升至 84.85%，增加 31.50 个百分点；到第 30 步稍有回落。第 250 步时函数名有 96.35% 的题低于阈值，而参数值只有 29.70%。早期加密快照捕获到了两类字段的学习速度差异。是否因此选出了更有用的题，仍需比较目标模型。取得原始分数归档后，可以运行 `python scripts/plot_proxy_dynamics.py --run-dir local/runpod/repo/local/course-run` 重绘此图。
+Before fine-tuning, 53.35% of requests already had function-name loss below 0.01 when conditioned on the correct preceding tokens. By step 10 the share had risen 31.50 pp to 84.85%, followed by a slight decline at step 30. At step 250, 96.35% of function-name losses fell below the threshold compared with 29.70% of argument-value losses. Closely spaced early checkpoints captured the difference in learning speed. The target evaluations test its utility for data selection. With the score archive available, regenerate the figure using `python scripts/plot_proxy_dynamics.py --run-dir local/runpod/repo/local/course-run`.
 
-### 为什么函数名答对了，整题分数仍然不高？
+### Why does function-name accuracy exceed complete-call accuracy?
 
-种子 42 的 C 组在等词元终点做 400 道开发题，函数名正确 **394/400（98.50%）**，完整调用正确 **225/400（56.25%）**。在函数名答对的题中，完整正确比例为 **225/394（57.11%）**。因此只看工具选择会明显高估端到端成功率。完整评分还要求调用次数和所有参数都对，对方若收到错误的时间、单位或实体 ID，选对接口也无法弥补。
+At its seed-42 endpoint, C chose the correct function on **394/400 requests (98.50%)** and produced a complete correct call on **225/400 (56.25%)**. Among requests with the right function, **225/394 (57.11%)** were fully correct. Complete-call scoring also requires the correct number of calls and every argument. A tool can receive the wrong time, unit or entity ID even when the model selects the right interface.
 
-| 种子 42 的开发评估时刻 | A 随机 | B 整答 | C 分字段 |
+| Seed-42 development checkpoint | A, random | B, whole answer | C, separate fields |
 |---|---:|---:|---:|
-| 第 50 步 | 54.25% | 53.50% | 54.75% |
-| 第 100 步 | 58.00% | 55.25% | 56.00% |
-| 等词元终点（约第 125 步） | 56.75% | 52.00% | 56.25% |
+| Step 50 | 54.25% | 53.50% | 54.75% |
+| Step 100 | 58.00% | 55.25% | 56.00% |
+| Matched-token endpoint (around step 125) | 56.75% | 52.00% | 56.25% |
 
-A、B、C 实际分别训练 2.000、1.992、2.000 个 epoch。代码中的 10 个 epoch 是防止异常无限循环的上限；正常完成由共同词元预算触发。2B 各组训练 6,291,456 个 LoRA 参数，rank 16、alpha 32、dropout 0.05，微批量 4、累积 4 次梯度后更新。AdamW 的学习率为 10⁻⁴，前 5 步预热、随后保持常数；权重衰减 0.1，梯度裁剪阈值 1，精度 BF16。第 100 步后 A、B 的开发准确率下降，C 基本持平。上述三个评估点不能确立过拟合，也不能推断延长训练后的结果。
+A, B and C completed 2.000, 1.992 and 2.000 epochs, respectively. The trainer's 10-epoch setting was an upper bound. The common token budget triggered normal completion. Each 2B run trained 6,291,456 LoRA parameters with rank 16, alpha 32 and dropout 0.05. The microbatch size was 4 and gradients accumulated for 4 microbatches per update. AdamW used a learning rate of 10⁻⁴ with 5 warm-up steps followed by a constant rate, weight decay 0.1, gradient clipping at 1 and BF16 precision. After step 100, development accuracy declined for A and B and changed little for C. Three checkpoints do not establish overfitting or predict the effect of training longer.
 
-**种子 42 的同题配对比较。** 在 400 个不同题组的同一套开发题上，两种模型都答对或都答错的题对正确率差贡献为零。下表列出结果有分歧的题数，以及按题组配对 bootstrap（10,000 次，种子 31415）得到的 95% 区间。
+**Paired seed-42 comparisons.** All models answered the same 400 requests, each in a distinct group. Only discordant outcomes contribute to the accuracy difference. Intervals below use 10,000 paired bootstrap draws over request groups with seed 31415.
 
-| 开发集比较 | 仅 C 正确 | 仅对照正确 | 完整正确率差，百分点（95% 区间） |
+| Development contrast | Only C correct | Only comparator correct | Difference in pp (95% interval) |
 |---|---:|---:|---:|
-| C − B | 32 | 15 | +4.25（+1.00 至 +7.50） |
-| C − A | 21 | 23 | −0.50（−3.75 至 +2.75） |
-| C − 原始 2B | 50 | 18 | +8.00（+4.00 至 +12.00） |
+| C − B | 32 | 15 | +4.25 (+1.00 to +7.50) |
+| C − A | 21 | 23 | −0.50 (−3.75 to +2.75) |
+| C − base 2B | 50 | 18 | +8.00 (+4.00 to +12.00) |
 
-这些区间只反映在固定训练种子和既有快照下更换开发题组的不确定性。跨训练种子的变异需另行报告，正式方法结论使用冻结后的考试，而这张表只作开发诊断。
+These intervals quantify request-group sampling variation conditional on the seed and checkpoints. Between-seed variation is reported separately. Formal conclusions use the frozen test set.
 
-### 03:50 UTC 盲测前补充登记
+### Supplementary design registered at 03:50 UTC before held-out evaluation
 
-在内部考试和 BFCL 的盲测成绩均尚未可用时，团队已在本地和 GPU 上登记可选的全量训练参照：种子 42，用相同 LoRA 在 4,000 题全池约训练两遍。过程分别保存与主实验词元预算相当的快照、全量终点及仅按开发集选定的快照。主实验完成后，以预计剩余工作量另加 30% 和 10 分钟的余量核对预算，再决定是否启动。此条记录标记设计冻结，运行结果将另行登记。
+Before scores existed for either the internal test or BFCL, the team registered an optional full-pool reference on both machines. With seed 42 and the same LoRA setup, it trains on all 4,000 requests for approximately two passes and saves the checkpoint matching the primary token budget, the full-pool endpoint and a checkpoint selected exclusively by development accuracy. After the primary study finishes, admission depends on the estimated remaining work plus 30% and a 10-minute reserve. This entry records the design freeze. Outcomes belong in a subsequent entry.
 
-主比较按三个固定种子给出各自配对差、种子间样本标准差和平均差。2,000 次题组重采样对三个种子使用相同的题组索引，得到平均差的条件区间。每个模型在相同 2,000 道考试题上作答；跨种子得到的 6,000 条预测不代表 6,000 个独立题组。
+The primary analysis reports each of the three fixed seeds' paired differences, their sample standard deviation and their mean. Each of 2,000 bootstrap draws resamples the same request groups jointly across all three seeds to obtain a conditional interval for the mean. The 6,000 predictions per method cover the same 2,000 distinct test requests.
 
-### 开发集评分复核（原始 2B、种子 42 的 B 和 C）
+### Development scoring audit for base 2B, seed-42 B and seed-42 C
 
-三份各 400 题的开发预测共 1,200 次生成，均以 `stop` 结束，未出现解析失败。B、C 的严格完整正确数分别为 208 和 225，参数错误分别有 187 和 169 题。单调用题若生成两次调用，两组均按错误计。作为表示敏感性检查，只在字符串值上忽略大小写并压缩空白，对象键规则保持原样。原始 2B、B、C 因这两项放宽而多判对 12、13、10 题。按这一探索性口径，B 为 221/400、C 为 235/400，C−B 为 +3.50 个百分点，严格口径为 +4.25 个百分点。该检查只量化这两种表示变换，不等同于对真实工具输入的语义等价判断。
+All 1,200 generations (400 per model) ended with `stop` and parsed successfully. B and C got 208 and 225 complete calls correct, respectively, with 187 and 169 argument errors. Two tool calls in response to a single-call request counted as an error. An exploratory sensitivity check ignored letter case and collapsed runs of whitespace only within string values, preserving the rules for object keys. This added 12, 13 and 10 correct predictions for base 2B, B and C. B and C then scored 221/400 and 235/400. The C−B difference was +3.50 pp, compared with +4.25 pp under strict scoring. The check covers these two transformations only. It does not establish semantic equivalence for a real tool.
 
-开发题 3260 提到布料图片，却没有在请求中给出参考调用所要求的文件名。B、C 均猜测了另一个文件名，原始 2B 则索要文件，三者在严格口径下均答错。这一题提示应单列审阅“参考值能否由输入得出”，不能由单个例子估计此类题在全库的比例。此次复核只读取已存开发预测，未使用封存考试作答。
+Development request 3260 mentioned a fabric image but omitted the filename required by the reference call. B and C guessed another filename, while base 2B asked for the file. All three failed strict scoring. This illustrates the need to check whether a reference value is recoverable from the request. One example cannot estimate the prevalence of such cases. This audit used stored development predictions only.
 
-### 两种轨迹法选中了哪些候选题？
+### Which candidates did the two trajectory methods select?
 
-在代理训练第 0 步，以函数名平均损失低于 0.01、参数值平均损失达到全池第 75 百分位数（0.5721945973）同时成立，定义一个探索性题型。候选池中 494/4,000（12.35%）符合。下表 A/B/C 的每格是其各自 1,000 道入选题中的符合数；最后两列衡量两份完整入选名单的重合程度。
+We defined an exploratory category at proxy step 0 using two conditions. Mean function-name loss had to be below 0.01 and mean argument-value loss at or above the pool's 75th percentile (0.5721945973). The category included 494/4,000 requests (12.35%). The A/B/C columns count qualifying requests among the 1,000 selected in each arm. The last two columns compare the complete B and C selections.
 
-| 选样种子 | A | B | C | B、C 交集 | B、C Jaccard |
+| Selection seed | A | B | C | B/C intersection | B/C Jaccard |
 |---:|---:|---:|---:|---:|---:|
 | 42 | 108 | 215 | 206 | 428 | 27.23% |
 | 43 | 138 | 227 | 205 | 423 | 26.82% |
 | 44 | 112 | 210 | 198 | 421 | 26.66% |
 
-三个种子下，两种轨迹法都比随机组多选了“函数名易预测、参数值较难预测”的题，且 B 每次都比 C 多。即使 C 后续在特定评测中领先，也不能单靠“C 选了更多此类题”解释结果。这是对训练池和入选名单的描述，未使用目标模型考试预测。可用 [选样描述脚本](../scripts/describe_selection.py) 复算。
+Both trajectory methods selected more easy-name, hard-value requests than random at each seed. B selected more than C every time. A downstream advantage for C therefore cannot be explained simply by an increased count of these requests. This analysis used the training pool and selection manifests only. [Recompute the selection statistics](../scripts/describe_selection.py)
 
-**训练名单中的工具覆盖与参数长度。** 4,000 道候选题涉及 953 个参考函数。按每题所有参数值占用的受监督词元数计算，全池中位数为 12，第 90 百分位数为 29；把等于 29 的题也计入后，长参数题共 422 道。依种子 42、43、44 排列，B 每组 1,000 题分别覆盖 585、575、576 种工具，C 分别覆盖 555、552、570 种。两法各自独选的题数依次为 572、577、579；在这三个分母下，B 独选题中的长参数题依次为 87、88、93 道，C 独选题中为 50、52、46 道。由此可见，这次分字段选样没有增加工具种类或长参数题数量。完整统计同时列出 A、B、C、B′ 名单及独选部分的逐工具频数、长度分位数、长参数题和低频工具的覆盖分母；名单构成不代表对应组已完成训练。[训练名单分析脚本](../scripts/describe_selection.py)
+**Tool coverage and argument length.** The 4,000 candidates covered 953 reference functions. Across requests, the median number of supervised argument-value tokens was 12 and the 90th percentile was 29. Including ties at 29 gave 422 long-argument requests. Across seeds 42, 43 and 44, B's subsets of 1,000 requests covered 585, 575 and 576 distinct tools. C covered 555, 552 and 570. The numbers of requests unique to each arm in each B/C comparison were 572, 577 and 579. Among these unique requests, B selected 87, 88 and 93 long-argument requests, while C selected 50, 52 and 46. Field-level selection did not increase tool diversity or long-argument coverage in this experiment. The full analysis includes per-tool frequencies, length quantiles and denominators for long arguments and low-frequency tools, for A/B/C/B′ and their exclusive subsets. These are statistics on selected requests, independent of whether a target fit had finished. [Training subset analysis](../scripts/describe_selection.py)
 
-### 第二个种子的开发表现
+### Second seed on the development set
 
-种子 43 的开发终点是 A 224/400（56.00%，第 127 步）、B 221/400（55.25%，第 125 步）、C 207/400（51.75%，第 126 步）。B 在第 50、100 步均答对 214 题；C 对应为 216、224 题，最后答对 207 题。对已落盘的开发预测逐题核对，A/B/C 与原始 2B 的 400 个题号、组号均一一对应，每组恰有一道题。
+At seed 43, A got 224/400 correct (56.00%, step 127), B got 221/400 (55.25%, step 125) and C got 207/400 (51.75%, step 126). B got 214 correct at both steps 50 and 100. C had 216 and 224 correct at the same checkpoints before falling to 207. A per-request audit of the saved predictions confirmed identical request and group IDs across A, B, C and base 2B. Each of the 400 groups contained exactly one request.
 
-| 开发终点对比 | 种子 42 差值（百分点） | 种子 43 差值（百分点） | 种子 43 仅 C 正确 / 仅对照正确 | 种子 43 配对 95% 区间（百分点） |
+| Development endpoint contrast | Seed 42 difference (pp) | Seed 43 difference (pp) | Seed 43 only C / only comparator correct | Seed 43 paired 95% interval (pp) |
 |---|---:|---:|---:|---:|
-| C − B | +4.25 | −3.50 | 19 / 33 | −7.00 至 0.00 |
-| C − A | −0.50 | −4.25 | 25 / 42 | −8.25 至 −0.25 |
-| C − 原始 2B | +8.00 | +3.50 | 49 / 35 | −1.00 至 +8.00 |
+| C − B | +4.25 | −3.50 | 19 / 33 | −7.00 to 0.00 |
+| C − A | −0.50 | −4.25 | 25 / 42 | −8.25 to −0.25 |
+| C − base 2B | +8.00 | +3.50 | 49 / 35 | −1.00 to +8.00 |
 
-采用相同口径，在一个固定种子内配对重采样开发题组 10,000 次，种子 31415。C−B 的点估计从第一个训练种子的正值变为第二个训练种子的负值，因此早期开发结果不支持跨种子稳定获益。此处的区间只反映题组抽样误差，不能用来量化训练种子本身的变异。正式结论仍需第三个种子以及相同封存考试上的已注册比较。
+For each fixed training seed we again used 10,000 paired resamples of development request groups with bootstrap seed 31415. C−B reversed sign from the first training seed to the second. These early development results did not support a consistent benefit across seeds. The intervals quantify group-sampling uncertainty. The third training seed and preregistered comparisons on the same held-out requests remained outstanding.
 
-看到开发集方向反转后，我们用冻结的训练名单做了探索性复核。每组每次选 1,000 题，三个种子两两比较时，C 的共同题数为 581–595，B 为 499–501，A 为 223–264；C 的名单重复程度最高，但各轮的抽题种子和目标训练种子一起变化，这项比较无法分离二者对成绩波动的贡献。
+Following the reversal, we explored the frozen selection manifests. Each subset contained 1,000 requests. Across pairs of seeds, the intersections ranged from 581 to 595 requests for C, 499 to 501 for B and 223 to 264 for A. C selected the most similar sets across seeds. Because selection and target training seeds changed together, this observation cannot separate their contributions to score variation.
 
+### Crossed-seed design added at 05:04 UTC
 
-### 05:04 UTC 更新种子交叉设计
+At 05:04 UTC on November 24 (21:04 in Los Angeles on November 23), after seeing development results for seeds 42 and 43 and before opening the held-out test, we approved a 2×2 selection-by-training-seed diagnostic for the queue. The two C−B contrasts had opposite signs, and both sources of randomness had varied simultaneously. The plan reuses the saved subsets and adds four 2B fits. B and C each run with selection seed 42/training seed 43 and selection seed 43/training seed 42. The four new endpoints answer the same 400 development requests. Comparing C−B across these cells measures sensitivity at these two seed levels. The primary result still uses the originally registered held-out evaluation.
 
-2026-11-24 05:04 UTC（洛杉矶 11 月 23 日 21:04），在已查看种子 42、43 的开发结果、封存考试仍未开启时，批准将 2×2 选样与训练种子交叉诊断列入候选队列。两轮 C−B 的方向相反，而此前每轮在换选样种子的同时也换了目标训练种子。复用已保存名单，计划对选样 42／训练 43、选样 43／训练 42 两种交叉组合各训练 B、C，增加四次 2B 训练。四个新终点都只做同一套 400 道开发题，比较各组合的 C−B。该设计只解释这两个种子水平下的开发敏感性，正式主结果仍按原预登记的封存考试报告。
+The total budget remained 20 GPU-hours, with priority for the primary study and full-pool reference. The diagnostic would run only if the observed durations of previous jobs allowed all four fits and evaluations with at least 30% additional time and a 10-minute reserve. No crossed fit had started at the time of this decision.
 
-总额保持 20 GPU 小时，主实验、全量参照及其剩余工作的预留优先。交叉四轮及评估的实测推算总时长再加至少 30% 和 10 分钟，若剩余额度足够才实际运行。本次记录的是设计决策，四次训练尚未启动。
+The GPU recorded the design freeze at 05:08:48 UTC. No prediction files existed for either the internal test or BFCL at that time. At 05:09:12 UTC, the diagnostic entered the queue for the same GPU. All four fits share the previously scored candidate pool. Each saves and evaluates the first update that reaches 3,005,228 non-padding input tokens. Completed training and inference runs suggested approximately 80 minutes of work. The queue's conservative estimate used the slowest measured stage durations plus 30%, requiring approximately 1 hour 46 minutes plus the separate 10-minute reserve. The runner verifies upstream completion receipts, development inputs, training manifests, base weights and evaluation settings.
 
-05:08:48 UTC，GPU 端完成方案冻结。当时内部考试和 BFCL 各有 0 份预测文件。05:09:12 UTC，补充实验进入同一张卡的等待队列。四次训练共用已有候选池和打分，目标均为 3,005,228 个非填充输入词元，在首次达到预算的更新步保存并评估。按已完成的训练和推理实测，运行约需 80 分钟。队列按各阶段最慢耗时再加 30% 估算，启动时需约 1 小时 46 分钟可用时间，另预留 10 分钟。代码会核验上游完成回执以及开发题、训练名单、基模和评测配置。
+## Three-seed development summary
 
-## 三个种子的开发集汇总
+The full development archive was mirrored locally and verified by hash. All nine matched-token endpoints used the same 400 request IDs in 400 groups. The unadapted 2B scored 193/400 (48.25%). Counts below require the complete call to be correct.
 
-使用 Mac 上已核对哈希的完整开发镜像。九个等词元终点共用相同的 400 个题号和 400 个题组；原始 2B 在这套开发集上为 193/400（48.25%）。表中 A、B、C 为严格完整正确数，括号内是正确率。
-
-| 种子 | A 随机 | B 整答 | C 分字段 | C−B（百分点） | C−A（百分点） |
+| Seed | A, random | B, whole answer | C, separate fields | C−B (pp) | C−A (pp) |
 |---:|---:|---:|---:|---:|---:|
-| 42 | 227（56.75%） | 208（52.00%） | 225（56.25%） | +4.25 | −0.50 |
-| 43 | 224（56.00%） | 221（55.25%） | 207（51.75%） | −3.50 | −4.25 |
-| 44 | 222（55.50%） | 224（56.00%） | 220（55.00%） | −1.00 | −0.50 |
+| 42 | 227 (56.75%) | 208 (52.00%) | 225 (56.25%) | +4.25 | −0.50 |
+| 43 | 224 (56.00%) | 221 (55.25%) | 207 (51.75%) | −3.50 | −4.25 |
+| 44 | 222 (55.50%) | 224 (56.00%) | 220 (55.00%) | −1.00 | −0.50 |
 
-种子 44 的 C 对 B 有 21 题仅 C 正确、25 题仅 B 正确，差 −1.00 个百分点（95% 配对区间 −4.25 至 +2.25）。C 对 A 为 26/28，差 −0.50（−4.00 至 +3.00）；C 对原始 2B 为 43/16，差 +6.75（+3.25 至 +10.50）。每个固定种子用 10,000 次开发题组重采样。
+At seed 44, C versus B had 21 requests correct only for C and 25 only for B, for −1.00 pp (paired 95% interval −4.25 to +2.25). For C versus A the counts were 26/28, giving −0.50 pp (−4.00 to +3.00). For C versus base 2B they were 43/16, giving +6.75 pp (+3.25 to +10.50). Each fixed seed used 10,000 bootstrap resamples of development groups.
 
-三个固定种子的 **C−B 平均为 −0.08 个百分点**，种子间差值的样本标准差为 3.96 个百分点。按同一抽取的开发题组同时重算三个差值，2,000 次配对 bootstrap 的 95% 区间为 −2.08 至 +2.00。相同口径下，C−A 平均 −1.75（区间 −4.00 至 +0.58），C−原始 2B 平均 +6.08（+2.83 至 +9.42）。在此开发集上，分字段方法比原始 2B 有提升，但相对整答轨迹的平均差接近零。区间以已经训练的三个种子为条件，不能刻画未来重训的全部不确定性。
+The **three-seed mean C−B was −0.08 pp**, with a between-seed sample standard deviation of 3.96 pp. Resampling the same development groups jointly across all three seeds in 2,000 paired bootstrap draws gave a 95% interval of −2.08 to +2.00. Under the same analysis, mean C−A was −1.75 pp (−4.00 to +0.58), and C−base 2B was +6.08 pp (+2.83 to +9.42). On this development set, C improved on the unadapted base and its mean difference from B was close to zero. The intervals are conditional on these three trained seeds. They do not cover all uncertainty from a future retraining run.
 
-### 达到预设开发正确率需要多少时间？
+### Time to the prespecified development accuracy
 
-![按独立方法成本重建的三种子开发准确率曲线](figures/dev-cost.png)
+![Three-seed development accuracy versus standalone compute cost](figures/dev-cost.png)
 
-零点共用原始 2B 的开发成绩。横轴为在同一张 A40 上从此处增量执行各方法所需的时间；每个实点对应已完成的开发评测。B/C 的单条路线分别计入完整的代理训练和打分；团队实付只需做一次。各点计入该快照及更早快照的开发评测开销。中间点的横向小区间反映无法细分的训练器启动及收尾时间，以及同一种子下联合执行的 CPU 选样调用；上下界见 CSV。终点采用训练的完整进程回执。训练后依次离线评测所有快照，此图依步骤重建成本。曲线连接离散观测，不能据图估算未测时刻的正确率。
+All curves start from the same base 2B development score. The horizontal axis is incremental time for each method as a standalone procedure on the A40. Every point represents a completed development evaluation. Each B or C curve includes the full proxy training and scoring cost, which the team paid once across arms. Each point also includes all development evaluations up to that checkpoint. Small horizontal intervals at intermediate points account for uncertainty in allocating trainer startup/shutdown and CPU selection work performed jointly for a seed. The accompanying CSV contains the bounds. Endpoint times come from full-process receipts. All checkpoints were evaluated sequentially after training. The figure reconstructs costs in update order, and accuracy between observations is unknown.
 
-首次**观测到**开发正确率达到 51.25%（48.25% + 3 个百分点）的更新步及累计增量时间如下，单位为分钟。
+The table gives the first update **observed** to reach 51.25% development accuracy (48.25% + 3 pp) and cumulative incremental minutes.
 
-| 种子 | A 步数／分钟 | B 步数／分钟 | C 步数／分钟 |
+| Seed | A, step / minutes | B, step / minutes | C, step / minutes |
 |---:|---:|---:|---:|
-| 42 | 50／10.0–10.6 | 50／51.0–51.6 | 50／50.9–51.5 |
-| 43 | 50／9.8–10.3 | 50／50.7–51.3 | 50／51.1–51.7 |
-| 44 | 100／19.2–19.7 | 50／51.3–51.8 | 50／50.7–51.2 |
+| 42 | 50 / 10.0–10.6 | 50 / 51.0–51.6 | 50 / 50.9–51.5 |
+| 43 | 50 / 9.8–10.3 | 50 / 50.7–51.3 | 50 / 51.1–51.7 |
+| 44 | 100 / 19.2–19.7 | 50 / 51.3–51.8 | 50 / 50.7–51.2 |
 
-该阈值在九条路线中均有达到。随机方法通常更快出现第一个超过阈值的观察点；本轮未把同等总卡时重新分配给各方法继续训练，此表不能支持等卡时优胜结论。复现曲线与 CSV 的命令为 `python scripts/summarize_dev_cost.py --course local/runpod/repo/local/course-run --out local/dev-cost --plot`。
+All nine runs reached the threshold. The random method generally reached its first qualifying observation sooner. Training did not continue to an equal total GPU budget, so this table cannot rank final accuracy at equal GPU time. Reproduce the curves and CSV using `python scripts/summarize_dev_cost.py --course local/runpod/repo/local/course-run --out local/dev-cost --plot`.
 
-### 种子 42 的 B′ 消融与正式盲测锁定
+### Seed-42 B′ ablation and held-out checkpoint lock
 
-B′ 在第 50、100、125 步的开发集正确数为 222、222、225（分母均为 400）。终点 B、B′、C 分别为 208、225、225。核对三份落盘预测的文件哈希和全部题号、题组后，按种子 42 的同题重采样口径得到以下结果。
+B′ got 222, 222 and 225 development requests correct at steps 50, 100 and 125, respectively (400 per evaluation). Final counts for B, B′ and C were 208, 225 and 225. We checked all three prediction file hashes, IDs and groups before resampling the same seed-42 requests in pairs.
 
-| 开发终点差值 | 仅左方正确 | 仅右方正确 | 差值（百分点） | 95% 配对区间（百分点） |
+| Development endpoint contrast | Only left correct | Only right correct | Difference (pp) | Paired 95% interval (pp) |
 |---|---:|---:|---:|---:|
-| B′ − B | 34 | 17 | +4.25 | +0.75 至 +7.75 |
-| C − B′ | 22 | 22 | 0.00 | −3.25 至 +3.00 |
+| B′ − B | 34 | 17 | +4.25 | +0.75 to +7.75 |
+| C − B′ | 22 | 22 | 0.00 | −3.25 to +3.00 |
 
-B′ 和 C 使用相同的字段词元位置。B′ 将两类位置按词元计数合并，C 分别保留其轨迹。两者开发终点总正确数恰好相同，但有 44 个请求的判分不同。这次估计无法证明分开两类轨迹有额外净收益，也不足以建立两者等价。B′ 只训练了一个种子。其目标训练用时 963.73 秒（16.06 分钟），三次开发评测合计 667.24 秒（11.12 分钟）；公共代理及打分已在前文单列。
+B′ and C use the same field-token positions. B′ pools the positions weighted by token counts while C keeps two trajectories. Their endpoint totals matched, but they differed on 44 requests. This estimate establishes neither a benefit from separating the fields nor equivalence of the methods. B′ ran at one seed only. Its target fit took 963.73 seconds (16.06 minutes) and its three development evaluations took 667.24 seconds (11.12 minutes) in total, in addition to the shared proxy cost.
 
-内部测试预测开始前已锁定 11 个模型配置：原始 2B、三个种子各自 A/B/C 的九个等词元终点，以及种子 42 的一个 B′ 终点。盲测锁 SHA‑256 为 `4dbd8b66c9ba42e65ce1a2cac02f63a676c8efc30d9a7d578ed59f9855dbb698`。06:26 UTC（洛杉矶 11 月 23 日 22:26）运行状态已进入 `eval-test-base`。这一时间点是盲测启动记录；本节的 B′ 统计全部来自开发集。
+Before generating internal test predictions, we locked 11 configurations comprising the unadapted 2B, nine A/B/C matched-token endpoints across three seeds, and the seed-42 B′ endpoint. The lock SHA-256 was `4dbd8b66c9ba42e65ce1a2cac02f63a676c8efc30d9a7d578ed59f9855dbb698`. At 06:26 UTC (22:26 in Los Angeles on November 23) the runner was in `eval-test-base`. All B′ results above used the development set.
 
-**正式盲测的原始 2B 基线。** 冻结的 Turnstile 考试 2,000 题中，原始 2B 完整答对 944 题（47.20%），1,871 题的工具和调用次数正确，11 题解析失败，其中 10 题触及生成上限。整轮评估回执耗时 8.228 分钟。BFCL 的两个固定外测子集按官方 AST 评分器分别为 `simple_python` 78/100、`multiple` 85/100；分母仅覆盖这两个各 100 题的子集。Mac 独立重判全部 2,200 条作答，与已有逐题结果一致。各方法的比较在其冻结盲测全部完成后另报。
+**Base 2B held-out results.** On the 2,000 frozen Turnstile requests, base 2B produced 944 correct complete calls (47.20%). The tool and call count were correct on 1,871 requests. Eleven failed to parse, ten of which hit the output limit. The evaluation receipt measured 8.228 minutes. On the two fixed BFCL subsets, the official AST scorer gave 78/100 on `simple_python` and 85/100 on `multiple`. An independent local replay of all 2,200 responses matched the recorded per-request outcomes. Comparisons with the fine-tuned arms are reported below.
 
-### 种子 42 的等词元终点：正式内部考试
+### Seed-42 matched-token endpoints on the internal held-out test
 
-A 随机、B 整答和 C 分字段分别完整答对 1,118/2,000（55.90%）、1,054/2,000（52.70%）、1,102/2,000（55.10%）。主统计按冻结清单核对每道预测的 ID 与组号，在同样的 2,000 个题组上配对重采样 2,000 次（种子 31415）。
+A, B and C got 1,118/2,000 (55.90%), 1,054/2,000 (52.70%) and 1,102/2,000 (55.10%) correct complete calls, respectively. We aligned prediction IDs and group IDs with the frozen manifest and used 2,000 paired bootstrap draws over the same 2,000 request groups with seed 31415.
 
-| 内部考试差值 | 仅 C 正确 | 仅对照正确 | 差值（百分点） | 95% 配对区间（百分点） |
+| Internal test contrast | Only C correct | Only comparator correct | Difference (pp) | Paired 95% interval (pp) |
 |---|---:|---:|---:|---:|
-| C − B | 132 | 84 | +2.40 | +0.95 至 +3.80 |
-| C − A | 110 | 126 | −0.80 | −2.25 至 +0.65 |
-| C − 原始 2B | 252 | 94 | +7.90 | +6.20 至 +9.65 |
+| C − B | 132 | 84 | +2.40 | +0.95 to +3.80 |
+| C − A | 110 | 126 | −0.80 | −2.25 to +0.65 |
+| C − base 2B | 252 | 94 | +7.90 | +6.20 to +9.65 |
 
-C 相比 B 净多答对 **48** 题，达到了为种子 42 事前设定的“至少 +2 个百分点且区间下界高于 0”的复核门槛。它只触发后续验证。在这一种子上，随机组的点估计仍比 C 高 0.80 个百分点，C−A 区间跨零。方法的跨种子表现由全部预定种子的盲测结果另行判定。
+C answered **48** more requests correctly than B on balance. This met the preregistered seed-42 follow-up criterion of at least +2 pp with the lower interval bound above 0. The criterion triggered further verification. A's point estimate remained 0.80 pp above C and the C−A interval included zero. Cross-seed claims use all three planned held-out runs.
 
-**同种子的 BFCL 两个冻结子集。** 各终点在以下两类分别评 100 题，Mac 用同一版本的官方 AST 评分器重判全部输出并核对回执。
+**Seed-42 external evaluation.** Each configuration answered 100 requests in each of the following BFCL categories. The local machine rescored all outputs using the same official AST scorer version and verified the receipts.
 
-| 种子 42 终点 | simple_python | multiple |
+| Seed-42 endpoint | simple_python | multiple |
 |---|---:|---:|
 | A | 90/100 | 95/100 |
 | B | 94/100 | 94/100 |
 | C | 93/100 | 93/100 |
 
-这些结果只覆盖预先选取的两个 BFCL 子集；每个类别使用独立分母，不能据此给出全榜成绩。
+The two categories have separate denominators. They cover the prespecified subsets only and do not produce a full leaderboard score.
+
+### Primary held-out results and independent verification, 09:04–09:07 UTC
+
+Between 09:04 and 09:07 UTC on November 24 (01:04–01:07 in Los Angeles), we finished the primary summary and local verification for all 11 locked configurations. The internal aggregate was generated at 09:04:24 UTC. Each configuration used the same 2,000 internal test requests and 200 BFCL requests. We aligned file hashes, checkpoints and request IDs, and independently rescored each saved prediction. Only aggregates are recorded here. [Formal results, figures and scope](results.md)
+
+**Turnstile.** Correct counts for A/B/C were 1,118/1,054/1,102 at seed 42, 1,129/1,091/1,112 at seed 43 and 1,094/1,077/1,100 at seed 44. Base 2B got 944 correct. C−B was +2.40, +1.05 and +1.15 pp, respectively. Resampling the same groups jointly across seeds gave a mean of +1.53 pp (95% interval +0.60 to +2.48). The between-seed sample standard deviation was 0.75 pp. Mean C−A was −0.45 pp (−1.42 to +0.53), and mean B−A was −1.98 pp (−2.97 to −1.03). These intervals condition on the three trained seeds. [Held-out analysis implementation](../scripts/summarize_course.py)
+
+**B′ ablation.** At seed 42, independent rescoring confirmed 1,099 correct held-out answers for B′. For B′−B, 132 requests were correct only for B′ and 87 only for B, giving +2.25 pp (+0.80 to +3.65). For C−B′, the counts were 101 and 98, giving +0.15 pp (−1.30 to +1.55). Relative to B, B′ gained 45 correct requests on balance and C gained 48. This ablation used one seed.
+
+**BFCL.** The local replay used the frozen official AST scorer on per-request predictions. For each 100-request category, 10,000 paired bootstrap draws resampled requests jointly across the three primary seeds. We also calculated the mean giving each category equal weight. For `simple_python`, `multiple` and the equal-weight mean, C−B was −2.00, −0.67 and −1.33 pp, respectively. The interval for the equal-weight mean was −3.00 to +0.33 pp. C−A was −0.33, −1.33 and −0.83 pp, with an equal-weight interval of −2.33 to +0.67 pp. Seed-42 B′ got 93/100 and 92/100 in the two categories under the official scorer. [Official scorer integration](../scripts/bfcl_subset.py) · [Fixed-seed external analysis](../scripts/summarize_bfcl_seeds.py)
+
+At the time of this summary, the 4,000-request full-pool reference was still training. The development-only selection-by-training-seed diagnostic is logged separately.

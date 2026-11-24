@@ -1,0 +1,44 @@
+{
+  "counts": {
+    "debug": 3,
+    "pilot": 200,
+    "train": 4000,
+    "dev": 400,
+    "test": 2000
+  },
+  "sha256": {
+    "debug.jsonl": "7f83ec1d4577e7c1558f89ba171668ee6e758294b99889102c4a8e7f6e4aa222",
+    "dev.jsonl": "eec557cf5ba3ebd23404472e4163f32d85314e9911e4100b17a5c61c410f1728",
+    "pilot.jsonl": "525aebaa6ef83dce9152eabbb89ebe99b5614947eddd78358333606dd8da6476",
+    "rows.audit.jsonl": "761651ba8b04e01062f1e6d64d963ffbda487ae11c5903d0bb3b56dab60c29ff",
+    "test.jsonl": "000c29f46a06a35146d8d369e4ff763226bf66a690a7339680e32fc8b779407c",
+    "train.jsonl": "fd0ee69020ff537165b0fc405883f33ea2269ccc14cd4a231f62e5aff32e6001"
+  },
+  "design": {
+    "pool": 4000,
+    "subset": 1000,
+    "test": 2000,
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "bprime": true,
+    "paired_groups": 9,
+    "equal_time_cap_seconds": null,
+    "micro_batch": 4
+  },
+  "endpoints": [
+    "base",
+    "s42-A",
+    "s42-B",
+    "s42-C",
+    "s43-A",
+    "s43-B",
+    "s43-C",
+    "s44-A",
+    "s44-B",
+    "s44-C",
+    "s42-Bprime"
+  ]
+}

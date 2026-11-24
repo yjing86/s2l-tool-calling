@@ -1,38 +1,38 @@
-# 工具调用的分项损失验证
+# Validating per-field loss for tool calls
 
-2026-11-19 · [验证脚本](../scripts/verify_tool_call_loss.py) · [实验方案](research-plan.md)
+November 19, 2026 · [Validation script](../scripts/verify_tool_call_loss.py) · [Research plan](research-plan.md)
 
-**验证结果。** 在一道自编题和两道 Turnstile 题上，Qwen3.5-0.8B 的一次前向计算能分别给出函数名和参数值的损失。原始 2B 摸底和各组选样比较仍待运行。下文保留先前的测量记录，仓库未保存当时的原始日志、权重或 adapter。
+One forward pass through Qwen3.5-0.8B gave separate losses for the function name and argument values on a hand-written example and two Turnstile examples. This note records the initial implementation check. At the time, the unadapted 2B pilot and the selection experiments had yet to run. The original smoke-test logs, weights and adapters are outside the public repository. The [results report](results.md) covers the subsequent experiments.
 
-## 1. 先回答训练问题
+## 1. What loss do the models train on?
 
-**0.8B 和 2B 训练时都只优化一个量：整段标准工具调用答案上，有监督的 token 的平均交叉熵。** 用户的请求和候选工具说明作为上下文，padding 也不参加平均。函数名、参数名、参数值、调用格式以及被模板标为答案的结束符都能参与训练。各组 2B 始终用相同的训练目标。[ms-swift 的工具调用训练及标签示例](https://github.com/modelscope/ms-swift/blob/v4.6.1/docs/source_en/Instruction/Agent-support.md)
+**Both the 0.8B proxy and the 2B target optimize the mean cross-entropy over the supervised tokens in the complete reference call.** The user's request and the tool descriptions provide context. Padding is excluded from the mean. Function names, argument names and values, call syntax, and any end token labeled as part of the answer can all contribute. Every 2B arm uses this same training objective. [ms-swift tool-call training and label examples](https://github.com/modelscope/ms-swift/blob/v4.6.1/docs/source_en/Instruction/Agent-support.md)
 
-举例，用户说“查订单 4821”，标准调用是 `track_order(order_id="4821")`。模型按顺序预测答案里的每个 token。每到一个位置，模型给标准 token 的概率越低，这个位置的 loss 就越高。训练程序先得到一串这样的数，然后取平均，用这个平均数做反向传播。**只拿到日志里的平均数，已经无法知道到底错在函数名还是订单号；在取平均之前保留这串数，就能分别查看。** [Qwen3.5 模型输出说明](https://huggingface.co/docs/transformers/model_doc/qwen3_5) · [PyTorch 的逐位置交叉熵](https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.cross_entropy)
+Suppose the user asks to track order 4821, and the reference call is `track_order(order_id="4821")`. At each answer position, the model assigns a probability to the next reference token. A lower probability gives that position a higher loss. The trainer takes the mean of those losses and uses that scalar for backpropagation. Keeping the losses **before averaging** lets us examine how much of the difficulty lies in the function name or the order number. A training log containing only the mean has lost this information. [Qwen3.5 model outputs](https://huggingface.co/docs/transformers/model_doc/qwen3_5) · [PyTorch per-position cross-entropy](https://docs.pytorch.org/docs/stable/generated/torch.nn.functional.cross_entropy)
 
-| 同一串逐 token loss 可以怎么算 | 用途 | 改模型权重吗？ |
-|---|---|---|
-| 所有有监督答案 token 取平均 | 训练 0.8B 或 2B 的目标；冻结权重后也可以用它给每道题打总分 | 训练时更新；打分时不更新 |
-| 只对函数名所在的 token 取平均 | 观察小模型在这一时刻对正确工具名有多确定 | 不更新 |
-| 只对参数值所在的 token 取平均 | 观察小模型在给定标准前文时，对正确订单号、地点等有多确定 | 不更新 |
+| Positions included in the mean | What the statistic measures | Effect on the weights |
+| --- | --- | --- |
+| All supervised answer tokens | The objective for either model during training, or a whole-answer score for one example at a frozen checkpoint | Updates weights during training. During scoring the weights stay frozen. |
+| Tokens overlapping the function name | The proxy's confidence in the reference function name at that checkpoint | Scoring only |
+| Tokens overlapping argument values | The proxy's confidence in values such as the order number or city, given the reference prefix | Scoring only |
 
-因此不用让优化器在三个 loss 中选一个，也不用把两个分项 loss 各做一次反向传播。**一个训练步骤中，本来就有每个答案位置的预测。为了比较同一道题在五个时刻的变化，我们另外读取五个冻结的模型快照，对同一批题打分。** 这是额外的计算开销。
+A training step already produces predictions for every supervised answer position. The optimizer uses one scalar, and computing field-specific scores requires no additional backward pass. To measure how a particular example changes over training, we load five frozen checkpoints and score the same examples at each one. Those additional forward passes cost compute.
 
-## 2. 哪些步骤用现成框架？哪些由我们写？
+## 2. Which parts come from existing tools?
 
-| 工作 | 实际入口 |
-|---|---|
-| 用本地权重训练 LoRA、按步保存 adapter | ModelScope 的 **ms-swift 命令行** `swift sft`。macOS 上请使用安装了 ms-swift 的 Python 虚拟环境中的 `swift`。 |
-| 还原每道训练题的输入和哪些位置算 loss | 若用 ms-swift 训练，Python 端调用同版本的 `get_processor`、`get_template`、`template.set_mode("train")`、`template.encode(...)` 取得真实 `input_ids` 和 `labels`。Hugging Face 原生模板单独验证。 |
-| 重载模型、算逐位置 loss | Python 的 Transformers、PyTorch；有 adapter 时再用 PEFT 的 `PeftModel.from_pretrained`。脚本用 `model.eval()` 和 `torch.inference_mode()` 打分。 |
-| 找到函数名和参数值的位置、每题输出三个平均数 | 这部分由我们写，见配套脚本。模型提供预测概率所需的 logits，框架的常规训练日志不会替我们生成这张逐题表。 |
-| 按学习轨迹挑题（计划） | 拟用 scikit-learn 的 K-means，对每题收集五个时刻的函数名 loss 和五个时刻的参数值 loss，拼成十个数，再聚类。 |
+| Task | Implementation |
+| --- | --- |
+| Train a LoRA adapter from local weights and save it at specified steps | The ModelScope **ms-swift** command `swift sft`. On macOS, use the `swift` executable from the Python environment in which ms-swift is installed. |
+| Reconstruct the training input and its supervised positions | For an ms-swift run, use the same library version and call `get_processor`, `get_template`, `template.set_mode("train")` and `template.encode(...)` to obtain the actual `input_ids` and `labels`. The Hugging Face native template has a separate check. |
+| Reload a model and compute per-position loss | Transformers and PyTorch, plus PEFT's `PeftModel.from_pretrained` when using an adapter. The scoring script uses `model.eval()` and `torch.inference_mode()`. |
+| Locate the function names and argument values and return three scores per example | The project script identifies spans and aggregates the model's logits at their supervised token positions. Standard training logs report only an aggregate. |
+| Select examples from learning trajectories | The planned selector uses scikit-learn K-means. Five function-name losses and five argument-value losses form a ten-dimensional feature vector for one example. |
 
-不需要开通付费模型 API，也不用把训练题发给托管聊天服务。首次取得模型、数据和依赖需要下载；加载已下载的权重后可以在本地运行。[ms-swift](https://github.com/modelscope/ms-swift/tree/v4.6.1) · [PEFT adapter 加载接口](https://huggingface.co/docs/peft/package_reference/peft_model)
+After the initial download of the weights, dataset and dependencies, scoring runs locally without a paid model API or a hosted chat service. [ms-swift](https://github.com/modelscope/ms-swift/tree/v4.6.1) · [PEFT adapter loading](https://huggingface.co/docs/peft/package_reference/peft_model)
 
-### 怎样避免把 loss 算错一位？
+### Aligning logits with the next token
 
-模型位置 0 的输出预测位置 1 的 token，位置 1 的输出预测位置 2，依此类推。若标准答案的一部分位于位置 50，就要取位置 49 给出的预测。配套脚本按这个对应关系计算。下面三行中的 `target_positions` 是训练标签里有监督的位置：
+The logits at position 0 predict the token at position 1. To score a reference token at position 50, take the logits at position 49. Here `target_positions` contains the positions that have supervised training labels.
 
 ```python
 scores = logits[0, target_positions - 1]
@@ -40,52 +40,54 @@ gold = input_ids[0, target_positions]
 token_loss = F.cross_entropy(scores.float(), gold, reduction="none")
 ```
 
-Qwen3.5 会把调用渲染成 `<function=track_order>` 和 `<parameter=order_id>` 等标签。找字段时只在标准答案里找；输入前面的工具说明也写着 `track_order`，不能算进去。我们按实际 tokenizer 的字符范围定位，结构化参数只取里面的值，不把 JSON 键当作值。同一个 token 如果既含符号又含字段字符，如 `=a`，本脚本把它计入该字段并保留整枚 token 的 loss，不能把一个 token 的概率再拆开。没参数的调用将参数值 loss 记为 `null`。正式做十维聚类时，可预先把无参数题单独分层、在该层按函数名的五维轨迹取样，两种选样方法给这一层相同的名额；不要把缺失填成“零难度”。[Qwen 官方工具模板](https://huggingface.co/Qwen/Qwen3.5-0.8B/blob/2fc06364715b967f1860aea9cf38778875588b17/chat_template.jinja)
+The Qwen3.5 template renders calls with tags such as `<function=track_order>` and `<parameter=order_id>`. The scorer searches the **reference answer** for fields. The name `track_order` can also appear in the list of available tools in the prompt. Tokenizer character offsets identify the answer tokens overlapping each field. For structured arguments, the scorer keeps the leaf values and excludes JSON keys. A token such as `=a` can contain both syntax and a field character. When it overlaps the field, we assign the loss for that entire token to the field. The model supplies one probability for the token as a whole.
 
-这个打分方式叫 **teacher forcing**。衡量订单号时，模型能看到此前的**标准**函数名和参数名。因此“参数值 loss 低”只说明给对前文后它比较有把握。要评估它自己能否先选对工具、再填对参数，仍须遮住完整答案，让模型独立生成，再用考试评分器核对。
+A call without arguments receives `null` for its argument-value loss. One proposed policy for a ten-dimensional selector was to put such calls in a separate stratum, use the five-dimensional function-name trajectory there, and assign both methods the same quota. Replacing a missing value with zero would treat missing supervision as perfect confidence. [Official Qwen tool template](https://huggingface.co/Qwen/Qwen3.5-0.8B/blob/2fc06364715b967f1860aea9cf38778875588b17/chat_template.jinja)
 
-## 3. 用真实权重和真实工具题得到什么？
+These are **teacher-forced scores**. When predicting the order number, the model already sees the correct function name and argument name in its prefix. Low argument-value loss therefore measures confidence conditional on that prefix. To measure whether the model can choose the tool and produce its arguments on its own, we withhold the entire reference answer, generate a call and score the prediction.
 
-首轮记录使用 PyTorch 2.11.0、Transformers 5.3.0、Hugging Face 原生聊天模板和 CPU BF16。固定官方 Qwen3.5-0.8B 版本 `2fc06364715b967f1860aea9cf38778875588b17`，当时核对了权重文件的 SHA-256。该版本 `model.safetensors` 的官方摘要是 `04b1c301231dd422b8860db31311ab2721511346a32cb1e079c4c4e5f1fe4696`。表内为平均交叉熵，使用自然对数。Turnstile 行号从 0 开始。[官方权重版本](https://huggingface.co/Qwen/Qwen3.5-0.8B/tree/2fc06364715b967f1860aea9cf38778875588b17)
+## 3. Measurements on real model weights
 
-| 测试题 | 输入总 token（含答案） | 受监督答案 token | 函数名 token | 参数值 token | 整答 loss | 函数名 loss | 参数值 loss |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| 自编短题，查订单 4821 | 313 | 31 | 2 | 4 | 0.00338948 | 0.00008970 | 0.00006344 |
-| Turnstile 第 42 行，查配送＋找优惠券 | 1,702 | 151 | 11 | 40 | 0.027895 | 0.007999 | 0.081193 |
-| Turnstile 第 49 行，按偏好推荐锻炼计划 | 1,438 | 78 | 6 | 12 | 0.093611 | 0.009124 | 0.159913 |
+The first measurements used PyTorch 2.11.0, Transformers 5.3.0, the native Hugging Face chat template and CPU BF16. We pinned Qwen3.5-0.8B to revision `2fc06364715b967f1860aea9cf38778875588b17` and verified the weights' SHA-256. The published digest for `model.safetensors` at this revision is `04b1c301231dd422b8860db31311ab2721511346a32cb1e079c4c4e5f1fe4696`. Losses below are mean cross-entropies in natural-log units. Turnstile row numbers are zero-based. [Pinned model revision](https://huggingface.co/Qwen/Qwen3.5-0.8B/tree/2fc06364715b967f1860aea9cf38778875588b17)
 
-短题同时让 Transformers 用官方 `labels` 接口计算训练 loss，返回 **0.0033894795924425125**，与手工取整段答案的平均值一致。第 42 行有两次调用，参考答案包含订单号、顾客编号、城市、商品列表和日期字典；保留日期及五个干扰工具。第 49 行是一道单调用题。两题都成功分出了函数名和参数值。它们证明实现能处理这些题型，不能用两题的数值推断全库准确率或选样收益。[第 42 行](https://huggingface.co/datasets/amazon/Turnstile-Synthetic-Domains/viewer/default/train?row=42) · [第 49 行](https://huggingface.co/datasets/amazon/Turnstile-Synthetic-Domains/viewer/default/train?row=49)
+| Example | Input tokens including answer | Supervised answer tokens | Function-name tokens | Argument-value tokens | Whole-answer loss | Function-name loss | Argument-value loss |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Hand-written prompt, track order 4821 | 313 | 31 | 2 | 4 | 0.00338948 | 0.00008970 | 0.00006344 |
+| Turnstile row 42, check a delivery and find coupons | 1,702 | 151 | 11 | 40 | 0.027895 | 0.007999 | 0.081193 |
+| Turnstile row 49, recommend a workout plan based on preferences | 1,438 | 78 | 6 | 12 | 0.093611 | 0.009124 | 0.159913 |
 
-## 4. 怎样在项目里用这套打分？
+On the short example, Transformers' own `labels` interface returned **0.0033894795924425125**, matching the manually averaged loss over the answer. Row 42 contains two calls. Its reference includes an order number, customer ID, city, product list and date dictionary. We retained the date and five distractor tools. Row 49 contains one call. We could isolate the function names and argument values in both examples. Two examples establish that the implementation handled those input structures. Dataset-wide accuracy and the effect of data selection require held-out generation experiments. [Row 42](https://huggingface.co/datasets/amazon/Turnstile-Synthetic-Domains/viewer/default/train?row=42) · [Row 49](https://huggingface.co/datasets/amazon/Turnstile-Synthetic-Domains/viewer/default/train?row=49)
 
-假设 4,000 题训练一遍，每 16 题做一次优化器更新，共约 250 次更新。可保存第 0、10、30、80、250 步五个时刻。初始快照直接用原权重。每个训练后快照都加载“相同的原权重＋该时刻保存的 adapter”。逐一用相同顺序和模板扫描 4,000 道候选训练题，得到 20,000 次逐题前向。**同一次前向同时产出整答、函数名和参数值的分数**，原版 S2L 和分项版本共享这五遍计算。
+## 4. Using these scores for sample selection
 
-| 选题方法 | 交给 K-means 的数字 | 最终 2B 学什么 |
-|---|---|---|
-| 原版 S2L 对照 | 每题五个整答平均 loss | 被选出的 1,000 道题的完整标准调用 |
-| 分项选样 | 每题五个函数名平均 loss 加五个参数值平均 loss | 同样学 1,000 道题的完整标准调用 |
-| 随机对照 | 从同池随机抽取 | 同样学 1,000 道题的完整标准调用 |
+One pass over 4,000 examples with one optimizer update per 16 examples gives approximately 250 updates. Score the initial weights at step 0 and save adapters at steps 10, 30, 80 and 250. For each later checkpoint, load the same base weights with the adapter saved at that step. Score all 4,000 candidates in the same order with the same template. This gives 20,000 example-level forward evaluations. **Each forward evaluation supplies all three scores**, so both trajectory selectors share the cost of the five passes.
 
-固定每组选题数、2B 起点和评分规则，按实验方案匹配目标训练的非填充 token 预算，另记答案监督 token 数。特征尺度会影响欧氏距离，具体的标准化策略、参照组和比较顺序见[主实验方案与数据划分](research-plan.md)。
+| Selection method | Input to the selector | Training target for the 2B model |
+| --- | --- | --- |
+| Whole-answer S2L baseline | Five mean whole-answer losses per example for K-means | Complete reference calls for the selected 1,000 examples |
+| Field-level selection | Five mean function-name losses and five mean argument-value losses per example for K-means | Complete reference calls for the selected 1,000 examples |
+| Uniform random baseline | A random sample from the same pool | Complete reference calls for the selected 1,000 examples |
 
-## 5. M1 Pro 上的试跑记录
+Each arm has the same selection count, initial 2B weights and evaluation rules. The protocol matches the non-padding input-token budget for target training and separately records the number of supervised answer tokens. Feature scale affects Euclidean distance. The [research plan and split definitions](research-plan.md) specify the standardization, comparison arms and order of comparisons.
 
-实测硬件是 14 核 GPU 的 Apple M1 Pro、16 GB 统一内存。PyTorch 2.11.0 成功分配 MPS 张量。下表来自早期本地试跑记录。临时环境与检查点未随仓库保存，耗时及检查点写入情况来自当时记录。
+## 5. Early feasibility tests on an M1 Pro
 
-| 已做的事情 | 观察到的结果 | 可以据此判断什么 |
-|---|---|---|
-| Metal 上给未微调的 0.8B 打分 | FP16、batch 1，两道 1,702 / 1,438 token 的真实题，预热后的前向耗时分别为 **2.172 / 2.024 秒**，关闭了 CPU 算子回退。 | 可以在本机开发逐题打分器。仅把约 2 秒乘以 20,000 次，五遍打分就约 11 小时；两道题只能估数量级，尚未包含训练和考试生成。 |
-| Metal 上训练 0.8B LoRA | 同一短题用 FP16 反向传播时出现 NaN 梯度。改 BF16 后，313-token 短题的一次优化器更新用时 **7.063 秒**，检查到的 LoRA 梯度范数约 0.215。 | 短题可以完成一次更新。尚无长题持续训练、2B 训练或整套实验用时的可靠测量。 |
-| ms-swift 命令行训练与存档 | 用真实 0.8B 在 CPU FP32 下验证，ms-swift 4.6.1、PEFT 0.18.1、LoRA rank 2，442,368 个可训练参数。确认第 1 步 loss 为 **0.00453959**，梯度范数约 0.378，写出了 `checkpoint-1`。 | 该记录验证了训练入口和首次保存；只恢复到计划三步中的第一步，不能据此声称已在真实权重上完成五时刻轨迹。正式 rank 16 与这个小测试不同。 |
-| 2B 和方法比较 | 这次只完成了代理模型的小样本验证；2B 的 200 题摸底与三组微调仍待运行。 | 2B 的基模准确率、选样收益和正式吞吐均待实测。 |
+The test machine was an Apple M1 Pro with a 14-core GPU and 16 GB of unified memory. PyTorch 2.11.0 successfully allocated an MPS tensor. Timings and checkpoint writes below come from the early local tests. The temporary environments and checkpoints were not archived in Git.
 
-**正式数据比演示题长。** 从官方全库按固定种子各抽了 100 道单、双调用题，保留每道题的干扰工具。含答案的平均长度分别约 **1,514、1,830 tokens**，两组中位数分别为 1,530、1,804。测试中用来跑短题的 1,024-token 设置会截断所有这 200 道题。正式试跑要先统计实际分词长度，用保留完整工具和答案的设置测显存与耗时。另有 1,030 道带“双不同工具”标签的题实际重复调用同一工具，真正两个不同工具的候选有 5,336 道，还要进一步去重。[数据与参考答案](https://huggingface.co/datasets/amazon/Turnstile-Synthetic-Domains)
+| Check | Measurement | What it established at the time |
+| --- | --- | --- |
+| Score the unadapted 0.8B model on Metal | With FP16, batch size 1 and CPU operator fallback disabled, warmed-up forward passes took **2.172 s and 2.024 s** on real inputs of 1,702 and 1,438 tokens, respectively. | The Mac could be used to develop the scorer. Extrapolating 2 seconds per example to 20,000 evaluations gives about 11 hours for scoring alone. Two examples supply only an order-of-magnitude estimate, excluding training and evaluation generation. |
+| Train a 0.8B LoRA adapter on Metal | On the short example, FP16 backpropagation produced NaN gradients. With BF16, one optimizer update on the 313-token example took **7.063 s**. The observed LoRA gradient norm was about 0.215. | The device completed one short update. This check did not measure sustained training on long inputs, 2B training or total experiment time. |
+| Train and save from the ms-swift CLI | CPU FP32 on the real 0.8B model, ms-swift 4.6.1, PEFT 0.18.1, LoRA rank 2 and 442,368 trainable parameters. Step 1 produced a loss of **0.00453959**, a gradient norm of about 0.378 and a `checkpoint-1` directory. | The record covers the training entry point and first save. Only step 1 of three planned steps was recovered. The five-checkpoint trajectory and the formal rank-16 setup required separate validation. |
+| 2B model and comparison arms | Only the small proxy checks had finished at this stage. The 200-example base-model pilot and three target fine-tuning arms came later. | The early checks alone provided no measured base accuracy, selection gain or full-run throughput. |
 
-**训练标签还需要复核一处。** 用 ms-swift Python SDK 手工指定 `loss_scale="default"` 时，自编订单题有 36 个受监督 token。第 3 节 Hugging Face 短题规则得到 31 个。CLI 实际保存的 `loss_scale` 是 `default+ignore_empty_think`，会屏蔽空的 thinking 前缀。即使输入 token 相同，分母也可能不同。脚本用 ms-swift 4.6.1 的配置转换方法，从该次训练保存的 `args.json` 读取模板设置。上表的数值来自 HF 路径。在正式打分前，还要从训练端取得一题的 `input_ids` 和 `labels`，逐位置与验证脚本比对，再用相同权重核对整答 loss。[ms-swift 模板参数转换](https://github.com/modelscope/ms-swift/blob/v4.6.1/swift/arguments/base_args/template_args.py#L172-L199)
+**Input lengths matter for memory and timing.** We used fixed seeds to sample 100 single-call and 100 two-call examples from the official corpus, retaining each example's distractor tools. Mean sequence lengths including the answers were approximately **1,514 and 1,830 tokens**. The medians were 1,530 and 1,804 tokens, respectively. A 1,024-token limit, suitable for the short check, would truncate every one of these 200 examples. A representative hardware pilot should use complete tools and answers and measure the tokenized lengths. In the corpus, 1,030 rows labeled as using two different tools actually called the same tool twice. The pool with two genuinely distinct tools contained 5,336 examples before further deduplication. [Dataset and reference answers](https://huggingface.co/datasets/amazon/Turnstile-Synthetic-Domains)
 
-### 如何复跑一个小样例
+**The training and scoring label masks need to agree.** Manually specifying `loss_scale="default"` in the ms-swift Python SDK gave 36 supervised tokens on the hand-written order example. The Hugging Face setup in Section 3 gave 31. The CLI saved `loss_scale` as `default+ignore_empty_think`, which masks an empty thinking prefix. The denominator can therefore differ even when the input tokens are identical. Our script uses the ms-swift 4.6.1 configuration conversion to restore template settings from the run's `args.json`. The Section 3 numbers use the Hugging Face path. The prescribed preflight before formal scoring was to export one example's `input_ids` and `labels` from the trainer, compare them position by position with the validation script, and then compare the whole-answer loss under identical weights. [ms-swift template argument conversion](https://github.com/modelscope/ms-swift/blob/v4.6.1/swift/arguments/base_args/template_args.py#L172-L199)
 
-以下命令从仓库根目录运行，适用于 bash/zsh。先用 Python 标准库检查入口，并将自编订单题导出到本机的新目录。导出文件含一个用户回合以及标准工具调用，脚本会拒绝覆盖已有文件。
+### Reproduce a small example
+
+Run the following commands at the repository root in bash or zsh. The first commands use the Python standard library and export the hand-written order prompt into a new local directory. The file contains one user turn and its reference call. The script refuses to overwrite an existing file.
 
 ```bash
 python3 scripts/verify_tool_call_loss.py --help
@@ -94,7 +96,7 @@ SMOKE_DIR=$(mktemp -d local/smoke.XXXXXX)
 python3 scripts/verify_tool_call_loss.py --write-swift-jsonl "$SMOKE_DIR/demo.jsonl"
 ```
 
-**复现 HF 前向。** 在单独的 Python 环境中安装测量使用的两个依赖。通过 Hugging Face CLI 取固定版本的模型和 Amazon Turnstile 的原始文件。模型和训练数据保存在本地，后面的 `--model` 和 `--turnstile-dir` 均可指向已有的离线副本。复现用数据版本的第 42、49 行已与文中工具名核对。数据使用遵循 Amazon 标注的 CC BY-NC 4.0 许可。[固定数据版本](https://huggingface.co/datasets/amazon/Turnstile-Synthetic-Domains/tree/70bf9e9a6234e694efa36d1ec6c207c65a695f5b) · [数据卡和许可](https://huggingface.co/datasets/amazon/Turnstile-Synthetic-Domains) · [HF CLI 文档](https://huggingface.co/docs/huggingface_hub/guides/cli)
+**Reproduce the Hugging Face forward pass.** Install the two measured dependencies in a separate Python environment, then use the Hugging Face CLI to obtain the pinned model and Amazon Turnstile files. The `--model` and `--turnstile-dir` options can also point to existing offline copies. We checked the tool identities in rows 42 and 49 at this dataset revision. The dataset is distributed by Amazon under CC BY-NC 4.0. [Pinned dataset revision](https://huggingface.co/datasets/amazon/Turnstile-Synthetic-Domains/tree/70bf9e9a6234e694efa36d1ec6c207c65a695f5b) · [Dataset card and license](https://huggingface.co/datasets/amazon/Turnstile-Synthetic-Domains) · [Hugging Face CLI documentation](https://huggingface.co/docs/huggingface_hub/guides/cli)
 
 ```bash
 python3 -m venv .venv
@@ -108,20 +110,20 @@ hf download amazon/Turnstile-Synthetic-Domains data.jsonl api_definitions.json \
   --repo-type dataset --revision 70bf9e9a6234e694efa36d1ec6c207c65a695f5b \
   --local-dir "$DATA"
 
-# 内置短题同时核对手算平均数和 HF 的 labels 接口。
+# Compare the manual mean and the HF labels interface on the built-in example.
 python scripts/verify_tool_call_loss.py --model "$MODEL" --dtype bfloat16 --check-hf
-# Turnstile 两题仅计算受监督位置需要的 logits。
+# For the two Turnstile examples, compute logits only at supervised positions.
 python scripts/verify_tool_call_loss.py --model "$MODEL" --dtype bfloat16 --turnstile-dir "$DATA"
 ```
 
-每行输出一条 JSON。`id` 对应题号，`input_tokens` 包括提示和答案，`answer_tokens` 是所有受监督位置的数量。`function`、`value`、`other` 是三组位置各自的平均 loss，分母见对应的 `*_tokens`。`all` 是全部受监督 token 的平均 loss。`--check-hf` 额外输出 `hf_loss` 并按绝对误差 0.0001 检查一致性。用 `--examples` 可读入自备的 JSONL，每行含 `id`、`tools` 和 `messages`。最后一个消息须为单个 assistant 回合，含非空 `tool_calls`、空文本和对象形式的 `function.arguments`。未提供输入文件时，使用内置订单题。
+The script prints one JSON record per line. `id` identifies the example. `input_tokens` counts prompt and answer tokens, and `answer_tokens` counts supervised positions. `function`, `value` and `other` are the mean losses for their respective positions, with denominators given by `*_tokens`. `all` is the mean over all supervised tokens. The `--check-hf` option also prints `hf_loss` and checks agreement with an absolute tolerance of 0.0001. Supply your own JSONL with `--examples`. Each record needs `id`, `tools` and `messages`. Its last message must be an assistant turn with nonempty `tool_calls`, empty text and object-valued `function.arguments`. With no input file, the script uses the built-in order example.
 
-**可选的 ms-swift 单步检查。** 在同一环境中加入训练依赖，沿用上面的 `MODEL` 和 `SMOKE_DIR`。首轮记录的 torchvision 是 0.26.0，与 PyTorch 2.11.0 配套。Qwen3.5 的 processor 在这条纯文本训练路径上也检查 qwen-vl-utils。若仅用 HF 模板给已有 adapter 打分，只需额外安装 PEFT。[ms-swift 工具训练文档](https://github.com/modelscope/ms-swift/blob/v4.6.1/docs/source_en/Instruction/Agent-support.md)
+**Optional one-step ms-swift check.** In the same environment, add the training dependencies and reuse `MODEL` and `SMOKE_DIR` from above. The original test paired torchvision 0.26.0 with PyTorch 2.11.0. The Qwen3.5 processor also checks for qwen-vl-utils on this text-only training path. Scoring an existing adapter with the Hugging Face template requires only PEFT in addition to the initial dependencies. [ms-swift tool-training documentation](https://github.com/modelscope/ms-swift/blob/v4.6.1/docs/source_en/Instruction/Agent-support.md)
 
 ```bash
 python -m pip install -r requirements.txt 'ms-swift==4.6.1' 'peft==0.18.1' \
   'torchvision==0.26.0' 'qwen-vl-utils==0.0.14'
-# CPU 单步检查，rank 2 和 max_length 1024 仅用于上面的自编短题。
+# CPU smoke test. Rank 2 and max_length 1024 apply only to this short example.
 swift sft --model "$MODEL" --model_type qwen3_5 --template qwen3_5 \
   --agent_template qwen3_5 --dataset "$SMOKE_DIR/demo.jsonl" --use_hf true \
   --tuner_type lora --target_modules up_proj down_proj --lora_rank 2 --lora_alpha 4 \
@@ -132,15 +134,15 @@ swift sft --model "$MODEL" --model_type qwen3_5 --template qwen3_5 \
   --max_length 1024 --split_dataset_ratio 0 --report_to none --check_model false \
   --add_version false --output_dir "$SMOKE_DIR/run"
 
-# 同一题重载本次 adapter，用原训练配置生成监督标签。
+# Reload this adapter and regenerate the labels from the saved training configuration.
 python scripts/verify_tool_call_loss.py --model "$MODEL" --adapter "$SMOKE_DIR/run/checkpoint-1" \
   --encoder swift --swift-run-args "$SMOKE_DIR/run/args.json" --check-hf
 ```
 
-## 6. 原论文和本实验的微调方式
+## 6. Fine-tuning in S2L and in this study
 
-**作者公开的 S2L 复现代码使用全参数 SFT。** 它直接加载预训练模型，将其交给 Hugging Face Trainer 微调。作者演示的代理和目标训练沿用同一入口，代码没有为该方案冻结主干或插入 LoRA。论文附录 B.3 另记载实验使用 4 张 48 GB RTX A6000 和 FSDP。FSDP 描述多卡怎样分摊训练状态，判断全参的依据是模型加载及训练代码。[模型加载](https://github.com/BigML-CS-UCLA/S2L/blob/2bc84dda1a054d0ff0e704ae9658ee700d5c25fa/utils.py#L283-L288) · [训练和保存](https://github.com/BigML-CS-UCLA/S2L/blob/2bc84dda1a054d0ff0e704ae9658ee700d5c25fa/schedule_base.py#L150-L165) · [论文附录 B.3](https://arxiv.org/html/2403.07384v2#A2.SS3)
+**The public S2L reference implementation uses full-parameter supervised fine-tuning (SFT).** It loads the pretrained model directly and passes it to Hugging Face Trainer. The authors use the same entry point for their example proxy and target runs. The model-loading and training code leaves the backbone trainable and does not insert LoRA adapters. Appendix B.3 also reports using FSDP with four 48 GB RTX A6000 GPUs. FSDP describes how training state is sharded across devices. The evidence for full-parameter updates comes from the implementation. [Model loading](https://github.com/BigML-CS-UCLA/S2L/blob/2bc84dda1a054d0ff0e704ae9658ee700d5c25fa/utils.py#L283-L288) · [Training and saving](https://github.com/BigML-CS-UCLA/S2L/blob/2bc84dda1a054d0ff0e704ae9658ee700d5c25fa/schedule_base.py#L150-L165) · [Paper appendix B.3](https://arxiv.org/html/2403.07384v2#A2.SS3)
 
-**本实验计划让 0.8B 和所有 2B 组统一使用 LoRA。** 全参 SFT 更新原模型的权重。LoRA 冻结主干，只更新插入指定线性层的低秩矩阵。两者都能用完整答案的交叉熵训练，也都能记录分项 loss。各 2B 组使用相同的可训练模块、rank 和训练预算，以便将成绩差异归因于选样。结论的适用范围是这些 LoRA 设置。
+**Our protocol uses LoRA for the 0.8B proxy and every 2B arm.** Full-parameter SFT updates the original model weights. LoRA freezes the backbone and learns low-rank updates to the specified linear layers. Both parameterizations can optimize complete-answer cross-entropy and support field-level scoring. Keeping the trainable modules, rank and budget fixed across 2B arms isolates the contribution of sample selection. Conclusions are specific to the tested LoRA settings.
 
-**推荐分工。** Mac 负责数据清理、模板和标签对齐、小例子的分项 loss 及评分器。在 NVIDIA 上先用本轮单调用任务中有代表性的长题，验证 0.8B 与 2B 的一个训练步、保存重载及开发集生成，再确定卡时上限。阶段性 checkpoint 和运行配置写入持久目录；三组正式计时均使用同型号显卡。
+**Hardware workflow.** The recommended split of work was to use the Mac for data preparation, checking template and label alignment, developing the example-level scorer and validating the evaluator. On an NVIDIA GPU, first test one training step for both model sizes on representative long single-call examples, save and reload the adapters, and generate development predictions before setting the time budget. Save checkpoints and configurations on persistent storage and time the formal arms on the same GPU type.

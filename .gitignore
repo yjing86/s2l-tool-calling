@@ -7,7 +7,7 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 
-# Local reading copies, course material, and downloaded inputs.
+# Includes private language editions, raw inputs, run outputs and reading copies.
 /local/
 /data/
 /.cache/
