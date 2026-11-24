@@ -1,0 +1,92 @@
+{
+  "scope": "Pre-outcome record for an optional post-hoc three-seed control.",
+  "created_utc": "2026-11-24T10:18:47.892157+00:00",
+  "registration_sha256": "291b6a659e9b2dba2f8ac781ef4484105ccd6f40d30ac5cd2130fe286ee151be",
+  "cell_order": [
+    "s42-E2b",
+    "s43-E2b",
+    "s44-E2b"
+  ],
+  "selections": {
+    "s42-E2b": {
+      "size": 1000,
+      "sha256": "8059a443e13d0582c88579df084417be5958d3bdb3e768b19f9fba9cdef1ee4e",
+      "seed_manifest_sha256": "a6aeca8494101c903ad6f77a99de8b447bf56e02ebcdc26f332757b12ada09fe"
+    },
+    "s43-E2b": {
+      "size": 1000,
+      "sha256": "bc8f7244b416266dba2b53fd13f82ab5a68ce3cee096a4a7ff239876cf92497a",
+      "seed_manifest_sha256": "91ca7fe9162533bf3afe8bcd000263f823bd5f18f18e2bed89bbd76118299d14"
+    },
+    "s44-E2b": {
+      "size": 1000,
+      "sha256": "fc17e38ac211d2caf28d9cd1f7a710fdf353d401318d5c4398bc3b81d90ab8e5",
+      "seed_manifest_sha256": "7a4571253d34453bcbc3bd6321b28be947c7c80693a1473fb49ec2faf74f4d2a"
+    }
+  },
+  "source_sha256": {
+    "select_followup.py": "3a12fc7c39b2cc7606a75abf89ea0900e1b0574c102646123001eabbb27a742d",
+    "run_followup.py": "fdbe7d12abf15cc664d89c7fd6972d31bef3d0799307aa1b61dbaa654cdde192",
+    "summarize_followup.py": "5d74011c8828e5981bb501faefa3a101031abbe1f3f4899427775c964423d233",
+    "run_course_experiment.py": "9ee2f60079d196ab3ef11706bf1e4a832768cdeb17d36f25743ff24c81547115",
+    "run_crossed_seeds.py": "21f204a3d4ec81273665a364b3997a8b776ce98b1340b181a185386ae0772d76",
+    "train_experiment.py": "cff45f3afebe67f48276e4d581b3025ecf392f7112381fc6895d33afd3fd7049",
+    "experiment_callback.py": "6ce487ebaa5706c1471a9ce8050f69fd8b3db90a6e8e796b517b5ab04036ab08",
+    "evaluate_experiment.py": "ebcf9078ade3153631985ef422c8279a175af3c179c40d4d899f96840147c730",
+    "verify_tool_call_loss.py": "a6ad4b0bdf96bc616e6a0e39f846bdbff22ac3a01fb2ae2bc98eb640584f8917",
+    "select_experiment.py": "90d33a7b8da468ac7194c69a717aaac48a187cb653e57cc5ad67f0badcff01f7",
+    "summarize_course.py": "6bad4a193b34d7d2d0e059e29e513da89838b49cba73d3a553833df0dbec54bb",
+    "select_difficulty_control.py": "3b18f5f52a39d0a4444ce4c0aef41f2e3b239294b015a474eee6c45463221cdd",
+    "run_difficulty_control.py": "a30f4d2e8bd6e9630b723298133eaaffe5c929ec01d616761f54735e7e3ccec8",
+    "difficulty_admission.py": "8b19ef5151b9496bec3bc7d74602fa314da4d3a3a08e4803ecf2bb41a26063e2",
+    "summarize_difficulty_control.py": "c01b20fdf8d6823ca9d7a761df7f044da890eec5f718f445588f641c3399ac81"
+  },
+  "phase1_spec_sha256": "279cf1f7356735b503f194d9a674a0cf247b878924d7086fde410c29548f4f8e",
+  "pool_sha256": "fd0ee69020ff537165b0fc405883f33ea2269ccc14cd4a231f62e5aff32e6001",
+  "models_sha256": {
+    "target_weights": "aa33250c4fc64891ddfaba3a314fd9542ea371843c387178b425fbcc5ed680b1",
+    "target_config": "ed1c1723241f23f7f4e23430759cbd7dcfb4103cbdfe052bfe7626b57c2615b4"
+  },
+  "selection_design": {
+    "primary_length_target": "Same-seed A length counts. B fixes the empty IDs; if necessary apportion positive A counts to B's positive total.",
+    "difficulty_target": "Same-seed B histogram of step-0 per-example value_sum / value_tokens; undefined for empty values.",
+    "chosen_requested_bins_per_axis": 10,
+    "joint_objective": "Minimize sum((selected - positive_seats * pool_cell / positive_pool_size)^2 / max(positive_seats * pool_cell / positive_pool_size, 1)) over positive cells with both margins fixed.",
+    "rng_namespace": 3627,
+    "length_upper_bounds": [
+      5,
+      7,
+      8,
+      10,
+      12,
+      15,
+      18,
+      23,
+      29
+    ],
+    "difficulty_upper_bounds": [
+      0.003146104879092223,
+      0.015280594530150456,
+      0.045039629408468805,
+      0.11089064908901491,
+      0.19388234552570793,
+      0.3121996965386312,
+      0.4775066164242566,
+      0.6761043155953909,
+      1.042452488963799
+    ]
+  },
+  "analysis": {
+    "contrasts": [
+      "E2b-A",
+      "E2-A",
+      "E2b-B",
+      "E2b-E2"
+    ],
+    "primary_question": "E2b minus A at matched length-bin counts and B's initial difficulty-bin counts.",
+    "length_reference": "E2 minus A, reused from Phase 1. E2 matches B's length bins.",
+    "exploratory": "E2b minus B is descriptive; E2b minus E2 changes both marginal targets.",
+    "intervals": "2,000 joint paired held-out group resamples with fixed seeds and a three-seed t sensitivity.",
+    "limitations": "Bin matching does not fix exact loss, tool identity or joint loss trajectories. No new test or BFCL; no equivalence or causal claim."
+  }
+}

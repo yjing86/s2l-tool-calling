@@ -185,3 +185,20 @@ The unadapted 2B scored 56.29% on the A-only exposure stratum of A vs B and 39.6
 Complete and verify the original study and its full-pool and crossed-seed checks first. Then finish all eleven previously registered Phase 1 target fits. Only after those obligations can the three E2b fits at 42, 43 and 44 be admitted together. Preserve the original deadline and ten-minute shutdown reserve, updated receipt-based forecasts and the 20% time margin. Mean timings from completed primary runs imply about **1.65 A40-hours** for three fits including development and original-test inference. The admission rule instead takes the slowest observed training, development and test stage separately and adds 20%. At registration those maxima were 972.46, 255.33 and 846.83 seconds per fit, giving **2 h 04 min 29 s** for a batch of three, before the common shutdown reserve. If all three do not fit, retain the CPU selection evidence and defer the GPU control. A partial run cannot stand for the three-seed comparison.
 
 Before inference, lock the input IDs, target settings and matched checkpoints. The principal diagnostic is E2b−A at equal target tokens. Report E2b−B and E2b−E2 as secondary, show per-seed correct counts and discordances, and use the same paired request-group and separate seed-sensitivity intervals as Phase 1. Positive or negative findings on the already opened 2,000-request test remain post hoc. To make an independently tested superiority claim for a revised selector, lock the method and controls before observing predictions on the distinct, previously reserved 1,500-request test. The reserve supports a new-request test within Turnstile. It shares the underlying corpus and tool families. [Reserve construction](../scripts/reserve_followup_test.py)
+
+### Reuse the subsets or replay the registered batch
+
+In the CPU environment from `requirements/selection.txt` (NumPy 2.5.5, SciPy 1.18.1), with the original primary and Phase 1 selection artifacts, the following command rebuilds all three 1,000-request E2b files. The next command shows one standalone training run using the study's public trainer. For the three-seed comparison repeat it with the matching data, seed and a fresh output directory for 43 and 44. Use the existing vLLM generation and strict scoring protocol on the same requests. The registered comparison fixes the endpoint at the target token budget. [Selection fingerprints and registered contrasts](../results/followup/e2b-registration.json) · [Training and evaluation environments](environment.md)
+
+```bash
+python3 scripts/select_difficulty_control.py --primary local/course-run \
+  --phase1-selection local/followup/phase1/selection --out local/followup/e2b-eligibility
+
+# Train one endpoint in the study's training environment.
+local/envs/train/bin/python scripts/train_experiment.py --stage target --seed 42 \
+  --model local/models/Qwen3.5-2B --data local/followup/e2b-eligibility/42/E2b.jsonl \
+  --pool local/course-run/frozen/train.jsonl --micro-batch 4 --max-length 8192 \
+  --output local/reproduction/e2b-42
+```
+
+The project's rental used a separate controller to evaluate whether all three fits would fit after the original and Phase 1 jobs. `forecast` uses existing receipts and does not train. The controller's backup and account checks document this specific rented study. The selector and standalone trainer above can be used on a different machine. [Managed batch controller](../scripts/run_difficulty_control.py) · [Post-training comparison](../scripts/summarize_difficulty_control.py)
