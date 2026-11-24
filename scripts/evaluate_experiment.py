@@ -281,11 +281,12 @@ def generate(args, rows, cache, cfg):
     tokenizer = AutoTokenizer.from_pretrained(str(args.model))
     eos = tokenizer.eos_token_id
     cfg.update(adapter_sha256=hashes, prompts_sha256=fingerprint(cache), stop_token_ids=[eos],
-               greedy=True, seed=42, dtype="bfloat16", gpu=os.environ.get("CUDA_VISIBLE_DEVICES"))
+               greedy=True, seed=42, dtype="bfloat16", language_model_only=True, max_lora_rank=16, gpu=os.environ.get("CUDA_VISIBLE_DEVICES"))
     write_json(args.out / "config.json", cfg)
     start = time.monotonic()
     engine = LLM(model=str(args.model), dtype="bfloat16", enable_lora=bool(adapter),
-                 max_model_len=args.max_model_len, seed=42, gpu_memory_utilization=args.gpu_memory_utilization,
+                 language_model_only=True, max_lora_rank=16, max_model_len=args.max_model_len,
+                 seed=42, gpu_memory_utilization=args.gpu_memory_utilization,
                  generation_config="vllm", enforce_eager=args.enforce_eager)
     load_s = time.monotonic() - start
     params = SamplingParams(temperature=0, n=1, max_tokens=args.max_tokens,
