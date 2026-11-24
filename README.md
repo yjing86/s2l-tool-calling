@@ -58,6 +58,8 @@ C beat B in all three paired seeds on 2,000 held-out requests. The mean gain was
 
 We then trained 11 additional models on the same token budget. Random sampling with B’s argument-length quotas averaged **54.43%**, length-adjusted whole-answer trajectories **54.23%**, and proportional sampling by tool name **54.77%**. Uniform random sampling remained highest among the seven 1,000-request strategies tested at all three seeds. These follow-ups used the already opened Turnstile test. [All 21 trained endpoints and paired comparisons](docs/results.md#three-seed-controls-for-fields-length-and-tool-coverage) · [Machine-readable results](results/followup/phase1-results.json)
 
+A further three-seed control matched random sampling’s argument-length bins and B’s initial argument-difficulty bins. It reached **55.37%**, compared with **55.68%** for unrestricted random sampling (difference −0.32 pp, paired 95% interval −1.20 to +0.58). Matching difficulty alone at these lengths did not reproduce B’s shortfall. [Difficulty-control results](results/followup/e2b-results.json) · [Ten-minute research talk](docs/project-story.md)
+
 ![Accuracy by seed and paired field-minus-whole effects on held-out Turnstile requests](docs/figures/heldout-results.png)
 
 ## Find the code and supporting material

@@ -96,6 +96,23 @@ E3 gained +2.75 pp over B at seed 42 but lost ground at seeds 43 and 44. Its mea
 
 None of the three registered diagnostic patterns met all its criteria. On these fitted seeds A scored highest among the seven methods at the matched token budget. All seven 95% seed t intervals span zero. The evidence for differences across these specific test requests is stronger than the evidence for how the methods rank when retrained.
 
+### Does the mix of easy and difficult values help explain the gap?
+
+Here, a “difficult” argument is one to which the unadapted 0.8B proxy assigned low probability. We measured difficulty before proxy training by averaging the negative log-probability of the reference argument-value tokens of each request, conditioned on their correct prefixes. E2b drew 1,000 requests uniformly within length-by-difficulty cells. Its length-bin counts matched those of random A at the same seed, and its difficulty-bin counts matched those of trajectory-selected B. All three subsets met both margins exactly on a 10 × 10 grid. E2, the earlier control, matched B’s length bins and left difficulty unconstrained. [Registered comparisons](../results/followup/e2b-registration.json) · [Selection and balance](improvement-plan.md#how-to-construct-the-three-e2b-subsets)
+
+E2b answered **1,126, 1,100 and 1,096 out of 2,000** correctly at seeds 42, 43 and 44, for a mean accuracy of **55.37%**. Each 2B run had the same training-token budget and used the same test requests. Differences below are in percentage points. The first 95% interval resamples request groups jointly for all three trained seeds. The second varies the three paired seed differences on the fixed test (t, two degrees of freedom). [Per-seed paired counts and intervals](../results/followup/e2b-results.json)
+
+| Comparison | Seed 42 | Seed 43 | Seed 44 | Mean | 95% request-group interval, fixed seeds | 95% seed t interval, fixed requests |
+|---|---:|---:|---:|---:|---:|---:|
+| E2b − A | +0.40 | −1.45 | +0.10 | −0.32 | [−1.20, +0.58] | [−2.78, +2.15] |
+| E2 − A | −1.85 | −0.75 | −1.15 | −1.25 | [−2.15, −0.40] | [−2.63, +0.13] |
+| E2b − B | +3.60 | +0.45 | +0.95 | +1.67 | [+0.77, +2.55] | [−2.54, +5.87] |
+| E2b − E2 | +2.25 | −0.70 | +1.25 | +0.93 | [0.00, +1.87] | [−2.79, +4.66] |
+
+**The difficulty-only prediction did not recur consistently.** If B’s mix of hard-to-predict values explained its full 1.98 pp average deficit to A, one would expect a comparable average deficit when imposing that mix at A-like lengths. E2b finished 8 calls ahead of A at seed 42, 29 behind at seed 43 and 2 ahead at seed 44. Its average was 0.32 pp below A, with both intervals spanning zero. Equivalence was not tested. E2 fell below A at every seed, and E2b exceeded B at every seed, although the latter comparison’s three-seed interval spanned zero. These outcomes are compatible with a cost of the B-like length mix or other features of the particular requests B selects. E2b exceeded E2 by 0.93 pp on average, but the request-group interval touched zero and the direction changed at seed 43.
+
+E2b−A asks what happens with B-like difficulty at A-like lengths. E2−A reuses the Phase 1 result for adopting B’s length quotas. E2b−B compares different length distributions and selection rules at matched difficulty-bin counts. E2b−E2 changes both the length and difficulty distributions. Even where one marginal distribution matches, exact values within bins, the joint distribution and the training examples can differ. E2b covered 557, 574 and 558 functions versus A’s 603, 605 and 595. These comparisons were registered after the original test had been opened. A factorial design using the same sampler across all four combinations and a newly sealed assessment would be needed to test separate length and difficulty effects prospectively.
+
 ## What happens when the target can train on the whole pool?
 
 At seed 42 we trained one additional 2B model directly from the 4,000-candidate pool. The first checkpoint reached the same input-token budget as A/B/C, about half a pass over the larger pool. The subset models had spent approximately two passes on their respective sets of 1,000. The later full-pool checkpoint completed two passes. It also had the highest development score (259/400), so the final and best-development readouts share the same predictions.

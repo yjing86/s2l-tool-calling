@@ -1,0 +1,398 @@
+{
+  "status": "complete",
+  "execution_status": {
+    "phase1": "complete",
+    "difficulty": "complete"
+  },
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "requests": 2000,
+  "groups": 2000,
+  "target_input_token_budget": 3005228,
+  "models": {
+    "s42-A": {
+      "origin": "primary",
+      "checkpoint": "s42-A-step126",
+      "correct": 1118,
+      "count": 2000,
+      "accuracy_pct": 55.9,
+      "adapter_sha256": "24790244e7f21d67ea3e40f1bf3775d80319c5dfc963c67a788c3116055ece5d",
+      "predictions_sha256": "be1506a701130252af954d7ef61e5aa76b6e97e1124525176ee9ffbc9b3030a2",
+      "generation_config_sha256": "b2b9596671e53cc09f8167ee0bcf2fa92908b952705379ed972efcbd60d78df1",
+      "training_subset_sha256": "a439492a1d919385b995818bb0e74c686fe3deec1293f5f73425315fa13fc889",
+      "actual_input_tokens": 3010332,
+      "train_seconds": 954.8819561849814,
+      "test_seconds": 809.242832273012
+    },
+    "s42-B": {
+      "origin": "primary",
+      "checkpoint": "s42-B-step125",
+      "correct": 1054,
+      "count": 2000,
+      "accuracy_pct": 52.7,
+      "adapter_sha256": "ea56309e4f266340343065be9eabe0c246a0300bbf1c405d109457e436b98347",
+      "predictions_sha256": "7a01144e154cb0c564c9fcf888ff6b85ae62213a93e3057375c241e2f8e13ccd",
+      "generation_config_sha256": "bf4d13901371c6c80d5d67b4719a176810abe87ebc113cbd8f0f03b063567f0e",
+      "training_subset_sha256": "ba885b5235dadfc4dcfc5c26ab51dcbb2a46125f8cbfd3e03746e6b6e60a3c04",
+      "actual_input_tokens": 3022226,
+      "train_seconds": 971.4275877999607,
+      "test_seconds": 846.8277536949608
+    },
+    "s42-E2": {
+      "origin": "phase1",
+      "checkpoint": "s42-E2-step125",
+      "correct": 1081,
+      "count": 2000,
+      "accuracy_pct": 54.05,
+      "adapter_sha256": "b5272b350478d43c5f2d9755d0c3b141c9f9dbafdacb8dc0f6640ae3b7784fd7",
+      "predictions_sha256": "0a4f80e32094e15e18b2d88b41f4159769a8fec19fb962e7a5ce0eb04f73e68c",
+      "generation_config_sha256": "f1dbfbc383949e050c64dded2aaf021b501bbe9e6460adf3f4a8df8fd682ee88",
+      "training_subset_sha256": "e2b320e6f031aa4926ce7051c5be778d01884c105b499a60ccb646fc27628c00",
+      "actual_input_tokens": 3015529,
+      "train_seconds": 962.8094844120787,
+      "test_seconds": 812.5292782599572
+    },
+    "s42-E2b": {
+      "origin": "difficulty",
+      "checkpoint": "s42-E2b-step125",
+      "correct": 1126,
+      "count": 2000,
+      "accuracy_pct": 56.3,
+      "adapter_sha256": "12b09c563409aea2fce7f6795a7e5abe1ca700e71579c8cc7e5832c270b4e6ed",
+      "predictions_sha256": "2586fa81117fdaeaf9edb23999e68d8ee7c7cd78581e898459b8f283a78fbf08",
+      "generation_config_sha256": "7f5d6e8fc1f94820182eb53eef2dfcf0ff98bcb299c29225c4a3b44b010d2185",
+      "training_subset_sha256": "8059a443e13d0582c88579df084417be5958d3bdb3e768b19f9fba9cdef1ee4e",
+      "actual_input_tokens": 3006830,
+      "train_seconds": 955.4031244959915,
+      "test_seconds": 798.9930234730709
+    },
+    "s43-A": {
+      "origin": "primary",
+      "checkpoint": "s43-A-step127",
+      "correct": 1129,
+      "count": 2000,
+      "accuracy_pct": 56.45,
+      "adapter_sha256": "418a21a812ef5da3355951609fb8e13ceb82c7ba4e87adf0a759308cdb06d24e",
+      "predictions_sha256": "b8fb87fec4d741985bab583abe523f16a24ecacfabe30b73517f134b241ce8ab",
+      "generation_config_sha256": "64b35663eb5ccf7b8ca79fa557dd7d115dbfae0090b99ee7f05b5c75b50b13ad",
+      "training_subset_sha256": "b044905bb195945c5b5c9f80c5bff1d0b4b69e807d058085a4b87ce5992e068d",
+      "actual_input_tokens": 3024831,
+      "train_seconds": 959.2606360260397,
+      "test_seconds": 795.0355722629465
+    },
+    "s43-B": {
+      "origin": "primary",
+      "checkpoint": "s43-B-step125",
+      "correct": 1091,
+      "count": 2000,
+      "accuracy_pct": 54.55,
+      "adapter_sha256": "1de87370e2f751bb443b64e703209b908a51573d6944f09b8559f93064ece680",
+      "predictions_sha256": "3648c2878d00611bf0dfe34ce9a5ade189b8a8d3614c8863aa50ddef3164800f",
+      "generation_config_sha256": "8e72c252907cfa65b32c88798f1d1f895b1cebd98a7c6486d830591566a0ee5e",
+      "training_subset_sha256": "359e24300e5fb70f248da8e001a80208cc29c18ef1035e3374e3ef3ed9005681",
+      "actual_input_tokens": 3018756,
+      "train_seconds": 960.4651684430428,
+      "test_seconds": 829.1907300479943
+    },
+    "s43-E2": {
+      "origin": "phase1",
+      "checkpoint": "s43-E2-step125",
+      "correct": 1114,
+      "count": 2000,
+      "accuracy_pct": 55.7,
+      "adapter_sha256": "f92bbd37a551de3c957d61f54437e873e4a46cd06ab9ea75294eb17b4f97f5fa",
+      "predictions_sha256": "e384687f7a13c64974d5839d262e467433b37513d53b0f76a6b8577782e6922c",
+      "generation_config_sha256": "40c2cb00472f014db1a8e9948de28048ee2742ca43603fd3018ab15ebb98d788",
+      "training_subset_sha256": "2cfaf545dc60de76e32d05706295963b0833cd21fb953f68ef33c8ab559242fc",
+      "actual_input_tokens": 3025833,
+      "train_seconds": 962.7729164760094,
+      "test_seconds": 779.4411909789778
+    },
+    "s43-E2b": {
+      "origin": "difficulty",
+      "checkpoint": "s43-E2b-step127",
+      "correct": 1100,
+      "count": 2000,
+      "accuracy_pct": 55.0,
+      "adapter_sha256": "7c2b3ae2a5eafc23ee46e1390fae5be020209af9da226940e64a1c4a7c4b7c3e",
+      "predictions_sha256": "6c21a2ab06bc6f273258e36985b9b6b39e620f2e651253ffb442e6015db3ceb1",
+      "generation_config_sha256": "05cc64a1475dd5023a3cb1b5e2c66c3cf1fb85d148a0181631a961f991c40a48",
+      "training_subset_sha256": "bc8f7244b416266dba2b53fd13f82ab5a68ce3cee096a4a7ff239876cf92497a",
+      "actual_input_tokens": 3028282,
+      "train_seconds": 955.7413068519672,
+      "test_seconds": 822.5880477490136
+    },
+    "s44-A": {
+      "origin": "primary",
+      "checkpoint": "s44-A-step128",
+      "correct": 1094,
+      "count": 2000,
+      "accuracy_pct": 54.7,
+      "adapter_sha256": "7e73d610e449df252195581ff044adc82458b815dce6d0ac9a9ed0ec76feda08",
+      "predictions_sha256": "da2f3d16495a587e12e20c64cbbeabc5d8263a927da69570eb6fb85b0cf70d8f",
+      "generation_config_sha256": "d33a6019d33d7e474e4636b7bf65489b863f444e584bb1ef3350a66d89df5d41",
+      "training_subset_sha256": "668b4aedf3129bd69d94834965f72c2c070370bfc544bf33dbd708da3987eeb7",
+      "actual_input_tokens": 3028795,
+      "train_seconds": 961.213151679025,
+      "test_seconds": 805.6948112979298
+    },
+    "s44-B": {
+      "origin": "primary",
+      "checkpoint": "s44-B-step125",
+      "correct": 1077,
+      "count": 2000,
+      "accuracy_pct": 53.85,
+      "adapter_sha256": "0fdea9c69ae1e988144b01969219de4b342a8d8bdce3d0695645de13f6ee5b81",
+      "predictions_sha256": "a7dee62079e20a85fd8520ddc030fd98bf3b34625ed5647c42f6cb475047ffc0",
+      "generation_config_sha256": "3bcd12119acb716edc040b1d8fd93c84d2b0bb449ef2304b3175ee04a7949814",
+      "training_subset_sha256": "9b76c6c60289548276dbfc074e52f2570f7d4dcaf451c11a26f1e71741e1b529",
+      "actual_input_tokens": 3027672,
+      "train_seconds": 972.4591179899871,
+      "test_seconds": 748.5790363410488
+    },
+    "s44-E2": {
+      "origin": "phase1",
+      "checkpoint": "s44-E2-step124",
+      "correct": 1071,
+      "count": 2000,
+      "accuracy_pct": 53.55,
+      "adapter_sha256": "bd1528757fc62c6bac3015bf954e41af175910812a635c99b36876856ade5dc6",
+      "predictions_sha256": "68e4772b898c090e48cbc8f131932c60b75361878d3d7c4fed82f959e9c3701a",
+      "generation_config_sha256": "d8fb80f2b14af728b5ca07f4cada86a3243177b5ca875a77297f8091e48d516e",
+      "training_subset_sha256": "e3b93fa08e329b0bca0647c7fac10fe40db75dc0e02417d7fa66fb7736caeff1",
+      "actual_input_tokens": 3008331,
+      "train_seconds": 960.663714544964,
+      "test_seconds": 725.5133096670033
+    },
+    "s44-E2b": {
+      "origin": "difficulty",
+      "checkpoint": "s44-E2b-step127",
+      "correct": 1096,
+      "count": 2000,
+      "accuracy_pct": 54.8,
+      "adapter_sha256": "cb65fd6d074f794ef5e1b200e798c3e954125681956021c10e0c7444001ea2be",
+      "predictions_sha256": "eaf6c53b436cb3487d56c39345c882e667a9ecf018e5cbd0b8c6c707d01fc923",
+      "generation_config_sha256": "b555dcb9dafcb1310b02e7abc71237e66458b24b3ad17898d0a386b015820e6a",
+      "training_subset_sha256": "fc17e38ac211d2caf28d9cd1f7a710fdf353d401318d5c4398bc3b81d90ab8e5",
+      "actual_input_tokens": 3024232,
+      "train_seconds": 951.7376530220499,
+      "test_seconds": 865.8245541560464
+    }
+  },
+  "contrasts": {
+    "E2b-A": {
+      "question": "Jointly matched selection versus unrestricted random selection",
+      "paired_by_seed": {
+        "42": {
+          "left_only": 117,
+          "right_only": 109,
+          "both_correct": 1009,
+          "both_wrong": 765,
+          "difference_pp": 0.4
+        },
+        "43": {
+          "left_only": 102,
+          "right_only": 131,
+          "both_correct": 998,
+          "both_wrong": 769,
+          "difference_pp": -1.45
+        },
+        "44": {
+          "left_only": 122,
+          "right_only": 120,
+          "both_correct": 974,
+          "both_wrong": 784,
+          "difference_pp": 0.1
+        }
+      },
+      "mean_difference_pp": -0.31666666666666665,
+      "fixed_seed_group_ci95_pp": [
+        -1.2,
+        0.5837499999999978
+      ],
+      "fixed_seed_group_ci90_pp": [
+        -1.0833333333333333,
+        0.4341666666666659
+      ],
+      "seed_t_sensitivity": {
+        "df": 2,
+        "sample_sd_pp": 0.9928914005737653,
+        "zero_observed_seed_variance": false,
+        "ci95_pp": [
+          -2.7831456385045596,
+          2.149812305171226
+        ],
+        "ci90_pp": [
+          -1.99053706346062,
+          1.3572037301272868
+        ]
+      }
+    },
+    "E2-A": {
+      "question": "Length-matched selection versus unrestricted random selection (Phase 1 reference)",
+      "paired_by_seed": {
+        "42": {
+          "left_only": 100,
+          "right_only": 137,
+          "both_correct": 981,
+          "both_wrong": 782,
+          "difference_pp": -1.85
+        },
+        "43": {
+          "left_only": 109,
+          "right_only": 124,
+          "both_correct": 1005,
+          "both_wrong": 762,
+          "difference_pp": -0.75
+        },
+        "44": {
+          "left_only": 110,
+          "right_only": 133,
+          "both_correct": 961,
+          "both_wrong": 796,
+          "difference_pp": -1.15
+        }
+      },
+      "mean_difference_pp": -1.25,
+      "fixed_seed_group_ci95_pp": [
+        -2.15,
+        -0.4
+      ],
+      "fixed_seed_group_ci90_pp": [
+        -1.9833333333333334,
+        -0.55
+      ],
+      "seed_t_sensitivity": {
+        "df": 2,
+        "sample_sd_pp": 0.5567764362830022,
+        "zero_observed_seed_variance": false,
+        "ci95_pp": [
+          -2.63310934238456,
+          0.13310934238456018
+        ],
+        "ci90_pp": [
+          -2.18864403880222,
+          -0.31135596119777964
+        ]
+      }
+    },
+    "E2b-B": {
+      "question": "Jointly matched selection versus whole-answer trajectory selection (descriptive)",
+      "paired_by_seed": {
+        "42": {
+          "left_only": 145,
+          "right_only": 73,
+          "both_correct": 981,
+          "both_wrong": 801,
+          "difference_pp": 3.6
+        },
+        "43": {
+          "left_only": 111,
+          "right_only": 102,
+          "both_correct": 989,
+          "both_wrong": 798,
+          "difference_pp": 0.45
+        },
+        "44": {
+          "left_only": 123,
+          "right_only": 104,
+          "both_correct": 973,
+          "both_wrong": 800,
+          "difference_pp": 0.95
+        }
+      },
+      "mean_difference_pp": 1.6666666666666667,
+      "fixed_seed_group_ci95_pp": [
+        0.7666666666666667,
+        2.55
+      ],
+      "fixed_seed_group_ci90_pp": [
+        0.95,
+        2.4
+      ],
+      "seed_t_sensitivity": {
+        "df": 2,
+        "sample_sd_pp": 1.692877235163062,
+        "zero_observed_seed_variance": false,
+        "ci95_pp": [
+          -2.5386735145655255,
+          5.872006847898859
+        ],
+        "ci90_pp": [
+          -1.1872779718993949,
+          4.520611305232729
+        ]
+      }
+    },
+    "E2b-E2": {
+      "question": "Jointly matched selection versus length-matched selection (exploratory)",
+      "paired_by_seed": {
+        "42": {
+          "left_only": 150,
+          "right_only": 105,
+          "both_correct": 976,
+          "both_wrong": 769,
+          "difference_pp": 2.25
+        },
+        "43": {
+          "left_only": 120,
+          "right_only": 134,
+          "both_correct": 980,
+          "both_wrong": 766,
+          "difference_pp": -0.7
+        },
+        "44": {
+          "left_only": 123,
+          "right_only": 98,
+          "both_correct": 973,
+          "both_wrong": 806,
+          "difference_pp": 1.25
+        }
+      },
+      "mean_difference_pp": 0.9333333333333333,
+      "fixed_seed_group_ci95_pp": [
+        0.0,
+        1.867083333333331
+      ],
+      "fixed_seed_group_ci90_pp": [
+        0.15,
+        1.7166666666666666
+      ],
+      "seed_t_sensitivity": {
+        "df": 2,
+        "sample_sd_pp": 1.5002777520623751,
+        "zero_observed_seed_variance": false,
+        "ci95_pp": [
+          -2.793563208664823,
+          4.660229875331489
+        ],
+        "ci90_pp": [
+          -1.5959166074906002,
+          3.462583274157267
+        ]
+      }
+    }
+  },
+  "bootstrap": {
+    "draws": 2000,
+    "seed": 31415,
+    "unit": "request group"
+  },
+  "inputs_sha256": {
+    "phase1_preregistration_sha256": "4e1eea5f8644e42c7f826347c843e7abaaaed647d81fad9926d6d60cde8fc69d",
+    "eligibility_manifest_sha256": "c94fd431097e9909de034f6c985253a1c2936ac4c2512717acb2df14d1bfec85",
+    "phase1_spec_sha256": "279cf1f7356735b503f194d9a674a0cf247b878924d7086fde410c29548f4f8e",
+    "primary_design_sha256": "71db007166360badd622b371b513807800dee7e307ecf17e5e19879b587fbfe4",
+    "primary_lock_sha256": "4dbd8b66c9ba42e65ce1a2cac02f63a676c8efc30d9a7d578ed59f9855dbb698",
+    "pool_sha256": "fd0ee69020ff537165b0fc405883f33ea2269ccc14cd4a231f62e5aff32e6001",
+    "difficulty_preregistration": "291b6a659e9b2dba2f8ac781ef4484105ccd6f40d30ac5cd2130fe286ee151be",
+    "frozen_test": "000c29f46a06a35146d8d369e4ff763226bf66a690a7339680e32fc8b779407c",
+    "admission": "4b2dc52af07a4b88049cfeda2d179349e0d88f4635231baeebcc8232b39fd55f",
+    "dependencies": "383aa940bd478d880a725b2bb1df6a066f53dcf6016575c76d12cfe18cd7fa9e",
+    "phase1_locks": "bdd49fdf7d3eff62c099c9a7a9e9e670884d56b7dc8ee10471e953440312fbab",
+    "difficulty_locks": "eb891c20a210a58fb6c35c6d7545c0a0f68097976fa8eccfca6cf2c8a3866c2f"
+  }
+}

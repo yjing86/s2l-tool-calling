@@ -1,32 +1,36 @@
 {
-  "scope": "Single-GPU single-call tool-selection experiments: primary, full-pool reference, crossed seeds, and Phase 1 follow-up.",
+  "scope": "Single-GPU single-call tool-selection experiments: primary, full-pool reference, crossed seeds, Phase 1 follow-up, and the E2b difficulty-matched control.",
   "hardware": "1 NVIDIA A40",
   "time_unit": "hours (elapsed wall clock; 1 hour = 3600 seconds), rounded to six decimal places",
   "coverage": {
-    "verified_stages": 4,
-    "successful_task_receipts": 157,
+    "verified_stages": 5,
+    "successful_task_receipts": 166,
     "phase1_new_target_models": 11,
     "phase1_supervised_training_tasks": 11,
     "phase1_development_inference_tasks": 11,
-    "phase1_internal_test_inference_tasks": 11
+    "phase1_internal_test_inference_tasks": 11,
+    "e2b_new_target_models": 3,
+    "e2b_supervised_training_tasks": 3,
+    "e2b_development_inference_tasks": 3,
+    "e2b_internal_test_inference_tasks": 3
   },
   "project_totals": {
     "gpu_workload_hours": {
-      "target_training": 7.717824,
-      "development_inference": 3.382057,
-      "internal_test_inference": 5.18762,
+      "target_training": 8.513069,
+      "development_inference": 3.558449,
+      "internal_test_inference": 5.878566,
       "bfcl_inference": 0.244776,
       "shared_proxy_training": 0.350215,
       "shared_trajectory_scoring": 0.325814,
       "gpu_preflight": 0.140891
     },
     "known_successful_cpu_task_hours": 0.073266,
-    "known_cpu_and_gpu_subprocess_hours_including_external_and_recorded_failures": 17.488808,
-    "gpu_subprocess_hours_started_here": 17.349196,
+    "known_cpu_and_gpu_subprocess_hours_including_external_and_recorded_failures": 19.151391,
+    "gpu_subprocess_hours_started_here": 19.011779,
     "external_adopted_gpu_hours": 0.066346,
     "recorded_failed_gpu_hours": 0.0,
-    "known_gpu_subprocess_hours_including_external_and_failed": 17.415542,
-    "first_to_last_ledger_event_hours": 17.50443,
+    "known_gpu_subprocess_hours_including_external_and_failed": 19.078125,
+    "first_to_last_ledger_event_hours": 19.411955,
     "all_stages_selector_cpu_wall_hours": null,
     "provider_invoiced_rental_hours": null,
     "provider_charge_usd": null
@@ -103,12 +107,38 @@
       "other_cpu_ledger_task_hours": 0.0,
       "recorded_failed_gpu_hours": 0.0,
       "ledger_span_hours": 6.018292
+    },
+    "e2b_difficulty_control": {
+      "successful_task_receipts": 9,
+      "gpu_workload_hours": {
+        "target_training": 0.795245,
+        "development_inference": 0.176392,
+        "internal_test_inference": 0.690946,
+        "bfcl_inference": 0.0,
+        "shared_proxy_training": 0.0,
+        "shared_trajectory_scoring": 0.0,
+        "gpu_preflight": 0.0
+      },
+      "gpu_subprocess_hours_started_here": 1.662583,
+      "external_adopted_gpu_hours": 0.0,
+      "measured_selector_cpu_wall_hours": 0.0,
+      "other_cpu_ledger_task_hours": 0.0,
+      "recorded_failed_gpu_hours": 0.0,
+      "ledger_span_hours": 1.662886,
+      "off_ledger_local_selector_routine_seconds": 1.459061958012171
     }
   },
   "accounting_notes": [
     "GPU-dependent subprocesses include startup, model loading and I/O. Ledger spans include CPU work and gaps between tasks. A utilization trace or provider invoice is needed for active-device seconds or a rental charge.",
-    "Proxy training and trajectory scoring are paid once in the primary stage and reused by the later arms. Two full-pool checkpoints share one training run. The external baseline pilot appears once in the all-in total and is excluded from work started by the four stage controllers.",
-    "Validation uses archived task timing receipts and ledgers; Phase 1 additionally reconciles the 33 successful tasks against the independently replayed terminal summary.",
-    "Primary CPU selection was timed. Phase 1 selector construction and final CPU summarization had no ledger timers. Other CPU ledger tasks include only successfully timed subprocesses. Null means unavailable; a zero denotes no corresponding recorded work."
-  ]
+    "Proxy training and trajectory scoring are paid once in the primary stage and reused by the later arms. Two full-pool checkpoints share one training run. The external baseline pilot appears once in the all-in total and is excluded from work started by the five stage controllers.",
+    "Validation uses archived task receipts and ledgers. Training, development and test runtimes were also reconciled against independent terminal replays for all 11 Phase 1 models and all three E2b models. E2b reuses nine earlier comparison models and pays no additional proxy or trajectory-scoring time.",
+    "Primary CPU selection was timed. Phase 1 selector construction and final CPU summarization had no ledger timers. Other CPU ledger tasks include only successfully timed subprocesses. Null means unavailable; a zero denotes no corresponding recorded work.",
+    "The off_ledger_local_selector_routine_seconds value is elapsed wall time on a separate machine for the E2b selector using cached inputs across all three seeds. It is excluded from all job-ledger and GPU totals. The E2b stage had zero selector tasks in its GPU-host ledger."
+  ],
+  "four_stage_subtotal_before_e2b": {
+    "verified_stages": 4,
+    "successful_task_receipts": 157,
+    "known_gpu_subprocess_hours_including_external_and_failed": 17.415542,
+    "first_to_last_ledger_event_hours": 17.50443
+  }
 }
