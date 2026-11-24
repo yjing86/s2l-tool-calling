@@ -13,8 +13,7 @@ import json
 import math
 from pathlib import Path
 
-from .followup_diagnostics import save_table
-from summarize_course import digest, read_json
+from scripts.summarize_course import digest, read_json
 
 
 SEEDS = (42, 43, 44)
@@ -158,7 +157,10 @@ def main():
     if args.action == "build":
         table = build(args.summary, args.selection, args.registration, args.original)
         args.out.parent.mkdir(parents=True,exist_ok=True)
-        save_table(args.out, table)
+        with args.out.open("w", encoding="utf-8", newline="") as stream:
+            writer = csv.DictWriter(stream, fieldnames=list(table[0]), lineterminator="\n")
+            writer.writeheader()
+            writer.writerows(table)
     else:
         render(read_csv(args.table), args.out, read_json(args.labels) if args.labels else ENGLISH, args.font_family)
 
