@@ -1,4 +1,4 @@
-"""Describe same-seed overlap and step-zero field-loss coverage using training inputs only."""
+"""Describe selection overlap within and across seeds, and step-zero field-loss coverage using training inputs only."""
 import argparse
 import hashlib
 from itertools import combinations
@@ -20,6 +20,12 @@ def read_rows(path):
     return ids
 
 
+def overlap_counts(left, right):
+    intersection = len(left & right)
+    union = len(left | right)
+    return {"intersection": intersection, "union": union, "jaccard": intersection / union}
+
+
 def describe(train, run):
     pool = set(read_rows(train))
     scorefile = run / "scores/step-0.jsonl"
@@ -39,6 +45,7 @@ def describe(train, run):
               "step": 0, "function_loss_cutoff_exclusive": .01, "value_q75_inclusive": q75,
               "n_with_values": len(value_loss), "n_low_function": len(low_fn),
               "n_high_value": len(high_value), "n_meeting_both": len(subset), "seeds": {}}
+    selected = {}
     for seed in (42,43,44):
         root = run / "selection" / str(seed)
         selection = json.loads((root/"selection.json").read_text())
@@ -56,12 +63,14 @@ def describe(train, run):
             hits = len(ids[arm] & subset)
             coverage[arm] = {"selected": len(ids[arm]), "hits": hits,
                              "share_of_selection": hits/len(ids[arm]), "recall_of_slice": hits/len(subset) if subset else None}
-        overlap = {}
-        for a,b in combinations(ids, 2):
-            n = len(ids[a] & ids[b])
-            union = len(ids[a] | ids[b])
-            overlap[a+"-"+b] = {"intersection": n, "union": union, "jaccard": n/union}
+        selected[seed] = ids
+        overlap = {f"{a}-{b}": overlap_counts(ids[a], ids[b]) for a, b in combinations(ids, 2)}
         report["seeds"][seed] = {"coverage": coverage, "overlap": overlap}
+    report["same_arm_across_seeds"] = {
+        arm: {f"{a}-{b}": overlap_counts(selected[a][arm], selected[b][arm])
+              for a, b in combinations(selected, 2)}
+        for arm in ("A", "B", "C")
+    }
     return report
 
 
