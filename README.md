@@ -2,7 +2,9 @@
 
 Can a small model choose better fine-tuning examples by tracking **which function to call** and **which argument values to supply** separately? We compare the resulting subsets by how often a larger model generates an entirely correct call on an unseen request.
 
-[实验进展与运行记录](docs/experiment-log.md) · [中文研究方案](docs/research-plan.md) · [字段损失验证与复现](docs/field-loss-validation.md) · [论文阅读笔记](docs/references.md)
+Across three paired training seeds, field-level selection improved exact-match accuracy on 2,000 held-out Turnstile requests by **1.53 percentage points** over whole-answer selection (95% paired interval +0.60 to +2.48). Uniform random selection scored 0.45 points higher on average (field minus random interval −1.42 to +0.53). On two fixed 100-question BFCL subsets, the equally weighted field-minus-whole contrast was −1.33 points (−3.00 to +0.33). The intervals describe task sampling for these trained models.
+
+[中文实验结果与图表](docs/results.md) · [实验进展与运行记录](docs/experiment-log.md) · [中文研究方案](docs/research-plan.md) · [字段损失验证与复现](docs/field-loss-validation.md) · [论文阅读笔记](docs/references.md)
 
 ## 在哪里查看实验记录
 
@@ -64,7 +66,7 @@ mkdir -p artifacts
 python3 scripts/verify_tool_call_loss.py --write-swift-jsonl artifacts/demo.jsonl
 ```
 
-For numerical scoring, install the versions in [requirements.txt](requirements.txt) and follow the pinned download and scoring commands in the [validation guide](docs/field-loss-validation.md). That guide reports measured field losses on two real Turnstile requests and a separate one-step adapter check. The full 2B comparison, BFCL results and NVIDIA GPU hours are pending.
+The [validation guide](docs/field-loss-validation.md) contains the pinned installation and scoring commands, measured field losses on two Turnstile requests, and a one-step adapter check. The [results report](docs/results.md) includes the 2B comparisons, BFCL scores, and measured proxy and training costs.
 
 ## Repository contents
 
