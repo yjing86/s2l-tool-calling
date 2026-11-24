@@ -130,10 +130,15 @@ def plot(points, path):
     seeds = sorted({r["seed"] for r in points})
     colors = {"A":"#3368a0", "B":"#bd6421", "C":"#15825f", "Bprime":"#8655a5"}
     fig, axes = plt.subplots(1, len(seeds), figsize=(4.4*len(seeds),4.5), sharex=True, sharey=True, squeeze=False)
-    labels = {"A":"A · Random", "B":"B · Whole", "C":"C · Fields", "Bprime":"B′ · Pooled"}
+    labels = {"A":"A · Random", "B":"B · Whole-answer trajectory", "C":"C · Field trajectories", "Bprime":"B′ · Pooled fields"}
+    base = points[0]["accuracy_pct"]
+    proxy_hours = max(r["proxy_and_score_s"] for r in points) / 3600
     for ax, seed in zip(axes[0], seeds):
+        ax.axhline(base, color="#777777", linestyle="--", lw=1.1, zorder=1)
+        ax.scatter([0], [base], color="#666666", s=16, zorder=4)
+        ax.axvline(proxy_hours, color="#979393", linestyle=":", lw=1.1, zorder=1)
         for method, color in colors.items():
-            rows = [r for r in points if r["seed"] == seed and r["method"] == method]
+            rows = [r for r in points if r["seed"] == seed and r["method"] == method and r["step"] > 0]
             if not rows:
                 continue
             x = [r["route_upper_s"]/3600 for r in rows]
@@ -147,8 +152,14 @@ def plot(points, path):
     fig.suptitle("Development accuracy against each method’s running cost")
     handles = [Line2D([0],[0],color=color,marker="o",label=labels[m]) for m,color in colors.items()
                if any(r["method"]==m for r in points)]
-    fig.legend(handles=handles,loc="lower center",ncol=len(handles),frameon=False)
-    fig.tight_layout(rect=(0,.09,1,.95))
+    handles.extend([
+        Line2D([0], [0], color="#777777", linestyle="--", marker="o", ms=3,
+               label=f"Untrained 2B ({base:.2f}%)"),
+        Line2D([0], [0], color="#979393", linestyle=":",
+               label=f"Proxy + scoring complete ({proxy_hours:.2f} h; trajectory methods)"),
+    ])
+    fig.legend(handles=handles, loc="lower center", ncol=3, frameon=False)
+    fig.tight_layout(rect=(0,.16,1,.95))
     fig.savefig(path,dpi=170,bbox_inches="tight")
     plt.close(fig)
 
