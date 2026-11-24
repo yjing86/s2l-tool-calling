@@ -129,6 +129,8 @@ The schedulers prioritize primary completion, then the full reference, then the 
 
 ## 7. Inspect and retain the evidence
 
+The CPU difficulty and exposure audit compares proxy loss at a fixed argument length and pairs models on the same held-out requests. Its report includes the command to regenerate the five aggregate tables and their metric definitions from the primary run and registered E2 subsets. [Difficulty and exposure audit](../results/followup/difficulty/README.md)
+
 | Evidence | Location in the clone |
 | --- | --- |
 | Split identities, row audit and original sources | `local/prepared/manifest.json`, `local/prepared/rows.audit.jsonl`, `local/data/turnstile/` |

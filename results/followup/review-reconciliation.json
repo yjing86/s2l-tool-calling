@@ -1,0 +1,375 @@
+{
+  "scope": "Exploratory reanalysis of 2,000 previously evaluated single-call Turnstile questions. Methods A, B and C each have paired seeds 42, 43 and 44. First-failure counts use the frozen exact-call scorer.",
+  "test_sha256": "000c29f46a06a35146d8d369e4ff763226bf66a690a7339680e32fc8b779407c",
+  "model_lock_sha256": "4dbd8b66c9ba42e65ce1a2cac02f63a676c8efc30d9a7d578ed59f9855dbb698",
+  "raw_predictions_regraded": 18000,
+  "methods": {
+    "base": "Pretrained Qwen3.5-2B before project fine-tuning",
+    "A": "Uniform random selection",
+    "B": "Whole-answer loss trajectories",
+    "C": "Separate function-name and argument-value trajectories",
+    "Bprime": "Pooled field tokens, seed 42"
+  },
+  "first_failure_order": [
+    "parse",
+    "count",
+    "function",
+    "argument"
+  ],
+  "first_failure_note": "A failure enters its earliest failed check. An argument failure can be a key, type, or value error.",
+  "first_failure_and_correct_counts": {
+    "42": {
+      "A": {
+        "parse": 3,
+        "count": 0,
+        "function": 16,
+        "argument": 863,
+        "correct": 1118
+      },
+      "B": {
+        "parse": 5,
+        "count": 0,
+        "function": 22,
+        "argument": 919,
+        "correct": 1054
+      },
+      "C": {
+        "parse": 3,
+        "count": 0,
+        "function": 20,
+        "argument": 875,
+        "correct": 1102
+      },
+      "B_minus_A": {
+        "parse": 2,
+        "count": 0,
+        "function": 6,
+        "argument": 56,
+        "correct": -64
+      }
+    },
+    "43": {
+      "A": {
+        "parse": 2,
+        "count": 0,
+        "function": 24,
+        "argument": 845,
+        "correct": 1129
+      },
+      "B": {
+        "parse": 7,
+        "count": 0,
+        "function": 20,
+        "argument": 882,
+        "correct": 1091
+      },
+      "C": {
+        "parse": 4,
+        "count": 0,
+        "function": 21,
+        "argument": 863,
+        "correct": 1112
+      },
+      "B_minus_A": {
+        "parse": 5,
+        "count": 0,
+        "function": -4,
+        "argument": 37,
+        "correct": -38
+      }
+    },
+    "44": {
+      "A": {
+        "parse": 5,
+        "count": 1,
+        "function": 22,
+        "argument": 878,
+        "correct": 1094
+      },
+      "B": {
+        "parse": 2,
+        "count": 0,
+        "function": 35,
+        "argument": 886,
+        "correct": 1077
+      },
+      "C": {
+        "parse": 3,
+        "count": 0,
+        "function": 22,
+        "argument": 875,
+        "correct": 1100
+      },
+      "B_minus_A": {
+        "parse": -3,
+        "count": -1,
+        "function": 13,
+        "argument": 8,
+        "correct": -17
+      }
+    }
+  },
+  "discordance_counts_per_paired_seed": {
+    "42": {
+      "A_only_correct": 169,
+      "B_only_correct": 105
+    },
+    "43": {
+      "A_only_correct": 139,
+      "B_only_correct": 101
+    },
+    "44": {
+      "A_only_correct": 128,
+      "B_only_correct": 111
+    }
+  },
+  "pooled_B_minus_A_count_changes": {
+    "parse": 4,
+    "count": -1,
+    "function": 15,
+    "argument": 101,
+    "correct": -119
+  },
+  "net_argument_excess_share": 0.8487394957983193,
+  "pooled_unit": "2,000 distinct requests reused across three model seeds. The fraction is a decomposition of net count differences.",
+  "length_definition_and_cutpoints": {
+    "variable": "Qwen tokens overlapping reference argument values",
+    "cutpoints": [
+      8.0,
+      12.0,
+      21.0
+    ],
+    "counts_exactly_on_cutpoints": [
+      137,
+      71,
+      34
+    ],
+    "tie_rule": "Empirical type-7 quartiles, with equality assigned to the lower bin."
+  },
+  "accuracy_contrasts_by_test_length": [
+    {
+      "slice": "Q1",
+      "n": 622,
+      "observed_range": [
+        1,
+        8
+      ],
+      "B-A": {
+        "seed_differences_pp": {
+          "42": -5.787781350482315,
+          "43": -4.180064308681672,
+          "44": -0.3215434083601286
+        },
+        "mean_pp": -3.429796355841372,
+        "ci95_pp": [
+          -5.412647374062165,
+          -1.607717041800643
+        ]
+      },
+      "C-A": {
+        "seed_differences_pp": {
+          "42": -2.733118971061093,
+          "43": 1.1254019292604502,
+          "44": 0.1607717041800643
+        },
+        "mean_pp": -0.4823151125401928,
+        "ci95_pp": [
+          -2.465166130760986,
+          1.3933547695605573
+        ]
+      }
+    },
+    {
+      "slice": "Q2",
+      "n": 424,
+      "observed_range": [
+        9,
+        12
+      ],
+      "B-A": {
+        "seed_differences_pp": {
+          "42": -3.0660377358490565,
+          "43": 0.2358490566037736,
+          "44": -3.0660377358490565
+        },
+        "mean_pp": -1.9654088050314464,
+        "ci95_pp": [
+          -4.088050314465409,
+          0.08058176100627858
+        ]
+      },
+      "C-A": {
+        "seed_differences_pp": {
+          "42": -0.2358490566037736,
+          "43": -1.179245283018868,
+          "44": -1.650943396226415
+        },
+        "mean_pp": -1.0220125786163523,
+        "ci95_pp": [
+          -3.459119496855346,
+          1.3364779874213837
+        ]
+      }
+    },
+    {
+      "slice": "Q3",
+      "n": 473,
+      "observed_range": [
+        13,
+        21
+      ],
+      "B-A": {
+        "seed_differences_pp": {
+          "42": -1.2684989429175475,
+          "43": -1.4799154334038056,
+          "44": -0.6342494714587738
+        },
+        "mean_pp": -1.127554615926709,
+        "ci95_pp": [
+          -2.959830866807611,
+          0.704721634954193
+        ]
+      },
+      "C-A": {
+        "seed_differences_pp": {
+          "42": 1.2684989429175475,
+          "43": -2.959830866807611,
+          "44": 1.2684989429175475
+        },
+        "mean_pp": -0.14094432699083873,
+        "ci95_pp": [
+          -2.1141649048625792,
+          1.832276250880902
+        ]
+      }
+    },
+    {
+      "slice": "Q4",
+      "n": 481,
+      "observed_range": [
+        22,
+        214
+      ],
+      "B-A": {
+        "seed_differences_pp": {
+          "42": -1.8711018711018712,
+          "43": -1.2474012474012475,
+          "44": 0.2079002079002079
+        },
+        "mean_pp": -0.9702009702009703,
+        "ci95_pp": [
+          -2.4272349272349274,
+          0.6237006237006237
+        ]
+      },
+      "C-A": {
+        "seed_differences_pp": {
+          "42": -0.8316008316008316,
+          "43": -1.0395010395010396,
+          "44": 1.2474012474012475
+        },
+        "mean_pp": -0.2079002079002079,
+        "ci95_pp": [
+          -1.8711018711018712,
+          1.4553014553014554
+        ]
+      }
+    },
+    {
+      "slice": "All",
+      "n": 2000,
+      "observed_range": [
+        1,
+        214
+      ],
+      "B-A": {
+        "seed_differences_pp": {
+          "42": -3.2,
+          "43": -1.9,
+          "44": -0.85
+        },
+        "mean_pp": -1.9833333333333334,
+        "ci95_pp": [
+          -2.966666666666667,
+          -1.0333333333333334
+        ]
+      },
+      "C-A": {
+        "seed_differences_pp": {
+          "42": -0.8,
+          "43": -0.85,
+          "44": 0.3
+        },
+        "mean_pp": -0.45,
+        "ci95_pp": [
+          -1.4166666666666667,
+          0.5333333333333333
+        ]
+      }
+    }
+  ],
+  "intervals": "2,000 joint paired request-group bootstrap draws conditional on the three trained seeds. Each interval applies to its own contrast and test slice.",
+  "longest_bin": {
+    "n": 481,
+    "token_range": [
+      22,
+      214
+    ],
+    "checkpoint_correct_counts": {
+      "base": 133,
+      "s42-Bprime": 169,
+      "s42-A": 168,
+      "s42-B": 159,
+      "s42-C": 164,
+      "s43-A": 175,
+      "s43-B": 169,
+      "s43-C": 170,
+      "s44-A": 161,
+      "s44-B": 162,
+      "s44-C": 167
+    },
+    "accuracy_pct_by_checkpoint": {
+      "base": 27.65072765072765,
+      "s42-Bprime": 35.13513513513514,
+      "s42-A": 34.92723492723493,
+      "s42-B": 33.056133056133056,
+      "s42-C": 34.0956340956341,
+      "s43-A": 36.38253638253638,
+      "s43-B": 35.13513513513514,
+      "s43-C": 35.343035343035346,
+      "s44-A": 33.471933471933475,
+      "s44-B": 33.67983367983368,
+      "s44-C": 34.71933471933472
+    },
+    "method_mean_accuracy_pct": {
+      "A": 34.92723492723493,
+      "B": 33.95703395703396,
+      "C": 34.71933471933472
+    },
+    "fine_tuned_endpoint_range_pct": [
+      33.056133056133056,
+      36.38253638253638
+    ],
+    "test_counts_at_or_above_tokens": {
+      "22": 481,
+      "64": 13,
+      "128": 2
+    }
+  },
+  "training_counts_above_21_value_tokens": {
+    "candidate_requests": 927,
+    "counts_by_subset": {
+      "s42-A": 236,
+      "s42-B": 304,
+      "s42-C": 256,
+      "s43-A": 220,
+      "s43-B": 315,
+      "s43-C": 257,
+      "s44-A": 213,
+      "s44-B": 327,
+      "s44-C": 256
+    },
+    "total_candidate_requests": 4000,
+    "training_subset_size": 1000
+  }
+}

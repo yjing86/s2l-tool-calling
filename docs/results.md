@@ -108,6 +108,35 @@ This follow-up uses the opened Turnstile test and the original ten fine-tuned mo
 
 ![Mean training-subset length and held-out accuracy for each trained method and seed](figures/length-accuracy.png)
 
-The largest observed gap actually occurred on *short* test answers. With at most eight reference value tokens, 622 requests contributed 31.1% of the test set and about 54% of B’s overall deficit against A. On these requests B−A averaged −3.43 points. On the 481 requests with more than 21 value tokens it averaged −0.97 points. Functions seen only by A accounted for a net 29 additional correct calls relative to C across three passes on the same test, while functions seen only by C favored C by 26. Both the length and coverage breakdowns are exploratory. [Length slices with denominators and paired intervals](../results/followup/p04-length-slices.json) · [Coverage and discordant calls](../results/followup/p02-ac-disagreement.csv)
+### Where did B lose correct calls against random sampling?
+
+We rescored the original 18,000 generations from A, B, and C (2,000 requests × three arms × three seeds). The scorer assigns each failed call to its first failed check, in the order shown below. An argument failure can involve a missing or extra key, a type mismatch, or an incorrect value. The arrows show counts for A followed by B. The last two columns compare both models on the same requests.
+
+| Seed | Parse, A → B | Call count, A → B | Function, A → B | Arguments, A → B | Only A correct / only B correct | Net extra errors for B |
+|---:|---:|---:|---:|---:|---:|---:|
+| 42 | 3 → 5 | 0 → 0 | 16 → 22 | 863 → 919 | 169 / 105 | +64 |
+| 43 | 2 → 7 | 0 → 0 | 24 → 20 | 845 → 882 | 139 / 101 | +38 |
+| 44 | 5 → 2 | 1 → 0 | 22 → 35 | 878 → 886 | 128 / 111 | +17 |
+
+B made 119 net extra errors over the three evaluations of the same 2,000 requests. The first-failure totals changed by +101 for arguments, +15 for functions, +4 for parsing and −1 for call count. Argument failures accounted for 84.9% of the net gap. At seed 44, wrong functions contributed 13 net extra errors and arguments contributed eight. [Verified counts and paired disagreements](../results/followup/review-reconciliation.json)
+
+### Did longer training examples help on longer test requests?
+
+We counted tokens in the argument values of each **reference** call and divided the test set at its quartiles. Exactly 137, 71, and 34 requests fell on the cutpoints of 8, 12, and 21 tokens, respectively. Keeping ties in the lower bin gives the denominators below. Each contrast uses the same requests and three fixed seeds. Its pointwise 95% interval resamples request groups within that bin.
+
+| Reference value tokens | Requests | A accuracy | B accuracy | C accuracy | B−A, pp (95%) | C−A, pp (95%) |
+|---|---:|---:|---:|---:|---:|---:|
+| 1–8 | 622 | 71.86% | 68.44% | 71.38% | −3.43 (−5.41 to −1.61) | −0.48 (−2.47 to +1.39) |
+| 9–12 | 424 | 60.85% | 58.88% | 59.83% | −1.97 (−4.09 to +0.08) | −1.02 (−3.46 to +1.34) |
+| 13–21 | 473 | 50.88% | 49.75% | 50.74% | −1.13 (−2.96 to +0.70) | −0.14 (−2.11 to +1.83) |
+| 22–214 | 481 | 34.93% | 33.96% | 34.72% | −0.97 (−2.43 to +0.62) | −0.21 (−1.87 to +1.46) |
+
+The shortest bin contained 31.1% of the requests and contributed −1.07 points to B's overall −1.98-point deficit, about 54%. Weighting the four C−A estimates by their request counts recovers −0.45 points. The intervals assess each bin separately. We did not test the difference between the shortest and longest bins. [Slice analysis](../s2l_tool_calling/analysis/followup_length_slices.py) · [Per-checkpoint counts and B−A and C−B intervals](../results/followup/p04-length-slices.json)
+
+In the longest bin, the three method means were roughly 34–35%. The ten fine-tuned checkpoints ranged from 33.06% to 36.38%, including 35.14% for B′ at seed 42. The original base model scored 27.65% (133/481). Only 13 of these 481 questions had at least 64 value tokens, and only two reached 128. The broad-bin average gives little information about the extreme tail. The B−A interval allows for a small gain or a loss even across the full bin.
+
+In the training pool, 927 candidates exceeded 21 value tokens. B selected 304, 315, and 327 of them at seeds 42, 43, and 44. On the test set, the analysis groups questions by **reference** length. Estimating the marginal return from allocating training slots to long examples requires changing **training** length composition under controlled selection. [Training counts, longest-bin outcomes and contrasts](../results/followup/review-reconciliation.json)
+
+For tools seen only in A's selected training set, A had 29 net additional correct calls over C across three passes on the same test. For tools seen only in C's set, C had 26 net additional correct calls over A. These are exploratory comparisons. [Coverage and discordant calls](../results/followup/p02-ac-disagreement.csv)
 
 How far does C’s 1.53-point advantage over B generalize? With the three trained pairs held fixed, the 95% request-group interval is +0.60 to +2.48. Holding the 2,000 test requests fixed and using the three observed seed differences instead gives a 95% t interval of −0.34 to +3.40 (two degrees of freedom). The second estimate is sensitive to the small number of seeds. The new diagnostic controls repeat the pooled-field comparison and change the length or function composition of the selected data. We separately reserved 1,500 unused requests for a prospective method evaluation. [All seed-sensitivity contrasts](../results/followup/p05-intervals.csv) · [Follow-up design](improvement-plan.md)

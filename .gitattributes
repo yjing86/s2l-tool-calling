@@ -1,0 +1,2 @@
+# Keep the generated CSV byte stream identical to the archived audit on every platform.
+results/followup/difficulty/*.csv -text whitespace=cr-at-eol

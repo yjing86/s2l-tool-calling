@@ -61,7 +61,7 @@ Queue the first five fits before the six lower-priority fits. Each selected subs
 | E3 · Residualized whole-answer loss | 3 | At each of five checkpoints regress whole-answer mean loss on an intercept, log(1 + value tokens), name/value token fraction and log(total supervised answer tokens). Use training-pool features alone. Standardize and cluster the five residuals, then apply B's quotas and sampling. Save coefficients, R², residual distributions and selected-set changes. |
 | E4 · Tool-stratified random | 3 | Allocate the 1,000 seats proportionally to each reference function's frequency with largest-remainder rounding and a deterministic tie rule. Sample uniformly without replacement within each function. Record target and realized quotas, rare functions with zero quota, test-tool exposure and coverage. |
 
-**E2 decision rule.** Prespecify ±1 pp as the equivalence margin for the fixed-seed mean of E2−B. For a conservative equivalence conclusion, require the entire paired 95% interval to lie inside (−1, +1) pp. Report the paired difference and interval for E2−A, and counts for each seed. If E2 is equivalent to B, its mean is at least 1 pp below A and that direction repeats at all three seeds, the results are consistent with effects of B's length-bin composition and characteristics correlated with it. Bin matching preserves neither exact within-bin lengths nor all tool and difficulty distributions. If the interval crosses either margin, describe the observed differences and uncertainty. A similar point estimate alone cannot establish equivalence. E2 near A also leaves other within-bin and selection mechanisms open.
+**E2 decision rule.** Prespecify ±1 pp as the equivalence margin for the fixed-seed mean of E2−B. The earlier design draft also considered a more conservative 95% sensitivity check. The actual pre-run registration for E2−B, E2−A and E3−A requires three completed seed pairs and the entire **unrounded 90% paired group interval** strictly inside (−1, +1) pp (two one-sided tests at 5%). Also publish the 95% interval for effect estimation. Report the paired difference and interval for E2−A, and counts for each seed. If E2 is equivalent to B, its mean is at least 1 pp below A and that direction repeats at all three seeds, the results are consistent with effects of B's length-bin composition and characteristics correlated with it. Bin matching preserves neither exact within-bin lengths nor all tool and difficulty distributions. If the interval crosses either margin, describe the observed differences and uncertainty. A similar point estimate alone cannot establish equivalence. E2 near A also leaves other within-bin and selection mechanisms open.
 
 **E3 and E4 interpretation.** E3−B ≥ +1 pp is a diagnostic threshold worth pursuing. Conditioning away an association in the training features can also remove useful difficulty signals. Report uncertainty and the resulting distributions. Apply a prespecified equivalence test before describing E3 and A as equivalent. E4−A ≥ +1 pp would motivate checking how quotas, exposure and accuracy changed. Proportional allocation can assign zero slots to rare functions; any improvement measures the strategy as implemented. To attribute it to greater coverage, measure that coverage directly. Comparisons reuse a viewed test and include multiple diagnostic contrasts.
 
@@ -132,3 +132,56 @@ python scripts/summarize_followup.py --primary local/course-run --followup local
 ```
 
 [Timestamped diagnostic registration and file hashes](../results/followup/phase1-registration.json)
+
+## 9. Review follow-up: distinguish proxy difficulty from argument length
+
+This exploratory control was proposed after the original test was opened. The eleven Phase 1 fits and their registered contrasts retain their original priority. The three optional E2b training sets have passed a train-only construction audit. No E2b target-model score is available at registration.
+
+### Why add a control?
+
+Let L be the number of reference argument-value tokens. For E2b, let D be the **unadapted 0.8B proxy's mean negative log-likelihood (NLL) on those tokens at step 0**, computed as `value_sum / value_tokens` separately for each request. A model that assigns a lower probability to the reference value gets a higher D. D is a proxy-specific measure of predictability. The difficulty of choosing the function, the intrinsic complexity of the task and what the 2B target will learn are separate quantities. Later checkpoints and five-checkpoint averages may be used for sensitivity analyses. The selector uses only step 0.
+
+Across seeds 42–44, average D was 0.394 in the full pool, 0.387 in A, 0.753 in B, 0.743 in C and 0.390 in E2. Subtracting the mean D of all candidate requests with the same exact L gave within-length mean residuals of −0.006 for A, +0.340 for B, +0.330 for C and −0.007 for E2. B and C both oversample high-D examples even at a given length. E2 matches B's *binned* length counts, yet B averaged 19.58 value tokens and E2 averaged 18.51. Matching bins leaves variation within them. C's target outperformed B while their proxy difficulty means were close, so a scalar difficulty score alone cannot explain the complete ranking. [Proxy scoring](../scripts/score_trajectories.py) · [Original paired outcomes](results.md)
+
+### How to construct the three E2b subsets
+
+| Quantity | Frozen rule | Verified outcome |
+|---|---|---|
+| Length margin | Match **the same seed's original A** length-bin counts. A is the paired random baseline. Pool-proportional counts were tested for feasibility only. | A's counts matched exactly for each seed. The maximum per-bin differences between A and a proportionally allocated pool target were 23, 17 and 16 examples. |
+| Difficulty margin | Match **the same seed's original B** counts in bins of D. | B's counts matched exactly at all three seeds. |
+| Feasible cells | Form positive-value bins using pool-wide inverse empirical CDF quantiles; bins are right-closed and ties stay together. Reuse B's no-value IDs. If needed, allocate A's positive length quotas proportionally to the remaining positive seats. Try 10 × 10 bins, then 5 × 5, then 2 × 2. Use the first grid for which integer maximum flow fills 1,000 seats at **all three** seeds, subject to pool cell capacities and the two margins. | All 4,000 candidates had values. All three seeds had flow 1,000 on the 10 × 10 grid. Every cell was occupied in the pool and the subset, and none was exhausted. |
+| Sampling | Among feasible integer allocations, minimize the sum over cells of (selected count − expected pool-proportional count)² / max(expected pool-proportional count, 1). Draw uniformly without replacement within each cell using the registered seed stream. Freeze the IDs after a single draw. | Three distinct 1,000-ID lists were hashed and reconstructed. Their overlaps with paired B were 370, 367 and 353 requests. |
+
+The exact margins, common capacity rule and single-draw policy were specified for list construction. The standardized mean differences (SMD) and maximum empirical CDF differences (KS distances) below audit continuous balance **after** that draw and before evaluating new target models. No numeric SMD/KS cutoff was preregistered for list construction. No seed was redrawn to improve balance. Positive SMD means the E2b mean is larger.
+
+| Seed | Length vs A, SMD / KS | Difficulty vs B, SMD / KS | Difficulty vs A, SMD | Distinct functions, E2b / A |
+|---:|---:|---:|---:|---:|
+| 42 | +0.024 / 0.012 | −0.043 / 0.022 | +0.602 | 557 / 603 |
+| 43 | +0.024 / 0.012 | −0.052 / 0.027 | +0.491 | 574 / 605 |
+| 44 | +0.038 / 0.011 | −0.047 / 0.025 | +0.569 | 558 / 595 |
+
+E2b achieved its prescribed bins, closely approximated continuous L in A and D in B by these diagnostics, and changed difficulty relative to A. Its lower tool coverage illustrates a remaining difference. Finite joint cells constrain how independent the draws can be, even when every cell is occupied. Keep overlaps, continuous means, quantiles and margins with the manifests. The 1.46 s CPU selection time with cached inputs excludes proxy scoring, target training and inference. [E2b selector](../scripts/select_difficulty_control.py)
+
+### What the additional comparison can establish
+
+- **E2b−A** compares two selection policies at A-like lengths, with high measured proxy difficulty deliberately overrepresented in E2b. A lower E2b score would be consistent with a cost of this selection policy at fixed target tokens. Tool identity, argument structure, semantic difficulty and the joint length/difficulty distribution can still change.
+- **E2−A** changes the length-bin policy, and allows difficulty to follow naturally within bins. **E2−B** compares a random draw within B's length bins with B's original trajectory selection. **E2b−B** matches B's difficulty bins while changing length, joint cell allocation and the original clustering decisions. **E2b−E2** changes two margins. None of these differences estimates a pure length effect, pure difficulty effect or factorial interaction.
+- An explicit 2 × 2 study could later impose A-like or B-like margins on **both** L and D using one randomized construction at every corner. Its B-length/B-difficulty cell would test whether matching both margins reproduces B's outcome without selecting by whole-answer cluster. The existing B, A and E2 are not three interchangeable randomized corners of that design. No such factorial is required for this diagnostic.
+
+### Compare like test requests when interpreting tool exposure
+
+For each pair and seed, stratify the **same test IDs** by whether the reference tool appeared in both training subsets, only the left subset, only the right subset, or neither. Compute left-only correct minus right-only correct within each stratum. The sums below count three evaluations of 2,000 distinct requests. They are not 6,000 independent test items.
+
+| Left minus right | Both saw tool | Only left saw tool | Only right saw tool | Neither saw tool | Net correct |
+|---|---:|---:|---:|---:|---:|
+| A−B | +57 | +54 | −3 | +11 | +119 |
+| B−C | −65 | +4 | −31 | 0 | −92 |
+| A−C | +19 | +29 | −26 | +5 | +27 |
+
+The unadapted 2B scored 56.29% on the A-only exposure stratum of A vs B and 39.66% on the B-only stratum. Those slices already differed before fine-tuning. In A vs C, the two exclusive-exposure strata together account for 3 of the 27 net extra correct evaluations. For C vs B, 65 of the 92 net gains occurred when both methods saw the tool. Method-specific frequency bins compare different mixes of tools and requests. Always show denominators, base scores and seed-specific paired counts. For intervals, resample the same request groups jointly across seeds; a tool-family cluster sensitivity analysis addresses a different source of dependence. Conditional and overall results describe associations. Neither isolates the effect of seeing a particular tool.
+
+### GPU admission, analysis and independent evidence
+
+Complete and verify the original study and its full-pool and crossed-seed checks first. Then finish all eleven previously registered Phase 1 target fits. Only after those obligations can the three E2b fits at 42, 43 and 44 be admitted together. Preserve the original deadline and ten-minute shutdown reserve, updated receipt-based forecasts and the 20% time margin. Mean timings from completed primary runs imply about **1.65 A40-hours** for three fits including development and original-test inference. The admission rule instead takes the slowest observed training, development and test stage separately and adds 20%. At registration those maxima were 972.46, 255.33 and 846.83 seconds per fit, giving **2 h 04 min 29 s** for a batch of three, before the common shutdown reserve. If all three do not fit, retain the CPU selection evidence and defer the GPU control. A partial run cannot stand for the three-seed comparison.
+
+Before inference, lock the input IDs, target settings and matched checkpoints. The principal diagnostic is E2b−A at equal target tokens. Report E2b−B and E2b−E2 as secondary, show per-seed correct counts and discordances, and use the same paired request-group and separate seed-sensitivity intervals as Phase 1. Positive or negative findings on the already opened 2,000-request test remain post hoc. To make an independently tested superiority claim for a revised selector, lock the method and controls before observing predictions on the distinct, previously reserved 1,500-request test. The reserve supports a new-request test within Turnstile. It shares the underlying corpus and tool families. [Reserve construction](../scripts/reserve_followup_test.py)

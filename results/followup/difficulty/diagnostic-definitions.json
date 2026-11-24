@@ -1,0 +1,26 @@
+{
+  "post_hoc": true,
+  "input_splits": {
+    "training_candidates": 4000,
+    "locked_test_requests": 2000
+  },
+  "registered_e2_bin_upper_edges": [
+    5,
+    7,
+    8,
+    10,
+    12,
+    15,
+    18,
+    23,
+    29
+  ],
+  "number_of_exact_positive_lengths": 91,
+  "single_candidate_positive_length_strata": 28,
+  "score_unit": "teacher-forced proxy NLL per scalar-value token averaged equally over candidates",
+  "exact_residual": "candidate NLL minus full training pool mean NLL at its exact integer value-token count and step",
+  "bin_residual": "candidate NLL minus full training pool mean at its registered E2 length bin and step",
+  "top_decile": "exactly 10 percent of eligible mass; ties split equally across the cutoff; within-length uses this rule per exact length",
+  "training_selections": "A/B/C/E2 seeds 42,43,44; historical pooled Bprime only at 42; E2 selection composition only",
+  "coverage": "Each seed and pair shares requests within each exposure stratum. Totals reuse the same 2,000 requests three times."
+}
