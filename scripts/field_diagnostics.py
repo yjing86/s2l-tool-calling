@@ -216,6 +216,7 @@ def analyze(args, data):
     labels = reviewed(args.labels, data) if args.labels else {}
     structure = defaultdict(list)
     diagnostics = defaultdict(list)
+    tool_cohorts = {"both_tools_correct": [], "remaining": []}
     errors = Counter()
     argument_counts = {"B": Counter(), "C": Counter()}
     for rid, row in data.items():
@@ -227,7 +228,9 @@ def analyze(args, data):
         group = row["group_id"]
         depth = max(map(len, gold), default=0)
         slice_name = "no_scalar" if not depth else "flat" if depth == 1 else "nested"
-        structure[slice_name].append((group, int(bp[rid]["correct"]), int(cp[rid]["correct"]), 1))
+        scored = (group, int(bp[rid]["correct"]), int(cp[rid]["correct"]), 1)
+        structure[slice_name].append(scored)
+        tool_cohorts["both_tools_correct" if both else "remaining"].append(scored)
         errors[bp[rid]["reason"], cp[rid]["reason"]] += 1
         for arm, pred in (("B", bp[rid]), ("C", cp[rid])):
             argument_counts[arm].update(argument_error_kinds(pred, func["arguments"]))
@@ -253,6 +256,19 @@ def analyze(args, data):
               "annotation_requests": len(labels), "total_requests": len(data),
               "strata": strata, "structural": {s: paired(rows,args.seed) for s, rows in sorted(structure.items())},
               "error_transitions": [{"B": b, "C": c, "requests": n} for (b,c), n in sorted(errors.items())]}
+    partitions = {}
+    for cohort, rows in tool_cohorts.items():
+        stats = paired(rows, args.seed)
+        b_only = sum(b > c for _, b, c, _ in rows)
+        c_only = sum(c > b for _, b, c, _ in rows)
+        partitions[cohort] = {**stats, "B_only_correct": b_only, "C_only_correct": c_only,
+                              "net_correct": c_only - b_only}
+    net = sum(p["correct"] for p in cp.values()) - sum(p["correct"] for p in bp.values())
+    if (sum(r["denominator"] for r in partitions.values()) != len(data)
+            or sum(r["net_correct"] for r in partitions.values()) != net):
+        raise ValueError("Cohort counts do not reproduce the full-split denominator and net difference")
+    report["joint_tool_decomposition"] = {"scope": "Secondary descriptive decomposition added after main evaluation began.",
+                                          "full_net_correct": net, "cohorts": partitions}
     kinds = sorted({"missing", "extra", "type", "value"}.union(*argument_counts.values()))
     report["argument_error_requests"] = {}
     for arm, predictions in (("B", bp), ("C", cp)):
@@ -269,6 +285,13 @@ def analyze(args, data):
              "| 参考参数结构 | 请求数 | B 整题答对 | C 整题答对 | C−B（百分点） |", "|---|---:|---:|---:|---:|"]
     for s, r in report["structural"].items():
         lines.append(f"| {s} | {r['requests']} | {r['B_correct']} | {r['C_correct']} | {fmt(r['C_minus_B_pp'])} |")
+    lines += ["", "以下为主评测开始后增设的次要描述性分解。两组均只调用一次且均选对工具时，整题正确等价于全部参数正确。条件分组由两个模型的输出共同决定。", "",
+              "| 请求范围 | 请求数 | B 整题答对 | C 整题答对 | 仅 B 对 | 仅 C 对 | 净多答对 | C−B（百分点） |",
+              "|---|---:|---:|---:|---:|---:|---:|---:|"]
+    for key, label in (("both_tools_correct", "共同选对工具"), ("remaining", "其余请求")):
+        r = partitions[key]
+        lines.append(f"| {label} | {r['denominator']} | {r['B_correct']} | {r['C_correct']} | {r['B_only_correct']} | {r['C_only_correct']} | {r['net_correct']:+d} | {fmt(r['C_minus_B_pp'])} |")
+    lines += ["", f"全卷正确数净变化为 {net:+d} 道，已核对两部分的请求数与净变化之和。"]
     lines += ["", "下表只细分首次判为参数错误的请求。每题在同一类别中只计一次，一题可能同时涉及多类，因此各行不能相加。对象缺键与多键通过原始错误路径区分；数组长度差沿用评分器的值错误。", "",
               "| 组别 | 错误类别 | 涉及请求数 | 占全部请求（%） | 占参数错误请求（%） |",
               "|---|---|---:|---:|---:|"]
