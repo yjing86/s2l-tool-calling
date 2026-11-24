@@ -1,0 +1,158 @@
+{
+  "registered_utc": "2026-11-24T09:41:17.500598+00:00",
+  "private_registration_sha256": "4e1eea5f8644e42c7f826347c843e7abaaaed647d81fad9926d6d60cde8fc69d",
+  "prospective_holdout": {
+    "requests": 1500,
+    "sha256": "ecf9f0f9d5ad82aba3d361f6d086cb0bbfbfb5c61cf9cfda5a432aad34b3da9d",
+    "used_in_phase1": false
+  },
+  "spec": {
+    "scope": "Post hoc diagnostic on the already-opened 2,000-request internal test. No new BFCL evaluation.",
+    "batches": {
+      "Bprime_and_E2": [
+        "s43-Bprime",
+        "s44-Bprime",
+        "s42-E2",
+        "s43-E2",
+        "s44-E2"
+      ],
+      "E3": [
+        "s42-E3",
+        "s43-E3",
+        "s44-E3"
+      ],
+      "E4": [
+        "s42-E4",
+        "s43-E4",
+        "s44-E4"
+      ]
+    },
+    "cell_order": [
+      "s43-Bprime",
+      "s44-Bprime",
+      "s42-E2",
+      "s43-E2",
+      "s44-E2",
+      "s42-E3",
+      "s43-E3",
+      "s44-E3",
+      "s42-E4",
+      "s43-E4",
+      "s44-E4"
+    ],
+    "selections": {
+      "s43-Bprime": {
+        "sha256": "be3b8f1f2ee505f385d95f4f1b7d82dd47a796fc35e2550fc87a026f89fa75fc",
+        "size": 1000,
+        "seed_manifest_sha256": "2aafbb51e34341a338d04c748b8469e29aff359f3503388f091ab6586f5b6a6b"
+      },
+      "s44-Bprime": {
+        "sha256": "bec026a18b6b913412ed779fc3884f9af26fc465b644fee64921c78d0a5bd8b7",
+        "size": 1000,
+        "seed_manifest_sha256": "8a58f2e6f7aa321939dc717375281c137dbe9f3a367b3edfbc6b93d28f8e80b7"
+      },
+      "s42-E2": {
+        "sha256": "e2b320e6f031aa4926ce7051c5be778d01884c105b499a60ccb646fc27628c00",
+        "size": 1000,
+        "seed_manifest_sha256": "942bb4a6576d3e74239bfb85fc0cfa3eb844e5cce62e75fd1db6663784d590be"
+      },
+      "s43-E2": {
+        "sha256": "2cfaf545dc60de76e32d05706295963b0833cd21fb953f68ef33c8ab559242fc",
+        "size": 1000,
+        "seed_manifest_sha256": "2aafbb51e34341a338d04c748b8469e29aff359f3503388f091ab6586f5b6a6b"
+      },
+      "s44-E2": {
+        "sha256": "e3b93fa08e329b0bca0647c7fac10fe40db75dc0e02417d7fa66fb7736caeff1",
+        "size": 1000,
+        "seed_manifest_sha256": "8a58f2e6f7aa321939dc717375281c137dbe9f3a367b3edfbc6b93d28f8e80b7"
+      },
+      "s42-E3": {
+        "sha256": "72baced0af40b7ba89f28570a70c40c5895f29fe28c86a06f1de41465d554157",
+        "size": 1000,
+        "seed_manifest_sha256": "942bb4a6576d3e74239bfb85fc0cfa3eb844e5cce62e75fd1db6663784d590be"
+      },
+      "s43-E3": {
+        "sha256": "d3c258f0aaf80aa603f49eb004ae1e28ae150d84a1e14e8fa9208170e55fea23",
+        "size": 1000,
+        "seed_manifest_sha256": "2aafbb51e34341a338d04c748b8469e29aff359f3503388f091ab6586f5b6a6b"
+      },
+      "s44-E3": {
+        "sha256": "0d93b00eedd7ae2cbe1dc1c396978327efb0af6244bc7b9580e2f413f73e8247",
+        "size": 1000,
+        "seed_manifest_sha256": "8a58f2e6f7aa321939dc717375281c137dbe9f3a367b3edfbc6b93d28f8e80b7"
+      },
+      "s42-E4": {
+        "sha256": "0894a6c2d5023075c7957489b6f33efe54ca06f7cfbc1b615177ad5554edbf4f",
+        "size": 1000,
+        "seed_manifest_sha256": "942bb4a6576d3e74239bfb85fc0cfa3eb844e5cce62e75fd1db6663784d590be"
+      },
+      "s43-E4": {
+        "sha256": "2e0552dae8e741379d6629820fe1bff4f6ec026c642b1d153110a4f6b2080332",
+        "size": 1000,
+        "seed_manifest_sha256": "2aafbb51e34341a338d04c748b8469e29aff359f3503388f091ab6586f5b6a6b"
+      },
+      "s44-E4": {
+        "sha256": "9034d449c3ebb5e76d4469a80f89f9e1101258dd4a63d4c4b4441ac2e644a2c3",
+        "size": 1000,
+        "seed_manifest_sha256": "8a58f2e6f7aa321939dc717375281c137dbe9f3a367b3edfbc6b93d28f8e80b7"
+      }
+    },
+    "primary_design_sha256": "71db007166360badd622b371b513807800dee7e307ecf17e5e19879b587fbfe4",
+    "primary_lock_sha256": "4dbd8b66c9ba42e65ce1a2cac02f63a676c8efc30d9a7d578ed59f9855dbb698",
+    "selection_manifest_sha256": "89ed9d5c2c96b4207e0f93dd4c003c3fa68e721335c81a916299e141115d29e6",
+    "pool_sha256": "fd0ee69020ff537165b0fc405883f33ea2269ccc14cd4a231f62e5aff32e6001",
+    "models_sha256": {
+      "target_weights": "aa33250c4fc64891ddfaba3a314fd9542ea371843c387178b425fbcc5ed680b1",
+      "target_config": "ed1c1723241f23f7f4e23430759cbd7dcfb4103cbdfe052bfe7626b57c2615b4"
+    },
+    "source_sha256": {
+      "select_followup.py": "3a12fc7c39b2cc7606a75abf89ea0900e1b0574c102646123001eabbb27a742d",
+      "run_followup.py": "fdbe7d12abf15cc664d89c7fd6972d31bef3d0799307aa1b61dbaa654cdde192",
+      "summarize_followup.py": "5d74011c8828e5981bb501faefa3a101031abbe1f3f4899427775c964423d233",
+      "run_course_experiment.py": "9ee2f60079d196ab3ef11706bf1e4a832768cdeb17d36f25743ff24c81547115",
+      "run_crossed_seeds.py": "21f204a3d4ec81273665a364b3997a8b776ce98b1340b181a185386ae0772d76",
+      "train_experiment.py": "cff45f3afebe67f48276e4d581b3025ecf392f7112381fc6895d33afd3fd7049",
+      "experiment_callback.py": "6ce487ebaa5706c1471a9ce8050f69fd8b3db90a6e8e796b517b5ab04036ab08",
+      "evaluate_experiment.py": "ebcf9078ade3153631985ef422c8279a175af3c179c40d4d899f96840147c730",
+      "verify_tool_call_loss.py": "a6ad4b0bdf96bc616e6a0e39f846bdbff22ac3a01fb2ae2bc98eb640584f8917",
+      "select_experiment.py": "90d33a7b8da468ac7194c69a717aaac48a187cb653e57cc5ad67f0badcff01f7",
+      "summarize_course.py": "6bad4a193b34d7d2d0e059e29e513da89838b49cba73d3a553833df0dbec54bb"
+    },
+    "endpoint": "First optimizer update crossing the common non-padding token goal; lock before development or test.",
+    "analysis": {
+      "contrasts": [
+        "Bprime-B",
+        "C-Bprime",
+        "E2-B",
+        "E2-A",
+        "E3-B",
+        "E3-A",
+        "E4-A"
+      ],
+      "outcome": "Complete-call exact match on the original internal held-out questions.",
+      "intervals": "2,000 joint paired near-duplicate group resamples, seed 31415, type-7 95% and 90%; three paired seeds additionally get df=2 t intervals. Report observed partial coverage and every missing cell.",
+      "equivalence": "E2-B, E2-A and E3-A only: require three paired seeds and the unrounded conditional 90% interval strictly inside (-1,+1) percentage points.",
+      "diagnostics": "Length matching: E2 equivalent to B, mean E2-A <= -1 pp, and all three negative. Residualization: E3-B >= 1 pp and E3 equivalent to A. Tool stratification: mean E4-A >= 1 pp triggers follow-up.",
+      "interpretation": "Post-hoc sensitivity on reused test data; unadjusted contrasts. Thresholds are exploratory decision rules. No score-based stopping."
+    },
+    "admission": {
+      "hard_cutoff_utc": "2026-11-24T20:29:00+00:00",
+      "teardown_reserve_seconds": 15,
+      "time_multiplier": 1.2,
+      "disk_multiplier": 1.2,
+      "gpu": "NVIDIA A40",
+      "minimum_free_vram_fraction": 0.85,
+      "historical_max_seconds": {
+        "train": 972.4591179899871,
+        "dev": 255.33338883693796,
+        "test": 846.8277536949608
+      },
+      "historical_max_bytes": {
+        "train": 233008445,
+        "dev": 466612,
+        "test": 2324911
+      },
+      "rule": "Admit only an entire batch (5, 3, 3 cells), accounting for all unfinished stages, the largest observed stage times and 20% headroom. Defer an unaffordable batch and all subsequent batches in full. Once admitted, continue to the fixed endpoints subject to the hard cutoff; scores never affect this rule."
+    }
+  }
+}

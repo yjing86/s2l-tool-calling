@@ -30,3 +30,7 @@ For a new checkout, start with the [project quickstart](../README.md). The table
 | Which fields or output representations contributed to errors? | [Field diagnostics](field_diagnostics.py) and [representation diagnostics](representation_diagnostics.py) |
 
 Importable data and analysis programs live under [s2l_tool_calling](../s2l_tool_calling/). For example, `python -m s2l_tool_calling.analysis.plot_course_results --help` prints the inputs needed to redraw the internal test results. The earlier commands such as `python scripts/plot_course_results.py` call the same implementation. The experiment controllers, scoring programs and ms-swift callbacks retain their original source paths because the run manifests record those files' hashes.
+
+## Follow-up controls
+
+[select_followup.py](select_followup.py) constructs length-matched, regression-residual and tool-stratified subsets from the frozen training pool. [reserve_followup_test.py](reserve_followup_test.py) selects an independent set of unused request groups. [run_followup.py](run_followup.py) freezes and executes whole batches after the original experiment completes. [summarize_followup.py](summarize_followup.py) computes paired contrasts, equivalence intervals and costs. The [follow-up guide](../docs/improvement-plan.md) includes commands and interpretation criteria.

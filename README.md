@@ -67,6 +67,7 @@ C beat B in all three paired seeds on 2,000 held-out requests. The mean gain was
 | Find the split, proxy, clustering, training, scoring or experiment controller | [Program index by stage](scripts/README.md) |
 | Compare a rerun with the published results and configuration | [Aggregates and reproduction target](results/) |
 | Understand the hypotheses, controls and interpretation | [Research plan](docs/research-plan.md) |
+| Investigate length, tool coverage and the pooled-field control | [Post-hoc analyses and registered follow-up](docs/improvement-plan.md) |
 | Check the token masks and reproduce the numerical field losses | [Field-loss validation](docs/field-loss-validation.md) |
 | Inspect the experimental record or study the related work | [Experiment log](docs/experiment-log.md) · [Paper notes](docs/references.md) |
 
