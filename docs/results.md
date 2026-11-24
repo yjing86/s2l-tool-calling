@@ -56,6 +56,19 @@ B, B′, and C answered 1,054, 1,099, and 1,102 of the 2,000 held-out requests c
 
 Of the 48 additional correct answers for C over B at this seed, pooled-field selection already gained 45 over B. Separating the fields changed 101 answers from wrong to correct and 98 from correct to wrong, a net gain of only 3. Restricting the score to field tokens may therefore account for most of the observed improvement in this run. All three seeds contributed to C versus B, but only seed 42 included B′. The ablation leaves the additional value of separating the trajectories uncertain and does not establish equivalence between B′ and C.
 
+## What happens when the target can train on the whole pool?
+
+At seed 42 we trained one additional 2B model directly from the 4,000-candidate pool. The first checkpoint reached the same input-token budget as A/B/C, about half a pass over the larger pool. The subset models had spent approximately two passes on their respective sets of 1,000. The later full-pool checkpoint completed two passes. It also had the highest development score (259/400), so the final and best-development readouts share the same predictions.
+
+| Full-pool checkpoint | Input tokens | Correct on the same 2,000 requests | Full minus A, pp [95% interval] | Full minus B | Full minus C |
+|---|---:|---:|---:|---:|---:|
+| Step 125, matched budget | 3,006,397 | 1,126 (56.30%) | +0.40 [−0.95, +1.65] | +3.60 [+2.00, +5.10] | +1.20 [−0.10, +2.60] |
+| Step 500, two passes | 12,020,912 | 1,189 (59.45%) | +3.55 [+2.10, +5.05] | +6.75 [+5.15, +8.50] | +4.35 [+2.90, +5.90] |
+
+The matched-budget run clearly exceeded B on this test. Its intervals against A and C included zero. Continuing the same full-pool run from step 125 to 500 yielded **63 net additional correct calls, +3.15 pp [+1.75, +4.60]**. On 139 requests only the later checkpoint was correct; on 76 only the earlier checkpoint was correct. The later run used four times the input tokens and encountered more of the pool, with further repetitions. The comparison cannot isolate the contribution of any one of these changes. All intervals resample the same held-out request groups and are conditional on seed 42.
+
+On one A40, reaching the matched full-pool checkpoint used **0.269 h of target training** and **0.438 h including scheduled development evaluation**. Comparable standalone costs for A, B and C were 0.447, 1.120 and 1.122 h respectively, including 0.676 h for proxy training and scoring in each trajectory strategy. The full two-pass run took 61.59 minutes of target training and 38.27 minutes of development evaluation (1.664 h total). The table compares matched target tokens at step 125 and a larger training budget at step 500. These costs exclude final-test inference and idle time. [Machine-readable counts, paired contrasts and costs](../results/full-pool-reference.json) · [Full-pool summary implementation](../scripts/summarize_full_reference.py)
+
 ## External tool-calling evaluation
 
 We fixed two subsets of BFCL v4 Non-Live in advance. Each `simple_python` request provides one candidate tool. Each `multiple` request provides several candidates and requires a single call to one of them. Each subset contained 100 requests. We scored them using a pinned version of the official abstract syntax tree (AST) checker. The prespecified checks found zero matches to the training pool on either request text or named tool signatures. Semantic overlap and the base model's pretraining exposure remain uncertain.

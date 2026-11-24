@@ -1,0 +1,254 @@
+{
+  "evaluation": "Turnstile held-out complete-call accuracy; single paired seed",
+  "seed": 42,
+  "test_requests": 2000,
+  "near_duplicate_groups": 2000,
+  "matched_target_input_token_budget": 3005228,
+  "full_pool_candidate_requests": 4000,
+  "selected_subset_requests": 1000,
+  "locked_checkpoints": {
+    "primary": {
+      "base": "base",
+      "s42-A": "s42-A-step126",
+      "s42-B": "s42-B-step125",
+      "s42-C": "s42-C-step126"
+    },
+    "full": {
+      "final": "full-s42-step500",
+      "best_dev": "full-s42-step500",
+      "matched_tokens": "full-s42-step125"
+    }
+  },
+  "development_selection": {
+    "requests": 400,
+    "winning_checkpoint": "full-s42-step500",
+    "correct": 259,
+    "accuracy_pct": 64.75
+  },
+  "models": {
+    "primary/base": {
+      "checkpoint": "base",
+      "correct": 944,
+      "requests": 2000,
+      "accuracy_pct": 47.2,
+      "input_tokens": 0,
+      "answer_tokens": 0,
+      "single_gpu_hours": {
+        "training": 0.0,
+        "dev": 0.0,
+        "selection": 0.0,
+        "total": 0.0
+      }
+    },
+    "primary/s42-A": {
+      "checkpoint": "s42-A-step126",
+      "correct": 1118,
+      "requests": 2000,
+      "accuracy_pct": 55.9,
+      "input_tokens": 3010332,
+      "answer_tokens": 163142,
+      "single_gpu_hours": {
+        "training": 0.2652449878291615,
+        "dev": 0.18194852965660782,
+        "selection": 0.0,
+        "total": 0.4471935174857693
+      }
+    },
+    "primary/s42-B": {
+      "checkpoint": "s42-B-step125",
+      "correct": 1054,
+      "requests": 2000,
+      "accuracy_pct": 52.7,
+      "input_tokens": 3022226,
+      "answer_tokens": 173227,
+      "single_gpu_hours": {
+        "training": 0.2698409966111002,
+        "dev": 0.1738016234180476,
+        "selection": 0.6760284068511101,
+        "total": 1.1196710268802579
+      }
+    },
+    "primary/s42-C": {
+      "checkpoint": "s42-C-step126",
+      "correct": 1102,
+      "requests": 2000,
+      "accuracy_pct": 55.1,
+      "input_tokens": 3014342,
+      "answer_tokens": 169378,
+      "single_gpu_hours": {
+        "training": 0.26823819363554424,
+        "dev": 0.17724674212500557,
+        "selection": 0.6760284068511101,
+        "total": 1.12151334261166
+      }
+    },
+    "full/final": {
+      "checkpoint": "full-s42-step500",
+      "correct": 1189,
+      "requests": 2000,
+      "accuracy_pct": 59.45,
+      "input_tokens": 12020912,
+      "answer_tokens": 653448,
+      "single_gpu_hours": {
+        "training": 1.0265450077730607,
+        "dev": 0.6379059830805313,
+        "selection": 0.0,
+        "total": 1.664450990853592
+      }
+    },
+    "full/matched_tokens": {
+      "checkpoint": "full-s42-step125",
+      "correct": 1126,
+      "requests": 2000,
+      "accuracy_pct": 56.3,
+      "input_tokens": 3006397,
+      "answer_tokens": 164649,
+      "single_gpu_hours": {
+        "training": 0.26885333163861,
+        "dev": 0.1695673007630588,
+        "selection": 0.0,
+        "total": 0.43842063240166884
+      }
+    }
+  },
+  "full_minus_primary_at_seed_42": {
+    "matched_tokens": {
+      "base": {
+        "requests": 2000,
+        "groups": 2000,
+        "only_left_correct": 252,
+        "only_right_correct": 70,
+        "both_correct": 874,
+        "both_wrong": 804,
+        "difference_pp": 9.1,
+        "paired_cluster_ci95_pp": [
+          7.35,
+          10.801249999999994
+        ]
+      },
+      "s42-A": {
+        "requests": 2000,
+        "groups": 2000,
+        "only_left_correct": 95,
+        "only_right_correct": 87,
+        "both_correct": 1031,
+        "both_wrong": 787,
+        "difference_pp": 0.4,
+        "paired_cluster_ci95_pp": [
+          -0.95,
+          1.65
+        ]
+      },
+      "s42-B": {
+        "requests": 2000,
+        "groups": 2000,
+        "only_left_correct": 162,
+        "only_right_correct": 90,
+        "both_correct": 964,
+        "both_wrong": 784,
+        "difference_pp": 3.6,
+        "paired_cluster_ci95_pp": [
+          2.0,
+          5.1
+        ]
+      },
+      "s42-C": {
+        "requests": 2000,
+        "groups": 2000,
+        "only_left_correct": 105,
+        "only_right_correct": 81,
+        "both_correct": 1021,
+        "both_wrong": 793,
+        "difference_pp": 1.2,
+        "paired_cluster_ci95_pp": [
+          -0.10124999999999994,
+          2.6
+        ]
+      }
+    },
+    "final": {
+      "base": {
+        "requests": 2000,
+        "groups": 2000,
+        "only_left_correct": 317,
+        "only_right_correct": 72,
+        "both_correct": 872,
+        "both_wrong": 739,
+        "difference_pp": 12.25,
+        "paired_cluster_ci95_pp": [
+          10.448749999999999,
+          14.2
+        ]
+      },
+      "s42-A": {
+        "requests": 2000,
+        "groups": 2000,
+        "only_left_correct": 155,
+        "only_right_correct": 84,
+        "both_correct": 1034,
+        "both_wrong": 727,
+        "difference_pp": 3.55,
+        "paired_cluster_ci95_pp": [
+          2.0987500000000003,
+          5.05
+        ]
+      },
+      "s42-B": {
+        "requests": 2000,
+        "groups": 2000,
+        "only_left_correct": 213,
+        "only_right_correct": 78,
+        "both_correct": 976,
+        "both_wrong": 733,
+        "difference_pp": 6.75,
+        "paired_cluster_ci95_pp": [
+          5.15,
+          8.5
+        ]
+      },
+      "s42-C": {
+        "requests": 2000,
+        "groups": 2000,
+        "only_left_correct": 163,
+        "only_right_correct": 76,
+        "both_correct": 1026,
+        "both_wrong": 735,
+        "difference_pp": 4.35,
+        "paired_cluster_ci95_pp": [
+          2.9,
+          5.9
+        ]
+      }
+    }
+  },
+  "within_full_training_trajectory": {
+    "final_minus_matched_tokens": {
+      "requests": 2000,
+      "groups": 2000,
+      "only_left_correct": 139,
+      "only_right_correct": 76,
+      "both_correct": 1050,
+      "both_wrong": 735,
+      "difference_pp": 3.15,
+      "paired_cluster_ci95_pp": [
+        1.75,
+        4.6
+      ]
+    }
+  },
+  "interval": {
+    "unit": "near-duplicate group",
+    "draws": 2000,
+    "method": "percentile",
+    "seed": 31415
+  },
+  "interpretation": {
+    "intervals": "Paired percentile intervals over resampled held-out request groups, conditional on seed 42. Contrasts are in percentage points.",
+    "endpoints": "The final and best-development roles share one step-500 checkpoint and one set of predictions.",
+    "cost": "One A40. Costs cover training, scheduled development evaluation through the endpoint, and proxy training plus scoring when a selection strategy runs alone. Shared base checks, held-out inference, failed attempts and idle time are excluded."
+  },
+  "provenance_sha256": {
+    "official_full_summary": "071eeac8a9e02f287687a128f0ce471fee4ab083987c27236cff1d759fa2c9c2",
+    "frozen_test_split": "000c29f46a06a35146d8d369e4ff763226bf66a690a7339680e32fc8b779407c"
+  }
+}
