@@ -137,6 +137,29 @@ def prediction_args(pred, function_name):
     return MISSING
 
 
+def argument_error_kinds(pred, expected):
+    """A request can contribute once to several error kinds in the frozen scores."""
+    if pred["reason"] != "argument":
+        return set()
+    if not pred.get("argument_errors"):
+        raise ValueError(f"Missing recorded argument errors on {pred['id']}")
+    kinds = set()
+    for kind, path in pred["argument_errors"]:
+        if kind == "key":
+            # The frozen scorer reports the symmetric key difference at this path.
+            actual_parent = pred["parsed"][0]["arguments"]
+            gold_parent = expected
+            for step in path[:-1]:
+                actual_parent = actual_parent[step]
+                gold_parent = gold_parent[step]
+            key = path[-1]
+            if (key in actual_parent) == (key in gold_parent):
+                raise ValueError(f"Recorded key difference inconsistent on {pred['id']} at {path}")
+            kind = "missing" if key in gold_parent else "extra"
+        kinds.add(kind)
+    return kinds
+
+
 def leaf_correct(args, path, expected, schema):
     value = args
     for key in path:
@@ -194,6 +217,7 @@ def analyze(args, data):
     structure = defaultdict(list)
     diagnostics = defaultdict(list)
     errors = Counter()
+    argument_counts = {"B": Counter(), "C": Counter()}
     for rid, row in data.items():
         func, tool = reference(row)
         gold = dict(leaves(func["arguments"]))
@@ -205,6 +229,8 @@ def analyze(args, data):
         slice_name = "no_scalar" if not depth else "flat" if depth == 1 else "nested"
         structure[slice_name].append((group, int(bp[rid]["correct"]), int(cp[rid]["correct"]), 1))
         errors[bp[rid]["reason"], cp[rid]["reason"]] += 1
+        for arm, pred in (("B", bp[rid]), ("C", cp[rid])):
+            argument_counts[arm].update(argument_error_kinds(pred, func["arguments"]))
         if rid not in labels:
             continue
         for cls in set(labels[rid].values()):
@@ -227,10 +253,30 @@ def analyze(args, data):
               "annotation_requests": len(labels), "total_requests": len(data),
               "strata": strata, "structural": {s: paired(rows,args.seed) for s, rows in sorted(structure.items())},
               "error_transitions": [{"B": b, "C": c, "requests": n} for (b,c), n in sorted(errors.items())]}
+    kinds = sorted({"missing", "extra", "type", "value"}.union(*argument_counts.values()))
+    report["argument_error_requests"] = {}
+    for arm, predictions in (("B", bp), ("C", cp)):
+        reasons = Counter(p["reason"] for p in predictions.values())
+        n, wrong = len(predictions), reasons["argument"]
+        report["argument_error_requests"][arm] = {
+            "total_requests": n, "argument_error_requests": wrong, "first_failure_or_correct": dict(reasons),
+            "by_kind": {kind: {"requests": argument_counts[arm][kind],
+                               "percent_all": 100 * argument_counts[arm][kind] / n,
+                               "percent_argument_error": 100 * argument_counts[arm][kind] / wrong if wrong else None}
+                        for kind in kinds},
+        }
     lines = ["# 单调用参数诊断", "", f"全卷共 {len(data)} 道，已复核来源标签的题目有 {len(labels)} 道。结构分层覆盖全卷。配对差以百分点计，按近重复题组重采样 2,000 次。", "",
              "| 参考参数结构 | 请求数 | B 整题答对 | C 整题答对 | C−B（百分点） |", "|---|---:|---:|---:|---:|"]
     for s, r in report["structural"].items():
         lines.append(f"| {s} | {r['requests']} | {r['B_correct']} | {r['C_correct']} | {fmt(r['C_minus_B_pp'])} |")
+    lines += ["", "下表只细分首次判为参数错误的请求。每题在同一类别中只计一次，一题可能同时涉及多类，因此各行不能相加。对象缺键与多键通过原始错误路径区分；数组长度差沿用评分器的值错误。", "",
+              "| 组别 | 错误类别 | 涉及请求数 | 占全部请求（%） | 占参数错误请求（%） |",
+              "|---|---|---:|---:|---:|"]
+    for arm, summary in report["argument_error_requests"].items():
+        for kind, stats in summary["by_kind"].items():
+            lines.append(f"| {arm} | {kind} | {stats['requests']} | {fmt(stats['percent_all'])} | {fmt(stats['percent_argument_error'])} |")
+    for arm, summary in report["argument_error_requests"].items():
+        lines += ["", f"{arm} 组共有 {summary['total_requests']} 道请求，其中 {summary['argument_error_requests']} 道首次判为参数错误。"]
     if strata:
         lines += ["", "每类分别按请求和标量叶值计数。“共同选对工具”只纳入两组均调用一次且选择正确工具的请求。一题可包含多类参数。", "",
                   "| 来源 | 范围 | 单位 | B 正确/分母 | C 正确/分母 | C−B | 95% 区间 |", "|---|---|---|---:|---:|---:|---|"]
