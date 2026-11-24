@@ -8,7 +8,7 @@ Can a small model choose better fine-tuning examples by tracking **which functio
 
 [实验日志](docs/experiment-log.md)记录实际运行、修复和已核验的结果。[研究方案](docs/research-plan.md)给出对照和判分规则。训练、打分、生成与分析的源程序位于 [scripts](scripts/)。
 
-本地课程项目位于课程目录的 `CS260D/s2l-tool-calling/`，同一仓库在 GPU 持久盘上的位置为 `/workspace/cs260d/repo/`。题号与划分清单位于仓库下的 `local/prepared/`，训练快照、逐题预测和性能记录位于 `local/runs/`。服务器安装日志、标准输出和 GPU 遥测位于 `/workspace/cs260d/logs/`。Git 保存实验代码和 `docs/experiment-log.md`。模型、原始数据和逐题预测保存在 Git 忽略的目录中，下载与归档需单独进行。
+本地课程项目位于课程目录的 `CS260D/s2l-tool-calling/`，同一仓库在 GPU 持久盘上的位置为 `/workspace/cs260d/repo/`。题号与划分清单位于仓库下的 `local/prepared/`，GPU 单步验证和基模摸底在 `local/runs/`；正式 A/B/C 运行在 `local/course-run/`，其中 `training/` 保存快照，`selection/` 保存各组题号和聚类统计，`evaluation/` 保存逐题预测，`receipts/` 保存阶段耗时与校验值。本机私有备份位于 `local/runpod/`。服务器安装日志、标准输出和 GPU 遥测位于 `/workspace/cs260d/logs/`。Git 保存实验代码和 `docs/experiment-log.md`。模型、原始数据和逐题预测保存在 Git 忽略的目录中，下载与归档需单独进行。
 
 ## Experiment
 
