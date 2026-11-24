@@ -1,0 +1,114 @@
+{
+  "scope": "Single-GPU single-call tool-selection experiments: primary, full-pool reference, crossed seeds, and Phase 1 follow-up.",
+  "hardware": "1 NVIDIA A40",
+  "time_unit": "hours (elapsed wall clock; 1 hour = 3600 seconds), rounded to six decimal places",
+  "coverage": {
+    "verified_stages": 4,
+    "successful_task_receipts": 157,
+    "phase1_new_target_models": 11,
+    "phase1_supervised_training_tasks": 11,
+    "phase1_development_inference_tasks": 11,
+    "phase1_internal_test_inference_tasks": 11
+  },
+  "project_totals": {
+    "gpu_workload_hours": {
+      "target_training": 7.717824,
+      "development_inference": 3.382057,
+      "internal_test_inference": 5.18762,
+      "bfcl_inference": 0.244776,
+      "shared_proxy_training": 0.350215,
+      "shared_trajectory_scoring": 0.325814,
+      "gpu_preflight": 0.140891
+    },
+    "known_successful_cpu_task_hours": 0.073266,
+    "known_cpu_and_gpu_subprocess_hours_including_external_and_recorded_failures": 17.488808,
+    "gpu_subprocess_hours_started_here": 17.349196,
+    "external_adopted_gpu_hours": 0.066346,
+    "recorded_failed_gpu_hours": 0.0,
+    "known_gpu_subprocess_hours_including_external_and_failed": 17.415542,
+    "first_to_last_ledger_event_hours": 17.50443,
+    "all_stages_selector_cpu_wall_hours": null,
+    "provider_invoiced_rental_hours": null,
+    "provider_charge_usd": null
+  },
+  "by_stage": {
+    "primary": {
+      "successful_task_receipts": 98,
+      "gpu_workload_hours": {
+        "target_training": 2.676926,
+        "development_inference": 1.852489,
+        "internal_test_inference": 2.370532,
+        "bfcl_inference": 0.244776,
+        "shared_proxy_training": 0.350215,
+        "shared_trajectory_scoring": 0.325814,
+        "gpu_preflight": 0.140891
+      },
+      "gpu_subprocess_hours_started_here": 7.961643,
+      "external_adopted_gpu_hours": 0.066346,
+      "measured_selector_cpu_wall_hours": 0.003256,
+      "other_cpu_ledger_task_hours": 0.052869,
+      "recorded_failed_gpu_hours": 0.0,
+      "ledger_span_hours": 8.020371
+    },
+    "full_pool_reference": {
+      "successful_task_receipts": 17,
+      "gpu_workload_hours": {
+        "target_training": 1.026545,
+        "development_inference": 0.637906,
+        "internal_test_inference": 0.413211,
+        "bfcl_inference": 0.0,
+        "shared_proxy_training": 0.0,
+        "shared_trajectory_scoring": 0.0,
+        "gpu_preflight": 0.0
+      },
+      "gpu_subprocess_hours_started_here": 2.077662,
+      "external_adopted_gpu_hours": 0.0,
+      "measured_selector_cpu_wall_hours": 0.0,
+      "other_cpu_ledger_task_hours": 0.016635,
+      "recorded_failed_gpu_hours": 0.0,
+      "ledger_span_hours": 2.094732
+    },
+    "crossed_seeds": {
+      "successful_task_receipts": 9,
+      "gpu_workload_hours": {
+        "target_training": 1.071547,
+        "development_inference": 0.221323,
+        "internal_test_inference": 0.0,
+        "bfcl_inference": 0.0,
+        "shared_proxy_training": 0.0,
+        "shared_trajectory_scoring": 0.0,
+        "gpu_preflight": 0.0
+      },
+      "gpu_subprocess_hours_started_here": 1.29287,
+      "external_adopted_gpu_hours": 0.0,
+      "measured_selector_cpu_wall_hours": 0.0,
+      "other_cpu_ledger_task_hours": 0.000506,
+      "recorded_failed_gpu_hours": 0.0,
+      "ledger_span_hours": 1.293654
+    },
+    "phase1_followup": {
+      "successful_task_receipts": 33,
+      "gpu_workload_hours": {
+        "target_training": 2.942806,
+        "development_inference": 0.670339,
+        "internal_test_inference": 2.403876,
+        "bfcl_inference": 0.0,
+        "shared_proxy_training": 0.0,
+        "shared_trajectory_scoring": 0.0,
+        "gpu_preflight": 0.0
+      },
+      "gpu_subprocess_hours_started_here": 6.017022,
+      "external_adopted_gpu_hours": 0.0,
+      "measured_selector_cpu_wall_hours": null,
+      "other_cpu_ledger_task_hours": 0.0,
+      "recorded_failed_gpu_hours": 0.0,
+      "ledger_span_hours": 6.018292
+    }
+  },
+  "accounting_notes": [
+    "GPU-dependent subprocesses include startup, model loading and I/O. Ledger spans include CPU work and gaps between tasks. A utilization trace or provider invoice is needed for active-device seconds or a rental charge.",
+    "Proxy training and trajectory scoring are paid once in the primary stage and reused by the later arms. Two full-pool checkpoints share one training run. The external baseline pilot appears once in the all-in total and is excluded from work started by the four stage controllers.",
+    "Validation uses archived task timing receipts and ledgers; Phase 1 additionally reconciles the 33 successful tasks against the independently replayed terminal summary.",
+    "Primary CPU selection was timed. Phase 1 selector construction and final CPU summarization had no ledger timers. Other CPU ledger tasks include only successfully timed subprocesses. Null means unavailable; a zero denotes no corresponding recorded work."
+  ]
+}

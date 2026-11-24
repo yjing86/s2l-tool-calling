@@ -202,3 +202,7 @@ local/envs/train/bin/python scripts/train_experiment.py --stage target --seed 42
 ```
 
 The project's rental used a separate controller to evaluate whether all three fits would fit after the original and Phase 1 jobs. `forecast` uses existing receipts and does not train. The controller's backup and account checks document this specific rented study. The selector and standalone trainer above can be used on a different machine. [Managed batch controller](../scripts/run_difficulty_control.py) · [Post-training comparison](../scripts/summarize_difficulty_control.py)
+
+### Dated budget amendment
+
+All eleven Phase 1 endpoints finished at 18:33 UTC on November 24. At that point the original rental window had less time left than the registered reserve for all three E2b seeds. Before the first E2b target was trained, a separate authorization extended the same single-A40 allocation to a 21:30 UTC compute cutoff, with ten further minutes reserved for shutdown. The original E2b registration and its three selected sets remain verifiable by their published hashes. The earlier cutoff and this amendment are both preserved in the execution record. [Phase 1 outcomes](results.md) · [Original registration](../results/followup/e2b-registration.json) · [Dated execution entry point](../scripts/run_difficulty_extension.py)

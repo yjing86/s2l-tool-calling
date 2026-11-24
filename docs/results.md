@@ -56,9 +56,21 @@ B, B′, and C answered 1,054, 1,099, and 1,102 of the 2,000 held-out requests c
 
 The original experiment included B′ only at seed 42. At this seed the pooled-field arm gained 45 correct calls over B, while separating the fields gained another three. The individual gains varied when the two missing B′ models were trained in the follow-up.
 
-### Three-seed field and length controls
+### Three-seed controls for fields, length and tool coverage
 
-After the primary test was opened, the registered follow-up added eight fits for these controls: B′ at seeds 43 and 44, and three seeds each for length-matched random sampling (E2) and residualized whole-answer trajectories (E3). E2 sampled uniformly without replacement within value-token length bins, matching the number of training requests B selected in each bin at the same seed. All new targets used the original training-token budget and the same 2,000 test requests. B′ answered **1,099, 1,115 and 1,072** correctly at seeds 42, 43 and 44 (54.77% mean accuracy). E2 answered **1,081, 1,114 and 1,071** correctly (54.43%). E3 answered **1,109, 1,083 and 1,062** correctly (54.23%). [Follow-up registration](../results/followup/phase1-registration.json)
+The follow-up was registered after the original 2,000-request test had been examined. It added 11 training runs at the original target-token budget: B′ at seeds 43 and 44, and three seeds each for length-matched random sampling (E2), residualized whole-answer trajectories (E3) and tool-stratified random sampling (E4). Together with the ten original fits, this gives seven methods with three paired seeds each. Every score below uses the same test requests. The separate prospective holdout was kept sealed. [Follow-up registration](../results/followup/phase1-registration.json)
+
+| Method | Seed 42 correct | Seed 43 correct | Seed 44 correct | Mean accuracy | Mean minus A (pp) | Mean minus B (pp) |
+|---|---:|---:|---:|---:|---:|---:|
+| A | 1,118 | 1,129 | 1,094 | 55.68% | 0.00 | +1.98 |
+| B | 1,054 | 1,091 | 1,077 | 53.70% | −1.98 | 0.00 |
+| B′ | 1,099 | 1,115 | 1,072 | 54.77% | −0.92 | +1.07 |
+| C | 1,102 | 1,112 | 1,100 | 55.23% | −0.45 | +1.53 |
+| E2 | 1,081 | 1,114 | 1,071 | 54.43% | −1.25 | +0.73 |
+| E3 | 1,109 | 1,083 | 1,062 | 54.23% | −1.45 | +0.53 |
+| E4 | 1,093 | 1,099 | 1,094 | 54.77% | −0.92 | +1.07 |
+
+Each count is out of 2,000. The last two columns describe observed differences between three-seed means. The seven comparisons registered for paired interval estimation follow. [All counts, paired disagreements and intervals](../results/followup/phase1-results.json)
 
 | Accuracy difference (pp) | Seed 42 | Seed 43 | Seed 44 | Mean | 95% request-group interval, fixed trained seeds | 95% seed t interval, fixed requests |
 |---|---:|---:|---:|---:|---:|---:|
@@ -68,14 +80,21 @@ After the primary test was opened, the registered follow-up added eight fits for
 | E2 − A | −1.85 | −0.75 | −1.15 | −1.25 | [−2.15, −0.40] | [−2.63, +0.13] |
 | E3 − B | +2.75 | −0.40 | −0.75 | +0.53 | [−0.27, +1.35] | [−4.26, +5.32] |
 | E3 − A | −0.45 | −2.30 | −1.60 | −1.45 | [−2.37, −0.58] | [−3.77, +0.87] |
+| E4 − A | −1.25 | −1.50 | 0.00 | −0.92 | [−1.77, −0.08] | [−2.91, +1.08] |
+
+![Seven paired contrasts in complete-call accuracy. Each mean is shown with separate 95% intervals for variation across request groups and across the three paired seeds.](figures/followup-effects.png)
 
 Averaged over these trained runs, restricting scores to the field tokens gained 1.07 pp over B. The sign reversed at seed 44, where separating the fields contributed the largest gain. The extra benefit of separate trajectories averaged 0.47 pp, with both intervals spanning zero. The seed t intervals have two degrees of freedom and describe sensitivity to the three observed seed pairs. The request-group intervals are pointwise across these post hoc comparisons.
 
-E2 fell below unrestricted random selection (A) at every seed. Adopting B's length-bin quotas therefore had an observed cost for this random-within-bin sampling policy. E2 still led B by 0.73 pp on average. The registered equivalence rule required an unrounded paired 90% request-group interval strictly inside **(−1, +1) pp**. E2−B gave **[−0.02, +1.50]** and E2−A gave **[−1.98, −0.55]** after rounding. Neither met that rule. The results leave open how much of B's deficit to A is attributable to the quotas. E2 matched binned lengths while changing individual requests, difficulty and tool mix; its mean value length was 18.51 tokens versus 19.58 for B. [Selection and matching](../scripts/select_followup.py) · [Paired intervals and equivalence rule](../scripts/summarize_followup.py)
+E2 matched the number of requests B selected in each argument-value length bin and then sampled uniformly without replacement within that bin. E2 fell below unrestricted random selection (A) at every seed. Adopting B's length-bin quotas therefore had an observed cost for this random-within-bin sampling policy. E2 still led B by 0.73 pp on average. The registered equivalence rule required an unrounded paired 90% request-group interval strictly inside **(−1, +1) pp**. E2−B gave **[−0.02, +1.50]** and E2−A gave **[−1.98, −0.55]** after rounding. Neither met that rule. The results leave open how much of B's deficit to A is attributable to the quotas. E2 matched binned lengths while changing individual requests, difficulty and tool mix; its mean value length was 18.51 tokens versus 19.58 for B. [Selection and matching](../scripts/select_followup.py) · [Paired intervals and equivalence rule](../scripts/summarize_followup.py)
 
 **Does removing predictable length-related variation from B's features help?** For E3 we fit a separate ordinary least-squares regression on all 4,000 training candidates at each of the five proxy checkpoints. The outcome was the whole-answer mean loss. The predictors were an intercept, log(1 + number of value tokens), the share of supervised answer tokens belonging to names or values, and log(total supervised answer tokens). We then standardized the five residuals, clustered them and applied B's sampling quotas. The 2B target still trained on complete calls.
 
 E3 gained +2.75 pp over B at seed 42 but lost ground at seeds 43 and 44. Its mean gain of **+0.53 pp** fell short of the registered +1 pp threshold. E3 scored below A at every seed. The E3−A 90% paired group interval was **[−2.22, −0.70] pp**, outside the prespecified equivalence margin on the lower side. The fixed-test, three-seed 95% t interval was much wider, **[−3.77, +0.87] pp**. Neither criterion for the proposed residualization strategy was met. This result concerns removal of the fitted linear associations from the proxy features. Nonlinear relationships and changes in the selected examples' difficulty or tool mix remain possible. [Residualization and sampling](../scripts/select_followup.py)
+
+**Does allocating seats by tool frequency help?** E4 assigned the 1,000 training slots in proportion to each reference function’s frequency, rounded fractional quotas by largest remainder with seeded tie-breaking, and sampled uniformly within each function. It covered 779, 776 and 781 distinct training functions across the three seeds, compared with 603, 605 and 595 for A. Of the 2,000 test requests, the reference function had appeared in E4’s selected training set for 1,655, 1,655 and 1,665 requests, compared with 1,293, 1,286 and 1,299 for A. Its mean accuracy difference from A was **−0.92 pp** (95% request-group interval [−1.77, −0.08], three-seed t interval [−2.91, +1.08]). This fell below the registered +1 pp threshold. At seeds 42 and 43 the broader coverage came with fewer correct calls, and at seed 44 the two methods tied. Stratification changed both the identities of the training requests and their distribution across tools. [Tool-quota implementation](../scripts/select_followup.py)
+
+None of the three registered diagnostic patterns met all its criteria. On these fitted seeds A scored highest among the seven methods at the matched token budget. All seven 95% seed t intervals span zero. The evidence for differences across these specific test requests is stronger than the evidence for how the methods rank when retrained.
 
 ## What happens when the target can train on the whole pool?
 
@@ -157,6 +176,10 @@ This follow-up uses the opened Turnstile test and the original ten fine-tuned mo
 
 ![Mean training-subset length and held-out accuracy for each trained method and seed](figures/length-accuracy.png)
 
+Across all 21 fitted models, the Spearman rank correlation between mean training-subset argument-value length and test accuracy weakened from **−0.72** in the original ten fits to **−0.52**. Using mean full-answer length gave **−0.71** in the original ten and **−0.40** in the complete set. Each point represents one method and seed. The runs share candidate and test requests, repeatedly use the same methods and seeds, and reuse a single proxy where required. These descriptive associations cannot estimate the effect of lengthening a training example or separate length from difficulty and tool composition. [Aggregate data for all 21 fits](../results/followup/phase1-length-accuracy.csv)
+
+![Selected argument-value and full-answer length versus complete-call test accuracy for all 21 method and seed combinations.](figures/phase1-length-accuracy.png)
+
 ### Where did B lose correct calls against random sampling?
 
 We rescored the original 18,000 generations from A, B, and C (2,000 requests × three arms × three seeds). The scorer assigns each failed call to its first failed check, in the order shown below. An argument failure can involve a missing or extra key, a type mismatch, or an incorrect value. The arrows show counts for A followed by B. The last two columns compare both models on the same requests.
@@ -188,4 +211,4 @@ In the training pool, 927 candidates exceeded 21 value tokens. B selected 304, 3
 
 For tools seen only in A's selected training set, A had 29 net additional correct calls over C across three passes on the same test. For tools seen only in C's set, C had 26 net additional correct calls over A. These are exploratory comparisons. [Coverage and discordant calls](../results/followup/p02-ac-disagreement.csv)
 
-How far does C’s 1.53-point advantage over B generalize? With the three trained pairs held fixed, the 95% request-group interval is +0.60 to +2.48. Holding the 2,000 test requests fixed and using the three observed seed differences instead gives a 95% t interval of −0.34 to +3.40 (two degrees of freedom). The second estimate is sensitive to the small number of seeds. The new diagnostic controls repeat the pooled-field comparison and change the length or function composition of the selected data. We separately reserved 1,500 unused requests for a prospective method evaluation. [All seed-sensitivity contrasts](../results/followup/p05-intervals.csv) · [Follow-up design](improvement-plan.md)
+How far does C’s 1.53-point advantage over B generalize? With the three trained pairs held fixed, the 95% request-group interval is +0.60 to +2.48. Holding the 2,000 test requests fixed and using the three observed seed differences instead gives a 95% t interval of −0.34 to +3.40 (two degrees of freedom). The second estimate is sensitive to the small number of seeds. The follow-up controls repeated the pooled-field comparison and changed the length or function composition of the selected data. We separately reserved 1,500 unused requests for a prospective method evaluation. [All seed-sensitivity contrasts](../results/followup/p05-intervals.csv) · [Follow-up design](improvement-plan.md)
