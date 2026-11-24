@@ -6,7 +6,7 @@ Can a small model choose better fine-tuning examples by tracking **which functio
 
 ## Experiment
 
-A Qwen3.5-0.8B proxy undergoes one LoRA fine-tuning run on 4,000 candidates. We score each reference answer at four checkpoints and select 1,000 requests per method. Each Qwen3.5-2B target learns from complete reference calls with the same training-token budget.
+A Qwen3.5-0.8B proxy undergoes one LoRA fine-tuning run on 4,000 candidates. We score each reference answer at five checkpoints (steps 0, 10, 30, 80 and 250) and select 1,000 requests per method. Each Qwen3.5-2B target learns from complete reference calls with the same training-token budget.
 
 | Group | Signal used to select training requests |
 | --- | --- |
@@ -21,7 +21,7 @@ The primary outcome is the paired difference in **complete-call accuracy** betwe
 
 The only training corpus is Amazon’s **Turnstile-Synthetic-Domains**. The pinned proxy and target weights are dated March 2, 2026. Amazon uploaded the public training data on August 3, 2026. We keep near-duplicate requests together in the same split and audit overlap in tool schemas. Those checks reduce the risk from previously published examples. Exposure to related templates during pretraining remains possible. Download the data directly from Amazon under CC BY-NC 4.0. [Amazon dataset snapshot](https://huggingface.co/datasets/amazon/Turnstile-Synthetic-Domains/tree/70bf9e9a6234e694efa36d1ec6c207c65a695f5b) · [0.8B snapshot](https://huggingface.co/Qwen/Qwen3.5-0.8B/tree/2fc06364715b967f1860aea9cf38778875588b17) · [2B snapshot](https://huggingface.co/Qwen/Qwen3.5-2B/tree/15852e8c16360a2fea060d615a32b45270f8a8fc)
 
-Before training the target, we test it on 200 held-out single-call requests. If it answers at least 180 correctly, the experiment switches to independent double-call requests. We also reserve selected BFCL v4 single-turn categories for external evaluation. Scores will be reported by category. [Experiment protocol](docs/research-plan.md) · [BFCL](https://gorilla.cs.berkeley.edu/leaderboard.html)
+Before training the target, we test it on 200 held-out single-call requests. The pilot measures headroom. The main task stays single-call, with a target of 2,000 held-out test requests and matched A/B/C runs at seeds 42, 43 and 44. We also reserve selected BFCL v4 single-turn categories for external evaluation. Scores will be reported by category. [Experiment protocol](docs/research-plan.md) · [BFCL](https://gorilla.cs.berkeley.edu/leaderboard.html)
 
 ## 下载实验材料
 
@@ -30,13 +30,13 @@ Before training the target, we test it on 200 held-out single-call requests. If 
 | 材料 | 本地位置 | 用途 |
 |---|---|---|
 | Amazon Turnstile | `local/data/turnstile/` | 唯一训练语料。保留原始 JSONL、API 定义、数据卡和许可信息。 |
-| Qwen3.5-0.8B | `local/models/Qwen3.5-0.8B/` | 代理训练及四个时刻的损失打分。 |
+| Qwen3.5-0.8B | `local/models/Qwen3.5-0.8B/` | 代理训练及五个时刻的损失打分。 |
 | Qwen3.5-2B | `local/models/Qwen3.5-2B/` | 未微调基线及 A/B/C 等组的共同起点。 |
 | BFCL v4 | `local/tools/bfcl/` | 官方评测器、题目和参考答案，仅用于外测。 |
 | S2L 作者参考实现 | `local/tools/s2l-reference/` | 对照原论文的轨迹提取、聚类与抽样代码。[固定版本](https://github.com/BigML-CS-UCLA/S2L/tree/2bc84dda1a054d0ff0e704ae9658ee700d5c25fa) |
 | Python 安装包 | `local/tools/wheels/` | ms-swift、Transformers、PEFT、qwen-vl-utils 的固定版本通用 wheel。 |
 
-在新机器上可用以下命令获取 S2L 参考实现、BFCL 和通用安装包。BFCL 固定在方案使用的提交；三个预选类别为 `simple_python`、`multiple`、`parallel_multiple`，具体启用条件和盲测抽样规则见[实验方案](docs/research-plan.md)。训练机上的 PyTorch、torchvision 和 CUDA 环境请按显卡镜像配置；本地缓存的四个 wheel 仍需配套依赖。[训练环境版本与复跑命令](docs/field-loss-validation.md)
+在新机器上可用以下命令获取 S2L 参考实现、BFCL 和通用安装包。BFCL 固定在方案使用的提交；主实验使用 `simple_python`、`multiple`；`parallel_multiple` 留给后续研究，具体启用条件和盲测抽样规则见[实验方案](docs/research-plan.md)。训练机上的 PyTorch、torchvision 和 CUDA 环境请按显卡镜像配置；本地缓存的四个 wheel 仍需配套依赖。[训练环境版本与复跑命令](docs/field-loss-validation.md)
 
 ```bash
 mkdir -p local/tools/bfcl local/tools/wheels local/tools/s2l-reference
