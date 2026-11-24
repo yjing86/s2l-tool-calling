@@ -54,7 +54,22 @@ B, B′, and C answered 1,054, 1,099, and 1,102 of the 2,000 held-out requests c
 | B′ − B (whole answer to pooled fields) | 132 | 87 | +45 | +2.25 | +0.80 to +3.65 |
 | C − B′ (pooled to separate fields) | 101 | 98 | +3 | +0.15 | −1.30 to +1.55 |
 
-Of the 48 additional correct answers for C over B at this seed, pooled-field selection already gained 45 over B. Separating the fields changed 101 answers from wrong to correct and 98 from correct to wrong, a net gain of only 3. Restricting the score to field tokens may therefore account for most of the observed improvement in this run. All three seeds contributed to C versus B, but only seed 42 included B′. The ablation leaves the additional value of separating the trajectories uncertain and does not establish equivalence between B′ and C.
+The original experiment included B′ only at seed 42. At this seed the pooled-field arm gained 45 correct calls over B, while separating the fields gained another three. The individual gains varied when the two missing B′ models were trained in the follow-up.
+
+### Three-seed field and length controls
+
+After the primary test was opened, we registered a follow-up and completed five additional fits: B′ at seeds 43 and 44 and length-matched random sampling (E2) at all three seeds. E2 sampled uniformly without replacement within value-token length bins, matching the number of training requests B selected in each bin at the same seed. All new targets used the original training-token budget and the same 2,000 test requests. B′ answered **1,099, 1,115 and 1,072** correctly at seeds 42, 43 and 44 (54.77% mean accuracy). E2 answered **1,081, 1,114 and 1,071** correctly (54.43%). [Follow-up registration](../results/followup/phase1-registration.json)
+
+| Accuracy difference (pp) | Seed 42 | Seed 43 | Seed 44 | Mean | 95% request-group interval, fixed trained seeds | 95% seed t interval, fixed requests |
+|---|---:|---:|---:|---:|---:|---:|
+| B′ − B | +2.25 | +1.20 | −0.25 | +1.07 | [+0.27, +1.88] | [−2.05, +4.19] |
+| C − B′ | +0.15 | −0.15 | +1.40 | +0.47 | [−0.40, +1.32] | [−1.58, +2.51] |
+| E2 − B | +1.35 | +1.15 | −0.30 | +0.73 | [−0.15, +1.62] | [−1.50, +2.97] |
+| E2 − A | −1.85 | −0.75 | −1.15 | −1.25 | [−2.15, −0.40] | [−2.63, +0.13] |
+
+Averaged over these trained runs, restricting scores to the field tokens gained 1.07 pp over B. The sign reversed at seed 44, where separating the fields contributed the largest gain. The extra benefit of separate trajectories averaged 0.47 pp, with both intervals spanning zero. The seed t intervals have two degrees of freedom and describe sensitivity to the three observed seed pairs. The request-group intervals are pointwise across these post hoc comparisons.
+
+E2 fell below unrestricted random selection (A) at every seed. Adopting B's length-bin quotas therefore had an observed cost for this random-within-bin sampling policy. E2 still led B by 0.73 pp on average. The registered equivalence rule required an unrounded paired 90% request-group interval strictly inside **(−1, +1) pp**. E2−B gave **[−0.02, +1.50]** and E2−A gave **[−1.98, −0.55]** after rounding. Neither met that rule. The results leave open how much of B's deficit to A is attributable to the quotas. E2 matched binned lengths while changing individual requests, difficulty and tool mix; its mean value length was 18.51 tokens versus 19.58 for B. [Selection and matching](../scripts/select_followup.py) · [Paired intervals and equivalence rule](../scripts/summarize_followup.py)
 
 ## What happens when the target can train on the whole pool?
 
