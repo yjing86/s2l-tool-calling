@@ -1,0 +1,233 @@
+{
+  "evaluation": "Turnstile development single-call exact match, fixed 2-by-2 crossed-seed diagnostic",
+  "split": "dev",
+  "requests": 400,
+  "request_groups": 400,
+  "matched_target_token_budget": 3005228,
+  "selection_seeds": [
+    42,
+    43
+  ],
+  "target_training_seeds": [
+    42,
+    43
+  ],
+  "method_labels": {
+    "B": "Whole-answer trajectory selection.",
+    "C": "Separate function-name and argument-value trajectory selection."
+  },
+  "cells": {
+    "selection42-target42": {
+      "arms": {
+        "B": {
+          "correct": 208,
+          "accuracy_pct": 52.0,
+          "step": 125,
+          "input_tokens": 3022226,
+          "answer_tokens": 173227,
+          "token_goal": 3005228
+        },
+        "C": {
+          "correct": 225,
+          "accuracy_pct": 56.25,
+          "step": 126,
+          "input_tokens": 3014342,
+          "answer_tokens": 169378,
+          "token_goal": 3005228
+        }
+      },
+      "C_minus_B": {
+        "requests": 400,
+        "groups": 400,
+        "only_left_correct": 32,
+        "only_right_correct": 15,
+        "both_correct": 193,
+        "both_wrong": 160,
+        "difference_pp": 4.25,
+        "paired_cluster_ci95_pp": [
+          1.0,
+          7.256249999999966
+        ]
+      }
+    },
+    "selection42-target43": {
+      "arms": {
+        "B": {
+          "correct": 222,
+          "accuracy_pct": 55.5,
+          "step": 125,
+          "input_tokens": 3021704,
+          "answer_tokens": 173128,
+          "token_goal": 3005228
+        },
+        "C": {
+          "correct": 209,
+          "accuracy_pct": 52.25,
+          "step": 126,
+          "input_tokens": 3014342,
+          "answer_tokens": 169378,
+          "token_goal": 3005228
+        }
+      },
+      "C_minus_B": {
+        "requests": 400,
+        "groups": 400,
+        "only_left_correct": 24,
+        "only_right_correct": 37,
+        "both_correct": 185,
+        "both_wrong": 154,
+        "difference_pp": -3.25,
+        "paired_cluster_ci95_pp": [
+          -7.0,
+          0.5
+        ]
+      }
+    },
+    "selection43-target42": {
+      "arms": {
+        "B": {
+          "correct": 222,
+          "accuracy_pct": 55.5,
+          "step": 125,
+          "input_tokens": 3019757,
+          "answer_tokens": 174516,
+          "token_goal": 3005228
+        },
+        "C": {
+          "correct": 222,
+          "accuracy_pct": 55.5,
+          "step": 126,
+          "input_tokens": 3012222,
+          "answer_tokens": 169310,
+          "token_goal": 3005228
+        }
+      },
+      "C_minus_B": {
+        "requests": 400,
+        "groups": 400,
+        "only_left_correct": 26,
+        "only_right_correct": 26,
+        "both_correct": 196,
+        "both_wrong": 152,
+        "difference_pp": 0.0,
+        "paired_cluster_ci95_pp": [
+          -3.5,
+          3.5
+        ]
+      }
+    },
+    "selection43-target43": {
+      "arms": {
+        "B": {
+          "correct": 221,
+          "accuracy_pct": 55.25,
+          "step": 125,
+          "input_tokens": 3018756,
+          "answer_tokens": 174152,
+          "token_goal": 3005228
+        },
+        "C": {
+          "correct": 207,
+          "accuracy_pct": 51.75,
+          "step": 126,
+          "input_tokens": 3012222,
+          "answer_tokens": 169310,
+          "token_goal": 3005228
+        }
+      },
+      "C_minus_B": {
+        "requests": 400,
+        "groups": 400,
+        "only_left_correct": 19,
+        "only_right_correct": 33,
+        "both_correct": 188,
+        "both_wrong": 160,
+        "difference_pp": -3.5,
+        "paired_cluster_ci95_pp": [
+          -7.0,
+          0.0
+        ]
+      }
+    }
+  },
+  "contrasts": {
+    "grid_mean": {
+      "description": "Mean C minus B across four fixed selection/training seed combinations.",
+      "estimate_pp": -0.625,
+      "group_paired_ci95_pp": [
+        -2.5625,
+        1.25
+      ]
+    },
+    "selection_at_target42": {
+      "description": "Change in C minus B when selection seed moves from 42 to 43, holding training seed at 42.",
+      "estimate_pp": -4.25,
+      "group_paired_ci95_pp": [
+        -9.0,
+        0.5
+      ]
+    },
+    "selection_at_target43": {
+      "description": "Change in C minus B when selection seed moves from 42 to 43, holding training seed at 43.",
+      "estimate_pp": -0.25,
+      "group_paired_ci95_pp": [
+        -5.75625,
+        5.0
+      ]
+    },
+    "target_at_selection42": {
+      "description": "Change in C minus B when training seed moves from 42 to 43, holding selection seed at 42.",
+      "estimate_pp": -7.5,
+      "group_paired_ci95_pp": [
+        -12.0,
+        -3.25
+      ]
+    },
+    "target_at_selection43": {
+      "description": "Change in C minus B when training seed moves from 42 to 43, holding selection seed at 43.",
+      "estimate_pp": -3.5,
+      "group_paired_ci95_pp": [
+        -8.25,
+        1.25
+      ]
+    },
+    "selection_marginal": {
+      "description": "Change in C minus B when selection seed moves from 42 to 43, averaged over two training seeds.",
+      "estimate_pp": -2.25,
+      "group_paired_ci95_pp": [
+        -5.878125,
+        1.375
+      ]
+    },
+    "target_marginal": {
+      "description": "Change in C minus B when training seed moves from 42 to 43, averaged over two selection seeds.",
+      "estimate_pp": -5.5,
+      "group_paired_ci95_pp": [
+        -8.5,
+        -2.625
+      ]
+    },
+    "interaction": {
+      "description": "Change from switching the selection seed at training seed 43 minus the same change at training seed 42.",
+      "estimate_pp": 4.0,
+      "group_paired_ci95_pp": [
+        -3.0,
+        11.25
+      ]
+    }
+  },
+  "bootstrap": {
+    "seed": 31415,
+    "draws": 2000,
+    "unit": "near-duplicate request group",
+    "intervals": "pointwise paired percentile 95%; common group draws for all cells"
+  },
+  "scope": "Development-only. Pointwise intervals are conditional on these trained seeds. The four cells cannot quantify population variance shares or establish a held-out effect.",
+  "provenance_sha256": {
+    "frozen_development_split": "eec557cf5ba3ebd23404472e4163f32d85314e9911e4100b17a5c61c410f1728",
+    "primary_lock": "4dbd8b66c9ba42e65ce1a2cac02f63a676c8efc30d9a7d578ed59f9855dbb698",
+    "crossed_lock": "2bcec38dc6ca23c4bd65c016e746ee9958668a54ba9f68c35e6b3109e26a1b64",
+    "protocol_freeze": "ccdf55119c36435baceafc7f4501fbc5064c41454204f7ec1af1e000a2e99b15",
+    "official_summary": "4d49a2bf014b13b4a41246bc05b6d98f5fa704764c00ef1859a95e16ffc8116c"
+  }
+}

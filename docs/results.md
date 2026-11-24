@@ -69,6 +69,21 @@ The matched-budget run clearly exceeded B on this test. Its intervals against A 
 
 On one A40, reaching the matched full-pool checkpoint used **0.269 h of target training** and **0.438 h including scheduled development evaluation**. Comparable standalone costs for A, B and C were 0.447, 1.120 and 1.122 h respectively, including 0.676 h for proxy training and scoring in each trajectory strategy. The full two-pass run took 61.59 minutes of target training and 38.27 minutes of development evaluation (1.664 h total). The table compares matched target tokens at step 125 and a larger training budget at step 500. These costs exclude final-test inference and idle time. [Machine-readable counts, paired contrasts and costs](../results/full-pool-reference.json) · [Full-pool summary implementation](../scripts/summarize_full_reference.py)
 
+## How sensitive was the development result to the two random seeds?
+
+The first two primary rounds changed the subset and target-training seeds together. Their development rankings reversed. We reused their saved B/C subsets and trained four additional targets, swapping the target-training seeds. Every cell below uses the same **400 development requests** and the same target training-token budget. The cells with matching seeds reuse their original checkpoints.
+
+| Selection seed | Target-training seed | B correct | C correct | Only C / only B correct | C−B, pp [paired 95% interval] |
+|---:|---:|---:|---:|---:|---:|
+| 42 | 42 | 208 | 225 | 32 / 15 | +4.25 [+1.00, +7.26] |
+| 42 | 43 | 222 | 209 | 24 / 37 | −3.25 [−7.00, +0.50] |
+| 43 | 42 | 222 | 222 | 26 / 26 | 0.00 [−3.50, +3.50] |
+| 43 | 43 | 221 | 207 | 19 / 33 | −3.50 [−7.00, 0.00] |
+
+With the seed-42 subsets fixed, changing the training seed moved C−B from +4.25 to −3.25, a **−7.50 pp change [−12.00, −3.25]**. With the seed-43 subsets fixed, the corresponding change was **−3.50 pp [−8.25, +1.25]**. Averaged over the two settings of the other factor, changing the training seed from 42 to 43 moved C−B by −5.50 pp [−8.50, −2.625], and changing the selection seed moved it by −2.25 pp [−5.88, +1.38]. The interaction was +4.00 pp [−3.00, +11.25].
+
+The rank reversal can thus occur with the training examples held fixed. These are exploratory comparisons on one development split, with two values for each seed. The 2,000 paired bootstrap draws resampled the same request groups together across all eight models. The intervals apply separately to each contrast. The design cannot estimate what fraction of training variance each source explains or establish a held-out generalization effect. [Machine-readable cell counts and all eight contrasts](../results/crossed-seeds.json) · [Paired analysis](../scripts/summarize_crossed_seeds.py)
+
 ## External tool-calling evaluation
 
 We fixed two subsets of BFCL v4 Non-Live in advance. Each `simple_python` request provides one candidate tool. Each `multiple` request provides several candidates and requires a single call to one of them. Each subset contained 100 requests. We scored them using a pinned version of the official abstract syntax tree (AST) checker. The prespecified checks found zero matches to the training pool on either request text or named tool signatures. Semantic overlap and the base model's pretraining exposure remain uncertain.
