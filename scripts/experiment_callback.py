@@ -19,6 +19,23 @@ class ExperimentCallback(TrainerCallback):
         self.started = time.monotonic()
         self.input_count = self.answer_count = self.seen = 0
         self.token_goal = None
+        self.resume = self.run.get("resume")
+        self.hit_deadline = False
+        optim_evidence = {}
+        if self.resume:
+            deadline = self.resume.get("deadline_unix")
+            if deadline is not None and time.time() >= deadline:
+                raise TimeoutError("Continuation deadline elapsed during initialization; parent checkpoint is intact")
+            if state.global_step != self.resume["previous_step"]:
+                raise RuntimeError("Global step did not restore from parent checkpoint")
+            # AdamW and constant-with-warmup both retain an explicit update count.
+            optimizer_state = kwargs["optimizer"].state_dict()["state"]
+            adam_steps = [int(slot["step"]) for slot in optimizer_state.values() if "step" in slot]
+            scheduler_step = int(kwargs["lr_scheduler"].state_dict()["last_epoch"])
+            if not adam_steps or min(adam_steps) != state.global_step or scheduler_step != state.global_step:
+                raise RuntimeError("AdamW or learning-rate scheduler did not restore at the expected step")
+            optim_evidence = {"restored_adam_steps": [min(adam_steps), max(adam_steps)],
+                              "restored_scheduler_step": scheduler_step}
         self.save_steps = set(self.run["save_steps"])
         if not torch.cuda.is_available() or args.world_size != 1:
             raise RuntimeError("This protocol requires a single CUDA worker")
@@ -43,7 +60,7 @@ class ExperimentCallback(TrainerCallback):
         torch.cuda.reset_peak_memory_stats()
         info = {"gpu": torch.cuda.get_device_name(), "cuda": torch.version.cuda,
                 "trainable_parameter_count": sum(v for _, v in params), "trainable_parameters": params,
-                "token_goal": self.token_goal, "starting_model_step": state.global_step}
+                "token_goal": self.token_goal, "starting_model_step": state.global_step, **optim_evidence}
         (self.out / "runtime.json").write_text(json.dumps(info, indent=2) + "\n")
         original = self.trainer.training_step
 
@@ -74,6 +91,10 @@ class ExperimentCallback(TrainerCallback):
         epoch_complete = step == self.run["planned_steps_one_epoch"]
         target = self.run["stage"] == "target"
         reached = self.input_count >= self.token_goal if target else epoch_complete
+        if self.resume:
+            deadline = self.resume.get("deadline_unix")
+            self.hit_deadline = deadline is not None and time.time() >= deadline
+            reached = self.hit_deadline or step == self.resume["end_step"]
         if step in self.save_steps or reached or (target and step % 50 == 0):
             control.should_save = True
         if reached:
@@ -87,7 +108,9 @@ class ExperimentCallback(TrainerCallback):
     def on_train_end(self, args, state, control, **kwargs):
         if self.token_goal is not None and self.input_count < self.token_goal:
             raise RuntimeError("Epoch guard hit before common token goal")
-        if self.run["stage"] != "target" and self.seen != len(self.run["ids"]):
+        if self.resume and not self.hit_deadline and state.global_step != self.resume["end_step"]:
+            raise RuntimeError("Continuation ended at an unexpected optimizer step")
+        if self.run["stage"] in ("smoke", "proxy") and self.seen != len(self.run["ids"]):
             raise RuntimeError("Single-epoch training did not see exactly the requested row count")
         expected = self.save_steps | {state.global_step}
         snapshots = {}
@@ -96,7 +119,10 @@ class ExperimentCallback(TrainerCallback):
             snapshots[str(step)] = hashlib.sha256(adapter.read_bytes()).hexdigest()
         (self.out / "completed.json").write_text(json.dumps({
             "final_step": state.global_step, "input_tokens": self.input_count, "answer_tokens": self.answer_count,
-            "seen_examples": self.seen, "adapter_sha256": snapshots}, indent=2) + "\n")
+            "seen_examples": self.seen, "adapter_sha256": snapshots, "deadline_reached": self.hit_deadline,
+            "cumulative_input_tokens": self.input_count + (self.resume or {}).get("parent_cumulative_input_tokens", 0),
+            "cumulative_answer_tokens": self.answer_count + (self.resume or {}).get("parent_cumulative_answer_tokens", 0),
+            "cumulative_examples": self.seen + (self.resume or {}).get("parent_cumulative_examples", 0)}, indent=2) + "\n")
 
 
 callbacks_map["tool_experiment"] = ExperimentCallback

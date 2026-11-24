@@ -26,16 +26,26 @@ def write_json(path, value):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--stage", choices=["smoke", "proxy", "target"], required=True)
+    parser.add_argument("--stage", choices=["smoke", "proxy", "target", "continue"], required=True)
     for arg in ["model", "data", "output"]:
         parser.add_argument("--" + arg, type=Path, required=True)
     parser.add_argument("--pool", type=Path, help="Complete candidate pool, required for target token budget.")
+    parser.add_argument("--resume-from", type=Path, help="Full final checkpoint of the preceding target or continuation run.")
+    parser.add_argument("--deadline-unix", type=float, help="Optional absolute continuation deadline; checks at optimizer boundaries.")
+    parser.add_argument("--additional-steps", type=int, default=50, help="One continuation chunk, 1 through 50 optimizer updates.")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--micro-batch", type=int, default=1)
     parser.add_argument("--max-length", type=int, default=8192)
     args = parser.parse_args()
     if args.stage == "target" and not args.pool:
         parser.error("--stage target requires --pool")
+    if (args.stage == "continue") != bool(args.resume_from):
+        parser.error("--resume-from applies to, and is required for, continuation")
+    if args.deadline_unix is not None:
+        if args.stage != "continue" or not math.isfinite(args.deadline_unix) or time.time() >= args.deadline_unix:
+            parser.error("--deadline-unix requires continuation and a finite future deadline")
+    if not 1 <= args.additional_steps <= 50:
+        parser.error("--additional-steps must be in [1, 50]")
     batch = 1 if args.stage == "smoke" else 16
     if args.micro_batch < 1 or batch % args.micro_batch:
         parser.error("micro batch must divide the effective batch")
@@ -49,6 +59,37 @@ def main():
     ids = [str(r["id"]) for r in rows]
     if not rows or len(ids) != len(set(ids)):
         parser.error("Need a non-empty dataset with unique IDs")
+    resume = None
+    if args.stage == "continue":
+        # A full Trainer checkpoint is required. A PEFT adapter-only reload would
+        # silently reset Adam moments, warm-up and the data-order RNG.
+        parent = args.resume_from.resolve(strict=True)
+        prev = json.loads((parent.parent / "run.json").read_text())
+        finished = json.loads((parent.parent / "completed.json").read_text())
+        previous_step = int(finished["final_step"])
+        if parent.name != f"checkpoint-{previous_step}" or prev["stage"] not in ("target", "continue"):
+            parser.error("Resume only from the final checkpoint of a completed 2B target or continuation")
+        if prev["seed"] != args.seed or prev["batch"] != batch or str(model) != prev["model"]:
+            parser.error("Resume model, seed and effective batch must match the parent run")
+        for flag, value in [("--max_length", args.max_length), ("--per_device_train_batch_size", args.micro_batch)]:
+            if int(prev["command"][prev["command"].index(flag) + 1]) != value:
+                parser.error(f"Continuation changed {flag}")
+        state = json.loads((parent / "trainer_state.json").read_text())
+        if state["global_step"] != previous_step:
+            parser.error("Trainer state and completion record disagree")
+        adapter_hash = sha256(parent / "adapter_model.safetensors")
+        if adapter_hash != finished["adapter_sha256"][str(previous_step)]:
+            parser.error("Parent adapter checksum mismatch")
+        for filename in ["optimizer.pt", "scheduler.pt", "rng_state.pth"]:
+            if not (parent / filename).is_file():
+                parser.error(f"Cannot resume without {filename}")
+        resume = {"checkpoint": str(parent), "adapter_sha256": adapter_hash,
+                  "previous_step": previous_step, "end_step": previous_step + args.additional_steps,
+                  "deadline_unix": args.deadline_unix,
+                  "parent_data_sha256": prev["data_sha256"],
+                  "parent_cumulative_input_tokens": finished.get("cumulative_input_tokens", finished["input_tokens"]),
+                  "parent_cumulative_answer_tokens": finished.get("cumulative_answer_tokens", finished["answer_tokens"]),
+                  "parent_cumulative_examples": finished.get("cumulative_examples", finished["seen_examples"])}
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
     dataset = output / "train.swift.jsonl"
@@ -73,7 +114,12 @@ def main():
            "--seed", str(args.seed), "--data_seed", str(args.seed), "--report_to", "none",
            "--check_model", "false", "--add_version", "false", "--output_dir", str(output),
            "--external_plugins", str(plugin), "--callbacks", "tool_experiment"]
-    if args.stage == "target":
+    if resume:
+        # Keep the global-step offset into this stage's seeded sampler even
+        # for A's switch to the full pool. Later chunks follow the same stream.
+        cmd += ["--resume_from_checkpoint", resume["checkpoint"], "--resume_only_model", "false",
+                "--load_args", "false", "--ignore_data_skip", "false", "--max_steps", str(resume["end_step"])]
+    elif args.stage == "target":
         # The callback stops at the actual non-padding token target. Fail if this guard is ever hit.
         cmd += ["--num_train_epochs", "10"]
     else:
@@ -87,6 +133,8 @@ def main():
                 "sources_sha256": {p.name: sha256(p) for p in [Path(__file__), plugin, plugin.with_name("verify_tool_call_loss.py")]},
                 "model": str(model), "model_config_sha256": sha256(model / "config.json"),
                 "start_unix": time.time()}
+    if resume:
+        metadata["resume"] = resume
     manifest = output / "run.json"
     write_json(manifest, metadata)
     print(shlex.join(cmd), flush=True)
