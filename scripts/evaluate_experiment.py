@@ -211,6 +211,40 @@ def prepare(args, rows, cfg):
     return path
 
 
+def compare_first_token(logits, candidate):
+    """Flag near ties explicitly; one BF16 step at the HF maximum, capped at 0.125."""
+    import torch
+
+    scores = logits.detach().float()
+    if scores.ndim != 1 or scores.numel() < 2 or not torch.isfinite(scores).all():
+        raise ValueError("Invalid HF vocabulary logits")
+    best = int(scores.argmax().item())
+    top_values, top_ids = scores.topk(min(5, scores.numel()))
+    top = scores[best].to(torch.bfloat16)
+    lower = torch.nextafter(top, torch.full_like(top, -float("inf")))
+    step = (top.float() - lower.float()).item()
+    tol = min(step, 0.125)
+    result = {"hf_first_token": best, "vllm_first_token": candidate,
+              "hf_logit_margin": (top_values[0] - top_values[1]).item(),
+              "hf_top_ids": top_ids.tolist(), "hf_top_logits": top_values.tolist(),
+              "bf16_one_step": step, "tolerance": tol, "matched": candidate == best}
+    if not isinstance(candidate, int) or not 0 <= candidate < scores.numel():
+        return {**result, "status": "missing_or_invalid_token", "passed": False}
+    score = scores[candidate]
+    gap = (scores[best] - score).item()
+    if best == candidate:
+        status = "exact_token_match"
+    elif gap == 0:
+        status = "equal_logit_tie"
+    elif gap <= tol:
+        status = "marginal_bf16_difference"
+    else:
+        status = "material_difference"
+    return {**result, "hf_candidate_logit": score.item(), "hf_candidate_gap": gap,
+            "hf_candidate_rank": 1 + (scores > score).sum().item(),
+            "status": status, "passed": status != "material_difference"}
+
+
 def audit_first_tokens(args, cache, cfg):
     """Compare the shortest and longest prompts against a separate HF/PEFT forward."""
     import torch
@@ -239,15 +273,16 @@ def audit_first_tokens(args, cache, cfg):
         for key, record in selected.items():
             ids = torch.tensor([record["prompt_token_ids"]], device="cuda")
             logits = model(input_ids=ids, use_cache=False, logits_to_keep=1).logits[0, -1]
-            values, indices = torch.topk(logits.float(), k=2)
             gpu_ids = pred_by_id[key]["output_token_ids"]
-            results.append({"id": key, "hf_first_token": indices[0].item(),
-                            "vllm_first_token": gpu_ids[0] if gpu_ids else None,
-                            "hf_logit_margin": (values[0] - values[1]).item(),
-                            "matched": bool(gpu_ids and indices[0].item() == gpu_ids[0])})
-    write_json(args.out / "first-token-audit.json", {"checks": results, "versions": versions()})
-    if not all(row["matched"] for row in results):
-        raise ValueError("Greedy first tokens differ; see first-token-audit.json")
+            results.append({"id": key, **compare_first_token(logits, gpu_ids[0] if gpu_ids else None)})
+    write_json(args.out / "first-token-audit.json", {
+        "checks": results, "versions": versions(),
+        "rule": "Strict ID match or actual candidate gap <= min(one BF16 step, 0.125). "
+                "Keep non-identical tokens labelled separately; hard fail on material gap or missing token.",
+    })
+    if not all(row["passed"] for row in results):
+        raise ValueError("Material first-token discrepancy; see first-token-audit.json")
+
 
 
 def generate(args, rows, cache, cfg):

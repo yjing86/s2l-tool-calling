@@ -682,6 +682,23 @@ class Protocol:
             if not label.endswith("-C"):
                 continue
             pre = label[:-1]
+            external = self.root / "evaluation/bfcl"
+            comparison = self.root / "bfcl-comparisons" / label
+            self.task(
+                "compare-bfcl-" + label,
+                a.bfcl_python or a.training_python,
+                "bfcl_subset",
+                [
+                    "compare",
+                    "--baseline",
+                    external / main[pre + "B"] / "bfcl-scores.jsonl",
+                    "--candidate",
+                    external / main[label] / "bfcl-scores.jsonl",
+                    "--out",
+                    comparison,
+                ],
+                [comparison / "bfcl-comparison.json"],
+            )
             folder = self.root / "evaluation/test"
             out = self.root / "field-diagnostics" / label
             self.task(
