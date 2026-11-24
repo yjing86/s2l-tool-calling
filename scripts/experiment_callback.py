@@ -56,11 +56,15 @@ class ExperimentCallback(TrainerCallback):
                 raise RuntimeError("Cannot count a padded multi-example batch without a mask")
             if mask is not None and mask.shape != ids.shape:
                 raise RuntimeError("Unexpected attention mask shape in non-packed trainer")
+            count = ids.numel() if mask is None else int(mask.sum().item())
+            supervised = int((inputs["labels"] != -100).sum().item())
+            if not supervised:
+                raise ValueError("Batch has no supervised answer tokens")
             loss = original(model, inputs, *a, **kw)
             if not torch.isfinite(loss).all().item():
                 raise FloatingPointError("Non-finite training loss")
-            self.input_count += ids.numel() if mask is None else int(mask.sum().item())
-            self.answer_count += int((inputs["labels"] != -100).sum().item())
+            self.input_count += count
+            self.answer_count += supervised
             self.seen += ids.shape[0]
             return loss
         self.trainer.training_step = counted_step
