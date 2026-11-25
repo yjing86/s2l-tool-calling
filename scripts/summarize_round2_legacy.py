@@ -154,14 +154,21 @@ def run(args):
     sources = {s: indexed(paths[s], n, splits_sha[s]) for s, n in SPLITS.items()}
     outcomes = collect(artifacts, sources, splits_sha, registration)
     stages = ("train", "dev", "test")
+    run_root = artifacts / "followup/round2"
     stage_seconds = {
-        tag: {stage: receipt(artifacts / "followup/round2", f"{stage}-{tag}")["elapsed_s"] for stage in stages}
+        tag: {stage: receipt(run_root, f"{stage}-{tag}")["elapsed_s"] for stage in stages}
         for tag in registration["cell_order"]
     }
+    training_exposure = {}
+    for tag in registration["cell_order"]:
+        endpoint = read(run_root / "cells" / f"{tag}.json")["endpoint"]
+        training_exposure[tag] = {k: endpoint[k] for k in ("step", "target_tokens", "actual_input_tokens", "actual_answer_tokens")}
     result = {"scope": "Descriptive results on previously used development and test requests.",
               "metric": "Complete-call accuracy. Percentage-point differences pair identical requests and seeds.",
               "seeds": list(SEEDS), "registration_sha256": digest(REGISTRATION),
               "verified_archive_proof_sha256": args.proof_sha256, "dataset_sha256": splits_sha,
+              "training_exposure": {"scope": "Cumulative counts at the first optimizer step reaching the nonpadding input-token budget. Answer tokens contribute to the SFT loss.",
+                                    "by_new_fit": training_exposure},
               "runtime": {"scope": "Elapsed seconds for successful stages of the 20 new fits on one A40. Each duration includes subprocess startup.",
                           "seconds_by_fit": stage_seconds,
                           "total_seconds_by_stage": {s: sum(row[s] for row in stage_seconds.values()) for s in stages}},
