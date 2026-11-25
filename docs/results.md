@@ -18,6 +18,23 @@ On the original test, C exceeded B by 0.90 percentage points on average. The fir
 
 Matching B’s argument-length distribution alone produced an E2 minus A difference of −0.05 points on the original test. Long minus short sampling yielded −0.83 points on that test and +0.60 on development. These results leave the explanation for B’s deficit unresolved. The independent December 5 evaluation will use the frozen model panel. [Paired results by seed](../results/followup/round2-legacy.json) · [Frozen panel commitment](../results/followup/round2-holdout-freeze.json)
 
+## External evaluation on BFCL Live
+
+All 36 configurations answered the same 556 requests. The official BFCL AST checker scored each output. Accuracy is averaged across five seeds for each sampling method. The untuned base was evaluated once.
+
+| Method | Single candidate (256 requests) | Multiple candidates (300 requests) |
+|---|---:|---:|
+| base | 71.09% | 69.67% |
+| A | 73.91% | 72.00% |
+| B | 71.33% | 71.67% |
+| C | 72.89% | 72.00% |
+| E2 | 73.83% | 72.13% |
+| E2b | 73.67% | 71.93% |
+| L-short | 74.14% | 71.87% |
+| L-long | 72.97% | 72.67% |
+
+C exceeded B by 1.56 percentage points on single-candidate requests and 0.33 points on multiple-candidate requests. Compared with random selection, C was 1.02 points lower on single-candidate requests and tied at 72.00% on multiple-candidate requests. These are descriptive comparisons on these requests and seeds. [Official score counts and five-seed contrasts](../results/followup/round2-bfcl-live.json) · [Panel composition](../results/followup/round2-bfcl-live-panel.json)
+
 ## Initial three-seed results
 
 **On 2,000 held-out Turnstile requests requiring a single tool call, field-based selection outperformed whole-answer selection by an average of 1.53 percentage points. The difference was positive for all three seeds. Uniform random sampling had the highest mean accuracy.** With the same target-model training-token budget, complete-call accuracy averaged 55.68% for random sampling (A), 53.70% for whole-answer trajectories (B), and 55.23% for separate field trajectories (C). The paired 95% interval for C minus B was **+0.60 to +2.48** percentage points. C minus A averaged **−0.45** points, with an interval of **−1.42 to +0.53**. On both external BFCL single-turn subsets, C scored below B on average.

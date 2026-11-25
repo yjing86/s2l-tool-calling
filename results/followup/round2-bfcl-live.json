@@ -1,0 +1,1161 @@
+{
+  "descriptive_differences_pp": {
+    "live_multiple": {
+      "B-A": -0.33333333333332993,
+      "C-A": 0.0,
+      "C-B": 0.33333333333332993,
+      "E2-A": 0.13333333333334085,
+      "E2b-A": -0.06666666666665932,
+      "L-short-L-long": -0.8000000000000007
+    },
+    "live_simple": {
+      "B-A": -2.578124999999998,
+      "C-A": -1.0156249999999978,
+      "C-B": 1.5625,
+      "E2-A": -0.07812499999999556,
+      "E2b-A": -0.23437499999999778,
+      "L-short-L-long": 1.171875
+    }
+  },
+  "endpoint_category_counts": {
+    "base": {
+      "live_multiple": {
+        "accuracy": 0.6966666666666667,
+        "correct": 209,
+        "errors": {
+          "multiple_function_checker:wrong_count": 8,
+          "simple_function_checker:missing_optional": 8,
+          "simple_function_checker:unexpected_param": 2,
+          "simple_function_checker:wrong_func_name": 16,
+          "type_error:simple": 1,
+          "value_error:dict_key": 1,
+          "value_error:others": 13,
+          "value_error:string": 42
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.7109375,
+        "correct": 182,
+        "errors": {
+          "ast_decoder:decoder_failed": 1,
+          "simple_function_checker:missing_optional": 5,
+          "simple_function_checker:missing_required": 2,
+          "simple_function_checker:wrong_count": 15,
+          "type_error:nested": 1,
+          "value_error:dict_key": 3,
+          "value_error:dict_value": 2,
+          "value_error:list/tuple": 8,
+          "value_error:others": 5,
+          "value_error:string": 32
+        },
+        "n": 256
+      }
+    },
+    "s42-A": {
+      "live_multiple": {
+        "accuracy": 0.7266666666666667,
+        "correct": 218,
+        "errors": {
+          "simple_function_checker:missing_optional": 6,
+          "simple_function_checker:unexpected_param": 4,
+          "simple_function_checker:wrong_func_name": 11,
+          "type_error:simple": 1,
+          "value_error:others": 10,
+          "value_error:string": 50
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.73046875,
+        "correct": 187,
+        "errors": {
+          "simple_function_checker:missing_optional": 3,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 5,
+          "value_error:dict_value": 2,
+          "value_error:list/tuple": 7,
+          "value_error:others": 1,
+          "value_error:string": 49
+        },
+        "n": 256
+      }
+    },
+    "s42-B": {
+      "live_multiple": {
+        "accuracy": 0.71,
+        "correct": 213,
+        "errors": {
+          "multiple_function_checker:wrong_count": 1,
+          "simple_function_checker:missing_optional": 2,
+          "simple_function_checker:unexpected_param": 3,
+          "simple_function_checker:wrong_func_name": 11,
+          "type_error:simple": 1,
+          "value_error:dict_key": 1,
+          "value_error:list/tuple": 2,
+          "value_error:others": 17,
+          "value_error:string": 49
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.7265625,
+        "correct": 186,
+        "errors": {
+          "simple_function_checker:missing_optional": 2,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 6,
+          "value_error:dict_value": 2,
+          "value_error:list/tuple": 7,
+          "value_error:others": 4,
+          "value_error:string": 47
+        },
+        "n": 256
+      }
+    },
+    "s42-C": {
+      "live_multiple": {
+        "accuracy": 0.7266666666666667,
+        "correct": 218,
+        "errors": {
+          "multiple_function_checker:wrong_count": 1,
+          "simple_function_checker:missing_optional": 7,
+          "simple_function_checker:unexpected_param": 4,
+          "simple_function_checker:wrong_func_name": 10,
+          "type_error:simple": 1,
+          "value_error:list/tuple": 1,
+          "value_error:others": 14,
+          "value_error:string": 44
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.73046875,
+        "correct": 187,
+        "errors": {
+          "ast_decoder:decoder_failed": 1,
+          "simple_function_checker:missing_optional": 3,
+          "simple_function_checker:missing_required": 2,
+          "simple_function_checker:unexpected_param": 1,
+          "type_error:nested": 1,
+          "value_error:dict_key": 6,
+          "value_error:dict_value": 1,
+          "value_error:list/tuple": 8,
+          "value_error:others": 2,
+          "value_error:string": 44
+        },
+        "n": 256
+      }
+    },
+    "s42-E2": {
+      "live_multiple": {
+        "accuracy": 0.7,
+        "correct": 210,
+        "errors": {
+          "simple_function_checker:missing_optional": 4,
+          "simple_function_checker:unexpected_param": 2,
+          "simple_function_checker:wrong_func_name": 11,
+          "type_error:simple": 2,
+          "value_error:dict_key": 1,
+          "value_error:others": 20,
+          "value_error:string": 50
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.7421875,
+        "correct": 190,
+        "errors": {
+          "simple_function_checker:missing_optional": 4,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 7,
+          "value_error:dict_value": 1,
+          "value_error:list/tuple": 6,
+          "value_error:others": 3,
+          "value_error:string": 43
+        },
+        "n": 256
+      }
+    },
+    "s42-E2b": {
+      "live_multiple": {
+        "accuracy": 0.7066666666666667,
+        "correct": 212,
+        "errors": {
+          "multiple_function_checker:wrong_count": 1,
+          "simple_function_checker:missing_optional": 3,
+          "simple_function_checker:unexpected_param": 3,
+          "simple_function_checker:wrong_func_name": 12,
+          "value_error:list/tuple": 1,
+          "value_error:others": 18,
+          "value_error:string": 50
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.75390625,
+        "correct": 193,
+        "errors": {
+          "simple_function_checker:missing_optional": 4,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 5,
+          "value_error:dict_value": 2,
+          "value_error:list/tuple": 6,
+          "value_error:others": 3,
+          "value_error:string": 41
+        },
+        "n": 256
+      }
+    },
+    "s42-L-long": {
+      "live_multiple": {
+        "accuracy": 0.7133333333333334,
+        "correct": 214,
+        "errors": {
+          "simple_function_checker:missing_optional": 4,
+          "simple_function_checker:unexpected_param": 2,
+          "simple_function_checker:wrong_func_name": 12,
+          "type_error:simple": 1,
+          "value_error:list/tuple": 1,
+          "value_error:others": 16,
+          "value_error:string": 50
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.73046875,
+        "correct": 187,
+        "errors": {
+          "simple_function_checker:missing_optional": 2,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 6,
+          "value_error:dict_value": 3,
+          "value_error:list/tuple": 6,
+          "value_error:others": 4,
+          "value_error:string": 46
+        },
+        "n": 256
+      }
+    },
+    "s42-L-short": {
+      "live_multiple": {
+        "accuracy": 0.7266666666666667,
+        "correct": 218,
+        "errors": {
+          "simple_function_checker:missing_optional": 6,
+          "simple_function_checker:unexpected_param": 2,
+          "simple_function_checker:wrong_func_name": 11,
+          "value_error:list/tuple": 1,
+          "value_error:others": 15,
+          "value_error:string": 47
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.72265625,
+        "correct": 185,
+        "errors": {
+          "simple_function_checker:missing_optional": 5,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 6,
+          "value_error:dict_value": 1,
+          "value_error:list/tuple": 7,
+          "value_error:others": 2,
+          "value_error:string": 48
+        },
+        "n": 256
+      }
+    },
+    "s43-A": {
+      "live_multiple": {
+        "accuracy": 0.7333333333333333,
+        "correct": 220,
+        "errors": {
+          "simple_function_checker:missing_optional": 7,
+          "simple_function_checker:unexpected_param": 2,
+          "simple_function_checker:wrong_func_name": 12,
+          "type_error:simple": 1,
+          "value_error:others": 12,
+          "value_error:string": 46
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.7578125,
+        "correct": 194,
+        "errors": {
+          "simple_function_checker:missing_optional": 3,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 6,
+          "value_error:dict_value": 1,
+          "value_error:list/tuple": 5,
+          "value_error:others": 2,
+          "value_error:string": 43
+        },
+        "n": 256
+      }
+    },
+    "s43-B": {
+      "live_multiple": {
+        "accuracy": 0.7433333333333333,
+        "correct": 223,
+        "errors": {
+          "simple_function_checker:missing_optional": 4,
+          "simple_function_checker:unexpected_param": 3,
+          "simple_function_checker:wrong_func_name": 13,
+          "type_error:simple": 1,
+          "value_error:others": 14,
+          "value_error:string": 42
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.71484375,
+        "correct": 183,
+        "errors": {
+          "simple_function_checker:missing_optional": 2,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 6,
+          "value_error:dict_value": 3,
+          "value_error:list/tuple": 7,
+          "value_error:others": 4,
+          "value_error:string": 49
+        },
+        "n": 256
+      }
+    },
+    "s43-C": {
+      "live_multiple": {
+        "accuracy": 0.7033333333333334,
+        "correct": 211,
+        "errors": {
+          "multiple_function_checker:wrong_count": 1,
+          "simple_function_checker:missing_optional": 4,
+          "simple_function_checker:unexpected_param": 3,
+          "simple_function_checker:wrong_func_name": 13,
+          "value_error:list/tuple": 1,
+          "value_error:others": 17,
+          "value_error:string": 50
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.7109375,
+        "correct": 182,
+        "errors": {
+          "simple_function_checker:missing_optional": 4,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 7,
+          "value_error:dict_value": 2,
+          "value_error:list/tuple": 6,
+          "value_error:others": 2,
+          "value_error:string": 51
+        },
+        "n": 256
+      }
+    },
+    "s43-E2": {
+      "live_multiple": {
+        "accuracy": 0.72,
+        "correct": 216,
+        "errors": {
+          "simple_function_checker:missing_optional": 5,
+          "simple_function_checker:unexpected_param": 4,
+          "simple_function_checker:wrong_func_name": 9,
+          "type_error:simple": 1,
+          "value_error:list/tuple": 1,
+          "value_error:others": 14,
+          "value_error:string": 50
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.75390625,
+        "correct": 193,
+        "errors": {
+          "simple_function_checker:missing_optional": 4,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 5,
+          "value_error:dict_value": 2,
+          "value_error:list/tuple": 6,
+          "value_error:others": 2,
+          "value_error:string": 42
+        },
+        "n": 256
+      }
+    },
+    "s43-E2b": {
+      "live_multiple": {
+        "accuracy": 0.7266666666666667,
+        "correct": 218,
+        "errors": {
+          "simple_function_checker:missing_optional": 5,
+          "simple_function_checker:unexpected_param": 4,
+          "simple_function_checker:wrong_func_name": 9,
+          "value_error:others": 19,
+          "value_error:string": 45
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.71484375,
+        "correct": 183,
+        "errors": {
+          "ast_decoder:decoder_failed": 1,
+          "simple_function_checker:missing_optional": 3,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 7,
+          "value_error:dict_value": 3,
+          "value_error:list/tuple": 8,
+          "value_error:others": 3,
+          "value_error:string": 46
+        },
+        "n": 256
+      }
+    },
+    "s43-L-long": {
+      "live_multiple": {
+        "accuracy": 0.7233333333333334,
+        "correct": 217,
+        "errors": {
+          "simple_function_checker:missing_optional": 5,
+          "simple_function_checker:unexpected_param": 3,
+          "simple_function_checker:wrong_func_name": 12,
+          "type_error:simple": 1,
+          "value_error:others": 14,
+          "value_error:string": 48
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.76171875,
+        "correct": 195,
+        "errors": {
+          "simple_function_checker:missing_optional": 3,
+          "simple_function_checker:missing_required": 1,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 3,
+          "value_error:dict_value": 3,
+          "value_error:list/tuple": 6,
+          "value_error:others": 4,
+          "value_error:string": 39
+        },
+        "n": 256
+      }
+    },
+    "s43-L-short": {
+      "live_multiple": {
+        "accuracy": 0.7333333333333333,
+        "correct": 220,
+        "errors": {
+          "simple_function_checker:missing_optional": 2,
+          "simple_function_checker:unexpected_param": 4,
+          "simple_function_checker:wrong_func_name": 11,
+          "type_error:simple": 1,
+          "value_error:list/tuple": 1,
+          "value_error:others": 13,
+          "value_error:string": 48
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.7265625,
+        "correct": 186,
+        "errors": {
+          "simple_function_checker:missing_optional": 3,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 4,
+          "value_error:dict_value": 3,
+          "value_error:list/tuple": 4,
+          "value_error:others": 2,
+          "value_error:string": 52
+        },
+        "n": 256
+      }
+    },
+    "s44-A": {
+      "live_multiple": {
+        "accuracy": 0.7133333333333334,
+        "correct": 214,
+        "errors": {
+          "multiple_function_checker:wrong_count": 1,
+          "simple_function_checker:missing_optional": 3,
+          "simple_function_checker:unexpected_param": 3,
+          "simple_function_checker:wrong_func_name": 11,
+          "value_error:dict_key": 1,
+          "value_error:others": 17,
+          "value_error:string": 50
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.73828125,
+        "correct": 189,
+        "errors": {
+          "simple_function_checker:missing_optional": 4,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 5,
+          "value_error:dict_value": 1,
+          "value_error:list/tuple": 6,
+          "value_error:others": 3,
+          "value_error:string": 46
+        },
+        "n": 256
+      }
+    },
+    "s44-B": {
+      "live_multiple": {
+        "accuracy": 0.6833333333333333,
+        "correct": 205,
+        "errors": {
+          "simple_function_checker:missing_optional": 1,
+          "simple_function_checker:unexpected_param": 2,
+          "simple_function_checker:wrong_func_name": 14,
+          "value_error:dict_key": 1,
+          "value_error:list/tuple": 1,
+          "value_error:others": 23,
+          "value_error:string": 53
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.67578125,
+        "correct": 173,
+        "errors": {
+          "simple_function_checker:missing_optional": 2,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 8,
+          "value_error:dict_value": 2,
+          "value_error:list/tuple": 7,
+          "value_error:others": 6,
+          "value_error:string": 56
+        },
+        "n": 256
+      }
+    },
+    "s44-C": {
+      "live_multiple": {
+        "accuracy": 0.71,
+        "correct": 213,
+        "errors": {
+          "simple_function_checker:missing_optional": 5,
+          "simple_function_checker:unexpected_param": 4,
+          "simple_function_checker:wrong_func_name": 12,
+          "value_error:others": 20,
+          "value_error:string": 46
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.7578125,
+        "correct": 194,
+        "errors": {
+          "simple_function_checker:missing_optional": 3,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 7,
+          "value_error:dict_value": 2,
+          "value_error:list/tuple": 6,
+          "value_error:others": 2,
+          "value_error:string": 40
+        },
+        "n": 256
+      }
+    },
+    "s44-E2": {
+      "live_multiple": {
+        "accuracy": 0.72,
+        "correct": 216,
+        "errors": {
+          "simple_function_checker:missing_optional": 3,
+          "simple_function_checker:unexpected_param": 4,
+          "simple_function_checker:wrong_func_name": 11,
+          "type_error:simple": 1,
+          "value_error:dict_key": 1,
+          "value_error:others": 16,
+          "value_error:string": 48
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.72265625,
+        "correct": 185,
+        "errors": {
+          "simple_function_checker:missing_optional": 2,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 7,
+          "value_error:dict_value": 2,
+          "value_error:list/tuple": 6,
+          "value_error:list_dict_count": 1,
+          "value_error:others": 5,
+          "value_error:string": 46
+        },
+        "n": 256
+      }
+    },
+    "s44-E2b": {
+      "live_multiple": {
+        "accuracy": 0.7266666666666667,
+        "correct": 218,
+        "errors": {
+          "simple_function_checker:missing_optional": 1,
+          "simple_function_checker:unexpected_param": 2,
+          "simple_function_checker:wrong_func_name": 12,
+          "value_error:list/tuple": 1,
+          "value_error:others": 15,
+          "value_error:string": 51
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.70703125,
+        "correct": 181,
+        "errors": {
+          "simple_function_checker:missing_optional": 4,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 5,
+          "value_error:dict_value": 4,
+          "value_error:list/tuple": 7,
+          "value_error:others": 2,
+          "value_error:string": 51
+        },
+        "n": 256
+      }
+    },
+    "s44-L-long": {
+      "live_multiple": {
+        "accuracy": 0.7366666666666667,
+        "correct": 221,
+        "errors": {
+          "multiple_function_checker:wrong_count": 5,
+          "simple_function_checker:missing_optional": 2,
+          "simple_function_checker:unexpected_param": 4,
+          "simple_function_checker:wrong_func_name": 9,
+          "value_error:others": 15,
+          "value_error:string": 44
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.72265625,
+        "correct": 185,
+        "errors": {
+          "simple_function_checker:missing_optional": 3,
+          "simple_function_checker:unexpected_param": 1,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 6,
+          "value_error:dict_value": 4,
+          "value_error:list/tuple": 7,
+          "value_error:others": 3,
+          "value_error:string": 45
+        },
+        "n": 256
+      }
+    },
+    "s44-L-short": {
+      "live_multiple": {
+        "accuracy": 0.72,
+        "correct": 216,
+        "errors": {
+          "simple_function_checker:missing_optional": 3,
+          "simple_function_checker:unexpected_param": 4,
+          "simple_function_checker:wrong_func_name": 12,
+          "type_error:simple": 1,
+          "value_error:others": 15,
+          "value_error:string": 49
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.7109375,
+        "correct": 182,
+        "errors": {
+          "ast_decoder:decoder_failed": 1,
+          "simple_function_checker:missing_optional": 2,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 5,
+          "value_error:dict_value": 3,
+          "value_error:list/tuple": 8,
+          "value_error:others": 5,
+          "value_error:string": 48
+        },
+        "n": 256
+      }
+    },
+    "s45-A": {
+      "live_multiple": {
+        "accuracy": 0.7066666666666667,
+        "correct": 212,
+        "errors": {
+          "simple_function_checker:missing_optional": 8,
+          "simple_function_checker:unexpected_param": 1,
+          "simple_function_checker:wrong_func_name": 8,
+          "value_error:others": 19,
+          "value_error:string": 52
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.74609375,
+        "correct": 191,
+        "errors": {
+          "simple_function_checker:missing_optional": 4,
+          "simple_function_checker:unexpected_param": 1,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 6,
+          "value_error:dict_value": 1,
+          "value_error:list/tuple": 6,
+          "value_error:others": 1,
+          "value_error:string": 44
+        },
+        "n": 256
+      }
+    },
+    "s45-B": {
+      "live_multiple": {
+        "accuracy": 0.6966666666666667,
+        "correct": 209,
+        "errors": {
+          "simple_function_checker:missing_optional": 1,
+          "simple_function_checker:unexpected_param": 4,
+          "simple_function_checker:wrong_func_name": 10,
+          "type_error:simple": 1,
+          "value_error:list/tuple": 1,
+          "value_error:others": 22,
+          "value_error:string": 52
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.734375,
+        "correct": 188,
+        "errors": {
+          "ast_decoder:decoder_failed": 1,
+          "simple_function_checker:missing_optional": 2,
+          "simple_function_checker:missing_required": 1,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 5,
+          "value_error:dict_value": 5,
+          "value_error:list/tuple": 4,
+          "value_error:others": 4,
+          "value_error:string": 44
+        },
+        "n": 256
+      }
+    },
+    "s45-C": {
+      "live_multiple": {
+        "accuracy": 0.7466666666666667,
+        "correct": 224,
+        "errors": {
+          "multiple_function_checker:wrong_count": 1,
+          "simple_function_checker:missing_optional": 6,
+          "simple_function_checker:unexpected_param": 2,
+          "simple_function_checker:wrong_func_name": 9,
+          "value_error:dict_key": 1,
+          "value_error:others": 17,
+          "value_error:string": 40
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.7421875,
+        "correct": 190,
+        "errors": {
+          "simple_function_checker:missing_optional": 4,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 6,
+          "value_error:dict_value": 2,
+          "value_error:list/tuple": 6,
+          "value_error:others": 2,
+          "value_error:string": 44
+        },
+        "n": 256
+      }
+    },
+    "s45-E2": {
+      "live_multiple": {
+        "accuracy": 0.74,
+        "correct": 222,
+        "errors": {
+          "simple_function_checker:missing_optional": 3,
+          "simple_function_checker:unexpected_param": 5,
+          "simple_function_checker:wrong_func_name": 10,
+          "type_error:simple": 1,
+          "value_error:others": 14,
+          "value_error:string": 45
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.7578125,
+        "correct": 194,
+        "errors": {
+          "ast_decoder:decoder_failed": 1,
+          "simple_function_checker:missing_optional": 4,
+          "simple_function_checker:unexpected_param": 1,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 6,
+          "value_error:dict_value": 2,
+          "value_error:list/tuple": 6,
+          "value_error:others": 2,
+          "value_error:string": 38
+        },
+        "n": 256
+      }
+    },
+    "s45-E2b": {
+      "live_multiple": {
+        "accuracy": 0.71,
+        "correct": 213,
+        "errors": {
+          "simple_function_checker:missing_optional": 2,
+          "simple_function_checker:unexpected_param": 4,
+          "simple_function_checker:wrong_func_name": 8,
+          "type_error:simple": 1,
+          "value_error:list/tuple": 2,
+          "value_error:others": 16,
+          "value_error:string": 54
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.74609375,
+        "correct": 191,
+        "errors": {
+          "simple_function_checker:missing_optional": 3,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 6,
+          "value_error:dict_value": 1,
+          "value_error:list/tuple": 7,
+          "value_error:others": 4,
+          "value_error:string": 42
+        },
+        "n": 256
+      }
+    },
+    "s45-L-long": {
+      "live_multiple": {
+        "accuracy": 0.73,
+        "correct": 219,
+        "errors": {
+          "simple_function_checker:missing_optional": 5,
+          "simple_function_checker:unexpected_param": 3,
+          "simple_function_checker:wrong_func_name": 11,
+          "value_error:others": 13,
+          "value_error:string": 49
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.71875,
+        "correct": 184,
+        "errors": {
+          "simple_function_checker:missing_optional": 2,
+          "simple_function_checker:missing_required": 1,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 7,
+          "value_error:dict_value": 2,
+          "value_error:list/tuple": 7,
+          "value_error:others": 3,
+          "value_error:string": 48
+        },
+        "n": 256
+      }
+    },
+    "s45-L-short": {
+      "live_multiple": {
+        "accuracy": 0.7433333333333333,
+        "correct": 223,
+        "errors": {
+          "simple_function_checker:missing_optional": 9,
+          "simple_function_checker:unexpected_param": 2,
+          "simple_function_checker:wrong_func_name": 13,
+          "value_error:others": 8,
+          "value_error:string": 45
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.78515625,
+        "correct": 201,
+        "errors": {
+          "simple_function_checker:missing_optional": 5,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 5,
+          "value_error:list/tuple": 7,
+          "value_error:others": 1,
+          "value_error:string": 35
+        },
+        "n": 256
+      }
+    },
+    "s46-A": {
+      "live_multiple": {
+        "accuracy": 0.72,
+        "correct": 216,
+        "errors": {
+          "simple_function_checker:missing_optional": 3,
+          "simple_function_checker:unexpected_param": 3,
+          "simple_function_checker:wrong_func_name": 11,
+          "value_error:others": 14,
+          "value_error:string": 53
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.72265625,
+        "correct": 185,
+        "errors": {
+          "simple_function_checker:missing_optional": 3,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 4,
+          "value_error:dict_value": 5,
+          "value_error:list/tuple": 8,
+          "value_error:others": 3,
+          "value_error:string": 46
+        },
+        "n": 256
+      }
+    },
+    "s46-B": {
+      "live_multiple": {
+        "accuracy": 0.75,
+        "correct": 225,
+        "errors": {
+          "multiple_function_checker:wrong_count": 1,
+          "simple_function_checker:missing_optional": 1,
+          "simple_function_checker:unexpected_param": 6,
+          "simple_function_checker:wrong_func_name": 9,
+          "type_error:simple": 1,
+          "value_error:others": 17,
+          "value_error:string": 40
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.71484375,
+        "correct": 183,
+        "errors": {
+          "ast_decoder:decoder_failed": 1,
+          "simple_function_checker:missing_optional": 3,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 6,
+          "value_error:dict_value": 2,
+          "value_error:list/tuple": 5,
+          "value_error:others": 5,
+          "value_error:string": 49
+        },
+        "n": 256
+      }
+    },
+    "s46-C": {
+      "live_multiple": {
+        "accuracy": 0.7133333333333334,
+        "correct": 214,
+        "errors": {
+          "simple_function_checker:missing_optional": 1,
+          "simple_function_checker:unexpected_param": 2,
+          "simple_function_checker:wrong_func_name": 11,
+          "type_error:simple": 1,
+          "value_error:list/tuple": 1,
+          "value_error:others": 20,
+          "value_error:string": 50
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.703125,
+        "correct": 180,
+        "errors": {
+          "simple_function_checker:missing_optional": 1,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 6,
+          "value_error:dict_value": 2,
+          "value_error:list/tuple": 7,
+          "value_error:others": 5,
+          "value_error:string": 53
+        },
+        "n": 256
+      }
+    },
+    "s46-E2": {
+      "live_multiple": {
+        "accuracy": 0.7266666666666667,
+        "correct": 218,
+        "errors": {
+          "simple_function_checker:missing_optional": 3,
+          "simple_function_checker:unexpected_param": 4,
+          "simple_function_checker:wrong_func_name": 10,
+          "type_error:simple": 1,
+          "value_error:others": 15,
+          "value_error:string": 49
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.71484375,
+        "correct": 183,
+        "errors": {
+          "simple_function_checker:missing_optional": 2,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 6,
+          "value_error:dict_value": 2,
+          "value_error:list/tuple": 7,
+          "value_error:others": 6,
+          "value_error:string": 48
+        },
+        "n": 256
+      }
+    },
+    "s46-E2b": {
+      "live_multiple": {
+        "accuracy": 0.7266666666666667,
+        "correct": 218,
+        "errors": {
+          "simple_function_checker:missing_optional": 7,
+          "simple_function_checker:unexpected_param": 2,
+          "simple_function_checker:wrong_func_name": 9,
+          "type_error:simple": 1,
+          "value_error:dict_key": 1,
+          "value_error:list/tuple": 1,
+          "value_error:others": 12,
+          "value_error:string": 49
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.76171875,
+        "correct": 195,
+        "errors": {
+          "simple_function_checker:missing_optional": 3,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 6,
+          "value_error:dict_value": 1,
+          "value_error:list/tuple": 8,
+          "value_error:others": 1,
+          "value_error:string": 40
+        },
+        "n": 256
+      }
+    },
+    "s46-L-long": {
+      "live_multiple": {
+        "accuracy": 0.73,
+        "correct": 219,
+        "errors": {
+          "simple_function_checker:missing_optional": 3,
+          "simple_function_checker:unexpected_param": 3,
+          "simple_function_checker:wrong_func_name": 12,
+          "type_error:simple": 1,
+          "value_error:others": 13,
+          "value_error:string": 49
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.71484375,
+        "correct": 183,
+        "errors": {
+          "ast_decoder:decoder_failed": 1,
+          "simple_function_checker:missing_optional": 3,
+          "simple_function_checker:unexpected_param": 1,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 4,
+          "value_error:dict_value": 2,
+          "value_error:list/tuple": 8,
+          "value_error:others": 4,
+          "value_error:string": 48
+        },
+        "n": 256
+      }
+    },
+    "s46-L-short": {
+      "live_multiple": {
+        "accuracy": 0.67,
+        "correct": 201,
+        "errors": {
+          "simple_function_checker:missing_optional": 8,
+          "simple_function_checker:unexpected_param": 1,
+          "simple_function_checker:wrong_func_name": 12,
+          "type_error:simple": 1,
+          "value_error:dict_key": 1,
+          "value_error:others": 18,
+          "value_error:string": 58
+        },
+        "n": 300
+      },
+      "live_simple": {
+        "accuracy": 0.76171875,
+        "correct": 195,
+        "errors": {
+          "simple_function_checker:missing_optional": 6,
+          "type_error:nested": 1,
+          "type_error:simple": 1,
+          "value_error:dict_key": 5,
+          "value_error:dict_value": 1,
+          "value_error:list/tuple": 6,
+          "value_error:others": 2,
+          "value_error:string": 39
+        },
+        "n": 256
+      }
+    }
+  },
+  "mean_category_accuracy": {
+    "live_multiple": {
+      "A": 0.72,
+      "B": 0.7166666666666667,
+      "C": 0.72,
+      "E2": 0.7213333333333334,
+      "E2b": 0.7193333333333334,
+      "L-long": 0.7266666666666667,
+      "L-short": 0.7186666666666667,
+      "base": 0.6966666666666667
+    },
+    "live_simple": {
+      "A": 0.7390625,
+      "B": 0.71328125,
+      "C": 0.72890625,
+      "E2": 0.73828125,
+      "E2b": 0.73671875,
+      "L-long": 0.7296875,
+      "L-short": 0.74140625,
+      "base": 0.7109375
+    }
+  },
+  "scope": "descriptive external category accuracy",
+  "stage_lock_sha256": "5bf97e01f9b8fb5ba244065b9157c46439ed43cf4cb1d388c26949c03926b554"
+}
