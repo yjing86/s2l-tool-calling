@@ -7,7 +7,7 @@ proof. For a standalone verify_round2_archive receipt, supply --inventory.
     python scripts/summarize_round2_legacy.py --proof-sha256 VERIFIED_DIGEST \
       --out results/followup/round2-legacy.json
 
-This CPU report contains aggregate counts and differences. Both splits were
+This CPU report contains aggregate counts, differences and recorded stage durations. Both splits were
 used previously. The prospective evaluation has a separate analysis.
 """
 
@@ -153,10 +153,18 @@ def run(args):
     paths = {"dev": dev, "test": artifacts / "course-run/frozen/test.jsonl"}
     sources = {s: indexed(paths[s], n, splits_sha[s]) for s, n in SPLITS.items()}
     outcomes = collect(artifacts, sources, splits_sha, registration)
+    stages = ("train", "dev", "test")
+    stage_seconds = {
+        tag: {stage: receipt(artifacts / "followup/round2", f"{stage}-{tag}")["elapsed_s"] for stage in stages}
+        for tag in registration["cell_order"]
+    }
     result = {"scope": "Descriptive results on previously used development and test requests.",
               "metric": "Complete-call accuracy. Percentage-point differences pair identical requests and seeds.",
               "seeds": list(SEEDS), "registration_sha256": digest(REGISTRATION),
               "verified_archive_proof_sha256": args.proof_sha256, "dataset_sha256": splits_sha,
+              "runtime": {"scope": "Elapsed seconds for successful stages of the 20 new fits on one A40. Each duration includes subprocess startup.",
+                          "seconds_by_fit": stage_seconds,
+                          "total_seconds_by_stage": {s: sum(row[s] for row in stage_seconds.values()) for s in stages}},
               "splits": {s: split_report(outcomes[s], set(sources[s])) for s in SPLITS}}
     if dest.exists():
         require(read(dest) == result, "Existing destination contains other data. Choose a new report path.")
