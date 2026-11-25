@@ -47,6 +47,10 @@ python3 -m s2l_tool_calling plot --input results/turnstile-single-call.json --ou
 
 One Qwen3.5-0.8B proxy trained on 4,000 single-call requests. At steps 0, 10, 30, 80 and 250, we recorded the loss on each reference answer. Each method selected 1,000 requests. The Qwen3.5-2B targets trained on complete reference calls under a common budget of 3,005,228 non-padding input tokens, with rounding at the final optimizer step.
 
+Across five paired seeds on the previously examined 2,000-request test, complete-call accuracy averaged **54.95% for uniform random sampling (A), 53.75% for whole-answer selection (B), and 54.65% for field-based selection (C)**. The mean C−B difference was +0.90 percentage points overall and −0.05 across the two added seeds. The first three seeds are reported separately below. [Five-seed results and development-set comparison](docs/results.md#five-seed-follow-up)
+
+### Initial three-seed study
+
 | Selection method | Mean complete-call accuracy on Turnstile |
 | --- | ---: |
 | Untuned 2B, evaluated once | 47.20% |
