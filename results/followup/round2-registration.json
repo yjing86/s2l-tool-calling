@@ -1,0 +1,590 @@
+{
+  "schema_version": 1,
+  "study_id": "turnstile-round2-core-20",
+  "registered_at_utc": "2026-11-25T06:34:04Z",
+  "prior_public_git_revision": "c66c8afefec5159910ee2d68585ac218747a3a04",
+  "data": {
+    "train_source": "amazon/Turnstile-Synthetic-Domains",
+    "domain": "single-call Turnstile",
+    "candidate_count": 4000,
+    "selection_count": 1000,
+    "original_split_sha256": {
+      "train.jsonl": "fd0ee69020ff537165b0fc405883f33ea2269ccc14cd4a231f62e5aff32e6001",
+      "dev.jsonl": "eec557cf5ba3ebd23404472e4163f32d85314e9911e4100b17a5c61c410f1728",
+      "test.jsonl": "000c29f46a06a35146d8d369e4ff763226bf66a690a7339680e32fc8b779407c"
+    }
+  },
+  "cell_order": [
+    "s45-A",
+    "s45-B",
+    "s45-C",
+    "s45-E2",
+    "s45-E2b",
+    "s46-A",
+    "s46-B",
+    "s46-C",
+    "s46-E2",
+    "s46-E2b",
+    "s42-L-short",
+    "s42-L-long",
+    "s43-L-short",
+    "s43-L-long",
+    "s44-L-short",
+    "s44-L-long",
+    "s45-L-short",
+    "s45-L-long",
+    "s46-L-short",
+    "s46-L-long"
+  ],
+  "target_input_token_budget": 3005228,
+  "training": {
+    "target": "Qwen/Qwen3.5-2B",
+    "target_revision": "15852e8c16360a2fea060d615a32b45270f8a8fc",
+    "proxy": "Qwen/Qwen3.5-0.8B",
+    "checkpoints_reused": [
+      0,
+      10,
+      30,
+      80,
+      250
+    ],
+    "pool_hash": "fd0ee69020ff537165b0fc405883f33ea2269ccc14cd4a231f62e5aff32e6001",
+    "seeds_paired_selection_training": [
+      42,
+      43,
+      44,
+      45,
+      46
+    ],
+    "kmeans_seed": 42,
+    "endpoint": "First completed optimizer step meeting the registered non-padding input-token budget; include its entire update. Do not choose checkpoints by accuracy.",
+    "normalization": "Unchanged whole-response supervised token cross-entropy.",
+    "retrospective_evaluation": {
+      "dev": 400,
+      "legacy_test": 2000,
+      "endpoint": "token boundary",
+      "role": "descriptive; cannot affect inclusion, retries, training duration or hypotheses"
+    }
+  },
+  "selection": {
+    "manifest": "local/followup/round2/selection/manifest.json",
+    "freeze": "SHA-256 and all 20 selection byte hashes must be recorded before the first fit; reproduce checksums on the training machine.",
+    "method_keys": [
+      "A",
+      "B",
+      "C",
+      "E2",
+      "E2b",
+      "L-short",
+      "L-long"
+    ],
+    "difficulty_measure": "untrained proxy step-0 mean reference argument-value NLL",
+    "length_bin_upper_inclusive": [
+      5,
+      7,
+      8,
+      10,
+      12,
+      15,
+      18,
+      23,
+      29
+    ],
+    "last_bin": "all larger values",
+    "length_targets": {
+      "L-short": 12.0,
+      "L-long": 24.0
+    },
+    "length_design": "Tilt pool bin probabilities by a power of mean bin length to reach each expected mean; cap at availability; largest-remainder integer quotas; sample without replacement within bin once per seed. Preserve and report actual mean, quotas and audit hashes.",
+    "manifest_sha256": "23351af2aa7b6c76ba77786b4a44e1003b4f5124f82f0317ae4a232c6b022333",
+    "cells": {
+      "s45-A": {
+        "size": 1000,
+        "sha256": "861a264caf26b30c7318a8be1079766ca81acc45e0babd69540800935c8b991c",
+        "ids_sha256": "1db1b07b55e9f1aeec63eacd8829117cab038c6550ffbd595d31761ccfb4250d",
+        "mean_value_tokens": 15.94
+      },
+      "s45-B": {
+        "size": 1000,
+        "sha256": "4874d8b6582bc1df7cf476ef80681c8e519412fd6b850e01e7d5c4f08ab181aa",
+        "ids_sha256": "6c5c4d88610a894a49482ed2de4d1eee0ebd6dd4b55ec97d4f30e430941c4d7a",
+        "mean_value_tokens": 20.013
+      },
+      "s45-C": {
+        "size": 1000,
+        "sha256": "514ca64d3318f65f2c0475936b89902851eb5d1f96a89cc8ae8d1e9697cfc943",
+        "ids_sha256": "d0287657b1ac2f5081a92c12a6a335cae13030415aa9ce0109ba79348c3a812a",
+        "mean_value_tokens": 17.837
+      },
+      "s45-E2": {
+        "size": 1000,
+        "sha256": "3a26564c9872a7c907579d59f26c216c7c8fa74cce09e24323e7ed8e2e1dbd70",
+        "ids_sha256": "b058e7847159f3dfb9242f9a1c5fc96de9906be3b9414be510b0912b2c993cca",
+        "mean_value_tokens": 19.151
+      },
+      "s45-E2b": {
+        "size": 1000,
+        "sha256": "224113ab05d1622202eee67809b1e9bb37493b602892747da01f432b133b8ae3",
+        "ids_sha256": "1e985a2620b7b19e557ef7999c99d2e75dd61f7ed235aff4fad01eaac174de6b",
+        "mean_value_tokens": 16.08
+      },
+      "s46-A": {
+        "size": 1000,
+        "sha256": "9960dbac189fb68c86059609b4c2d37a32c513add34bfdc8d43a133d6170c5f4",
+        "ids_sha256": "926fe96d28cb991352919f2fb0ff311f58b7e189fc472c6c947f8f9cfd23bb62",
+        "mean_value_tokens": 16.109
+      },
+      "s46-B": {
+        "size": 1000,
+        "sha256": "378669255d367fdd3625f15b189b3b9cc79e5f6567506a691955b2ff87cd3c84",
+        "ids_sha256": "e414b8a74f43001fc4d5b115921eb30329c3aef97de3f4dc593c8bc7ededa29d",
+        "mean_value_tokens": 19.944
+      },
+      "s46-C": {
+        "size": 1000,
+        "sha256": "49c2f05aaf16696f37afaae3fd75fda6e632b8a68923eda0773380735dcd05b8",
+        "ids_sha256": "8a5e1afe4a2593a40d0ff25bfa0cd6706b7a0747890fd216273d31471d1543c3",
+        "mean_value_tokens": 17.466
+      },
+      "s46-E2": {
+        "size": 1000,
+        "sha256": "0d11d652820862536469f4afe41e70b58f05f2349436a80ec1169c34ec26f13e",
+        "ids_sha256": "75d803268127d238be35e9a3d424f2de10ae35d63cb3133a0a8a7d9b7b376566",
+        "mean_value_tokens": 18.771
+      },
+      "s46-E2b": {
+        "size": 1000,
+        "sha256": "5a02442607d076c61ec93b16d5d4fc014cd91f2bbd593b357580d76c17e7b50e",
+        "ids_sha256": "80717ff88e2694359d1e54410bf5d21b4f109387da822400199178f2a6b9e5fb",
+        "mean_value_tokens": 16.411
+      },
+      "s42-L-short": {
+        "size": 1000,
+        "sha256": "a49884a91465cfb5d49d7b8446caaec3191fa5a3c5e2e71b26c3fe8f6eb2bb3f",
+        "ids_sha256": "aa087febe51d48f8c2dfcb8ef1e1feb1b4bfce036d2958b78befdc7148636901",
+        "mean_value_tokens": 11.859
+      },
+      "s42-L-long": {
+        "size": 1000,
+        "sha256": "957cecad6d45011e47ece2bbda75573780e6f830089f29e2ac12d4bbf6c9b7c2",
+        "ids_sha256": "367f721ba189ac0f4bd194053ef0cf21d263397077d7dc54d9ee146056134025",
+        "mean_value_tokens": 23.968
+      },
+      "s43-L-short": {
+        "size": 1000,
+        "sha256": "0a4de077d0ee66f7e0f34f0350ef432cf319d02834039c140f7013edf245a11b",
+        "ids_sha256": "84a39b71303430ee8ddea7d3db52aa492e4475cb9cae8a62a5019d2021579964",
+        "mean_value_tokens": 12.086
+      },
+      "s43-L-long": {
+        "size": 1000,
+        "sha256": "7ca4d2d444b830dfe788361c11c8d392eb0096703c8845cbf5e02ee98fcb1d81",
+        "ids_sha256": "aefe5840de718d85de21986629c85aaa8eb52512057da84a0b24dbfc82493b52",
+        "mean_value_tokens": 24.163
+      },
+      "s44-L-short": {
+        "size": 1000,
+        "sha256": "a2d5fa27f96a45c9c9ec3a43d4f5a6b86cc1e5aca8ad505fbff182464fd56c41",
+        "ids_sha256": "dcf0f88097b65c9a843043c65e4cf04427da6701e6f88e81787221093cdf2474",
+        "mean_value_tokens": 11.89
+      },
+      "s44-L-long": {
+        "size": 1000,
+        "sha256": "d15b6d5ce9e0c034f9e45c58cecb6ed12d6f946fc40006b5e09295f0559e85a7",
+        "ids_sha256": "b571061c424813ed995bb651412d0e009b8b8536488a66213490965955ba8eaa",
+        "mean_value_tokens": 24.465
+      },
+      "s45-L-short": {
+        "size": 1000,
+        "sha256": "5ff0c81c3644a332ac13f3b0b63c83ac4846e4a798edec3bcba9d62ff115835a",
+        "ids_sha256": "f531c24537363c2bec6b47721408e8d001ca5dd37eb4a9e0a722c001727ccaa3",
+        "mean_value_tokens": 11.89
+      },
+      "s45-L-long": {
+        "size": 1000,
+        "sha256": "7b92b72e5d6e79681e3687f3f2be5d2eae9bc3b6008b05fe100813784bb1e014",
+        "ids_sha256": "211ee949d6a9063ffdda981d5c134b5f05cfcecf89ba9be61b9e9fed4cd9e88a",
+        "mean_value_tokens": 23.734
+      },
+      "s46-L-short": {
+        "size": 1000,
+        "sha256": "af8ee80c893b43fb2a1033f2fd76faf939d4b6bad98b9109d137ab8eea14b3a3",
+        "ids_sha256": "aa7d39fb984b24f79969cbedb030ba0c0c1359dd45502308826b544e6b9b8133",
+        "mean_value_tokens": 11.764
+      },
+      "s46-L-long": {
+        "size": 1000,
+        "sha256": "5c381f0cb475693731911b136e48df9978dd8e3d35a166b2ca7fe796f2bb7205",
+        "ids_sha256": "3dd2c3e0528295083b0a24d5d5c99a8c949b7251f59e43e35d48a3dbba54769c",
+        "mean_value_tokens": 24.363
+      }
+    },
+    "source_sha256": {
+      "select_experiment.py": "90d33a7b8da468ac7194c69a717aaac48a187cb653e57cc5ad67f0badcff01f7",
+      "select_followup.py": "3a12fc7c39b2cc7606a75abf89ea0900e1b0574c102646123001eabbb27a742d",
+      "select_difficulty_control.py": "3b18f5f52a39d0a4444ce4c0aef41f2e3b239294b015a474eee6c45463221cdd",
+      "select_round2.py": "e8a857fd24d9062775f3f642388008183d8849a3b8e322f46a0b8ad07ead4b80"
+    }
+  },
+  "holdout_v2": {
+    "not_before_utc": "2026-12-05T08:00:00Z",
+    "timezone": "America/Los_Angeles",
+    "earliest_local_date": "2026-12-05",
+    "requests": 1500,
+    "original_file_sha256": "ecf9f0f9d5ad82aba3d361f6d086cb0bbfbfb5c61cf9cfda5a432aad34b3da9d",
+    "reserve_source": "results/followup/phase1-registration.json",
+    "existing_endpoints": [
+      {
+        "id": "base",
+        "checkpoint": "base",
+        "adapter_sha256": null,
+        "adapter_config_sha256": null
+      },
+      {
+        "id": "s42-A",
+        "checkpoint": "s42-A-step126",
+        "adapter_sha256": "24790244e7f21d67ea3e40f1bf3775d80319c5dfc963c67a788c3116055ece5d",
+        "adapter_config_sha256": "d3e8817c878f56b438f5c181def35545ebe03b34107a4c1f9c02c63d64cccdbd"
+      },
+      {
+        "id": "s42-B",
+        "checkpoint": "s42-B-step125",
+        "adapter_sha256": "ea56309e4f266340343065be9eabe0c246a0300bbf1c405d109457e436b98347",
+        "adapter_config_sha256": "bda9bb2399419952fbed815fe60a26820407fa1123526f220435eec7476bd094"
+      },
+      {
+        "id": "s42-C",
+        "checkpoint": "s42-C-step126",
+        "adapter_sha256": "059697440a8441573b7b4049c3ae643cf4027feb412a187ab074cb9ef75df584",
+        "adapter_config_sha256": "d3e8817c878f56b438f5c181def35545ebe03b34107a4c1f9c02c63d64cccdbd"
+      },
+      {
+        "id": "s42-Bprime",
+        "checkpoint": "s42-Bprime-step125",
+        "adapter_sha256": "8dcad3146e25d513807a24be22c1aede8f5b557d54e471360647da024c6d67af",
+        "adapter_config_sha256": "bda9bb2399419952fbed815fe60a26820407fa1123526f220435eec7476bd094"
+      },
+      {
+        "id": "s42-E2",
+        "checkpoint": "s42-E2-step125",
+        "adapter_sha256": "b5272b350478d43c5f2d9755d0c3b141c9f9dbafdacb8dc0f6640ae3b7784fd7",
+        "adapter_config_sha256": "d3e8817c878f56b438f5c181def35545ebe03b34107a4c1f9c02c63d64cccdbd"
+      },
+      {
+        "id": "s42-E3",
+        "checkpoint": "s42-E3-step125",
+        "adapter_sha256": "5f257c016063c88117e71332fd9761fdcc0da371c8ddf638a00939968e56f85b",
+        "adapter_config_sha256": "d3e8817c878f56b438f5c181def35545ebe03b34107a4c1f9c02c63d64cccdbd"
+      },
+      {
+        "id": "s42-E4",
+        "checkpoint": "s42-E4-step127",
+        "adapter_sha256": "8f3f89daf836b9042aee53247c46f0dd0163fd9461803d48653375333ef82819",
+        "adapter_config_sha256": "d3e8817c878f56b438f5c181def35545ebe03b34107a4c1f9c02c63d64cccdbd"
+      },
+      {
+        "id": "s42-E2b",
+        "checkpoint": "s42-E2b-step125",
+        "adapter_sha256": "12b09c563409aea2fce7f6795a7e5abe1ca700e71579c8cc7e5832c270b4e6ed",
+        "adapter_config_sha256": "d3e8817c878f56b438f5c181def35545ebe03b34107a4c1f9c02c63d64cccdbd"
+      },
+      {
+        "id": "s43-A",
+        "checkpoint": "s43-A-step127",
+        "adapter_sha256": "418a21a812ef5da3355951609fb8e13ceb82c7ba4e87adf0a759308cdb06d24e",
+        "adapter_config_sha256": "d3e8817c878f56b438f5c181def35545ebe03b34107a4c1f9c02c63d64cccdbd"
+      },
+      {
+        "id": "s43-B",
+        "checkpoint": "s43-B-step125",
+        "adapter_sha256": "1de87370e2f751bb443b64e703209b908a51573d6944f09b8559f93064ece680",
+        "adapter_config_sha256": "bda9bb2399419952fbed815fe60a26820407fa1123526f220435eec7476bd094"
+      },
+      {
+        "id": "s43-C",
+        "checkpoint": "s43-C-step126",
+        "adapter_sha256": "a9a4dfcb6c6ce44c2702109534d598e323ae629fe2ea18a3f5c05174721821f2",
+        "adapter_config_sha256": "bda9bb2399419952fbed815fe60a26820407fa1123526f220435eec7476bd094"
+      },
+      {
+        "id": "s43-Bprime",
+        "checkpoint": "s43-Bprime-step125",
+        "adapter_sha256": "631a6c4f54824746f635543dd0442eec240cef5a4d105529ac42654972e1a253",
+        "adapter_config_sha256": "bda9bb2399419952fbed815fe60a26820407fa1123526f220435eec7476bd094"
+      },
+      {
+        "id": "s43-E2",
+        "checkpoint": "s43-E2-step125",
+        "adapter_sha256": "f92bbd37a551de3c957d61f54437e873e4a46cd06ab9ea75294eb17b4f97f5fa",
+        "adapter_config_sha256": "bda9bb2399419952fbed815fe60a26820407fa1123526f220435eec7476bd094"
+      },
+      {
+        "id": "s43-E3",
+        "checkpoint": "s43-E3-step125",
+        "adapter_sha256": "fb6d1242d6332fbe1ccde4dc43b2067251e4873256d0a7bbec95593b49c2384e",
+        "adapter_config_sha256": "d3e8817c878f56b438f5c181def35545ebe03b34107a4c1f9c02c63d64cccdbd"
+      },
+      {
+        "id": "s43-E4",
+        "checkpoint": "s43-E4-step126",
+        "adapter_sha256": "86b6f281c7fb8cd9e14e37761d00762fb3ba751f1ffba4741451a3026d904e6b",
+        "adapter_config_sha256": "bda9bb2399419952fbed815fe60a26820407fa1123526f220435eec7476bd094"
+      },
+      {
+        "id": "s43-E2b",
+        "checkpoint": "s43-E2b-step127",
+        "adapter_sha256": "7c2b3ae2a5eafc23ee46e1390fae5be020209af9da226940e64a1c4a7c4b7c3e",
+        "adapter_config_sha256": "d3e8817c878f56b438f5c181def35545ebe03b34107a4c1f9c02c63d64cccdbd"
+      },
+      {
+        "id": "s44-A",
+        "checkpoint": "s44-A-step128",
+        "adapter_sha256": "7e73d610e449df252195581ff044adc82458b815dce6d0ac9a9ed0ec76feda08",
+        "adapter_config_sha256": "bda9bb2399419952fbed815fe60a26820407fa1123526f220435eec7476bd094"
+      },
+      {
+        "id": "s44-B",
+        "checkpoint": "s44-B-step125",
+        "adapter_sha256": "0fdea9c69ae1e988144b01969219de4b342a8d8bdce3d0695645de13f6ee5b81",
+        "adapter_config_sha256": "d3e8817c878f56b438f5c181def35545ebe03b34107a4c1f9c02c63d64cccdbd"
+      },
+      {
+        "id": "s44-C",
+        "checkpoint": "s44-C-step125",
+        "adapter_sha256": "1569eec39e014201e9342ccf259af2d423d10f2b1af3157f02960e1e29928961",
+        "adapter_config_sha256": "d3e8817c878f56b438f5c181def35545ebe03b34107a4c1f9c02c63d64cccdbd"
+      },
+      {
+        "id": "s44-Bprime",
+        "checkpoint": "s44-Bprime-step125",
+        "adapter_sha256": "2a64797c4787be8787689795fec499419c710dfabf02dc13288c361a2be853e8",
+        "adapter_config_sha256": "d3e8817c878f56b438f5c181def35545ebe03b34107a4c1f9c02c63d64cccdbd"
+      },
+      {
+        "id": "s44-E2",
+        "checkpoint": "s44-E2-step124",
+        "adapter_sha256": "bd1528757fc62c6bac3015bf954e41af175910812a635c99b36876856ade5dc6",
+        "adapter_config_sha256": "d3e8817c878f56b438f5c181def35545ebe03b34107a4c1f9c02c63d64cccdbd"
+      },
+      {
+        "id": "s44-E3",
+        "checkpoint": "s44-E3-step126",
+        "adapter_sha256": "a15304e9f1f6c1bbd27711689c3a857069fe9f38a639d01861246a78dd61c048",
+        "adapter_config_sha256": "bda9bb2399419952fbed815fe60a26820407fa1123526f220435eec7476bd094"
+      },
+      {
+        "id": "s44-E4",
+        "checkpoint": "s44-E4-step127",
+        "adapter_sha256": "b08b4483b7be450f17b487a3834b5040cde32a0b37138534dbcb8f1c81ec8dea",
+        "adapter_config_sha256": "bda9bb2399419952fbed815fe60a26820407fa1123526f220435eec7476bd094"
+      },
+      {
+        "id": "s44-E2b",
+        "checkpoint": "s44-E2b-step127",
+        "adapter_sha256": "cb65fd6d074f794ef5e1b200e798c3e954125681956021c10e0c7444001ea2be",
+        "adapter_config_sha256": "bda9bb2399419952fbed815fe60a26820407fa1123526f220435eec7476bd094"
+      },
+      {
+        "id": "full-s42-step125",
+        "checkpoint": "full-s42-step125",
+        "adapter_sha256": "be7ac7b29194a2d1a56c66cda9bd9bc10ddbc22039cd48c1c5d07f010bf65ace",
+        "adapter_config_sha256": "bda9bb2399419952fbed815fe60a26820407fa1123526f220435eec7476bd094"
+      },
+      {
+        "id": "full-s42-step500",
+        "checkpoint": "full-s42-step500",
+        "adapter_sha256": "c4795248f294fd4426e5d3f1a01b29ea7e9675e213ca656ef9574f96d858ea3f",
+        "adapter_config_sha256": "bda9bb2399419952fbed815fe60a26820407fa1123526f220435eec7476bd094"
+      }
+    ],
+    "panel_order": [
+      "base",
+      "s42-A",
+      "s42-B",
+      "s42-C",
+      "s42-Bprime",
+      "s42-E2",
+      "s42-E3",
+      "s42-E4",
+      "s42-E2b",
+      "s43-A",
+      "s43-B",
+      "s43-C",
+      "s43-Bprime",
+      "s43-E2",
+      "s43-E3",
+      "s43-E4",
+      "s43-E2b",
+      "s44-A",
+      "s44-B",
+      "s44-C",
+      "s44-Bprime",
+      "s44-E2",
+      "s44-E3",
+      "s44-E4",
+      "s44-E2b",
+      "full-s42-step125",
+      "full-s42-step500",
+      "s45-A",
+      "s45-B",
+      "s45-C",
+      "s45-E2",
+      "s45-E2b",
+      "s46-A",
+      "s46-B",
+      "s46-C",
+      "s46-E2",
+      "s46-E2b",
+      "s42-L-short",
+      "s42-L-long",
+      "s43-L-short",
+      "s43-L-long",
+      "s44-L-short",
+      "s44-L-long",
+      "s45-L-short",
+      "s45-L-long",
+      "s46-L-short",
+      "s46-L-long"
+    ],
+    "expected_generations": 70500,
+    "hash_lock": "Before opening, bind all 47 model identities to verified adapter and config hashes (base to its pinned revision), source and scoring hashes, selection manifests and original reserve manifest commitments. Never preview requests, score results, generate base predictions or inspect partial scores before the release gate.",
+    "release": "All 20 fits complete, 47 distinct endpoints byte-verified, original reserve commitment verified at the scheduled release and an independently timestamped public pre-opening lock digest. Delay a failed gate; no reduced panel or change of hypothesis.",
+    "retry": "For infrastructure failures replay the same fixed endpoint, inputs, settings, and code, preserving attempt records. Score only complete, aligned outputs for all endpoints. Genuine parse, refusal, truncated output or wrong call is graded by the same strict grader. Missing files, duplicate or missing request IDs and incompatible configs are operational failures, not model errors.",
+    "score": "Use the pinned whole-call Turnstile judge, complete-call correctness per request (0 or 1); preserve every registered question in each denominator.",
+    "internal_generation": {
+      "model_revision": "15852e8c16360a2fea060d615a32b45270f8a8fc",
+      "tokenizer_sha256": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+      "template_sha256": "273d8e0e683b885071fb17e08d71e5f2a5ddfb5309756181681de4f5a1822d80",
+      "greedy": true,
+      "dtype": "bfloat16",
+      "max_tokens": 512,
+      "stop_token_ids": [
+        248046
+      ],
+      "engine": "vLLM",
+      "max_model_len": 4096
+    }
+  },
+  "statistics": {
+    "analysis_unit": "Compute exact per-request accuracy, per method and seed. Pair predictions for identical question IDs and the same selection/training seed. Express differences in percentage points; no pooling across seeds as independent examples.",
+    "primary": {
+      "name": "C minus B",
+      "methods": [
+        "C",
+        "B"
+      ],
+      "seeds": [
+        42,
+        43,
+        44,
+        45,
+        46
+      ],
+      "alternative": "greater",
+      "alpha": 0.05,
+      "multiplicity_family_size": 1,
+      "test": "Fixed-request one-sided paired t across five joint selection/training seed differences. t=mean/(sample_SD/sqrt(5)), df=4, p=Pr(T4>=t). If sample SD=0 set p=1 and report the raw estimate and degeneracy. Positive finding requires positive estimated difference and p<0.05.",
+      "interpretation": "Precision across these training repeats conditional on the same test questions; t inference assumes approximately normal, independent seed-level differences. Existing and newly added seeds are tabulated separately. No combined population-of-requests-and-reruns inference."
+    },
+    "seed_intervals": "Two-sided pointwise paired-t 95% with n-1 degrees of freedom for each multi-seed comparison. Existing Bprime, E3 and E4 use seeds 42-44 only. For n=1 report no seed interval.",
+    "request_intervals": {
+      "basis": "conditional on the observed trained models",
+      "draws": 10000,
+      "rng": "NumPy default_rng(260205)",
+      "group_sort": "ascending group ID",
+      "quantile": "NumPy linear percentile",
+      "method": "Draw G whole request groups with replacement from the sorted G groups, carry every method and seed together, and recompute the per-question ratio of paired correct-count differences to total resampled requests. Average equally over available registered seed pairs. Report pointwise two-sided percentile 95% CIs."
+    },
+    "key_secondary": [
+      "C minus A",
+      "L-long minus L-short"
+    ],
+    "additional_descriptive": [
+      "B minus A",
+      "E2 minus A",
+      "E2b minus A",
+      "E2b minus E2",
+      "Bprime minus B",
+      "C minus Bprime",
+      "E3 minus A",
+      "E4 minus A",
+      "L-short minus A",
+      "C minus B separately for seeds 42-44 and 45-46",
+      "within-seed OLS slope across L-short,A,E2,L-long: accuracy in points per actual mean training argument-value token",
+      "full-s42-step125 and full-s42-step500 versus s42-A",
+      "base and absolute accuracy of every model"
+    ],
+    "equivalence": "Show 90% seed and request intervals for E2b minus A alongside \u00b11 pp as a practical tolerance. Descriptive only; no confirmatory equivalence or noninferiority claim.",
+    "posthoc": "Report per-seed numerators, denominators, discordances and estimates regardless of direction. Identify every additional unregistered analysis as exploratory."
+  },
+  "external_bfcl": {
+    "role": "descriptive external evaluation, separate from the primary test",
+    "revision": "f7cf7359b7ac615a0b294831c5ba2bc95ee4a000",
+    "categories": [
+      "live_simple",
+      "live_multiple"
+    ],
+    "max_per_category": 300,
+    "panel_order": [
+      "base",
+      "s42-A",
+      "s42-B",
+      "s42-C",
+      "s42-E2",
+      "s42-E2b",
+      "s42-L-short",
+      "s42-L-long",
+      "s43-A",
+      "s43-B",
+      "s43-C",
+      "s43-E2",
+      "s43-E2b",
+      "s43-L-short",
+      "s43-L-long",
+      "s44-A",
+      "s44-B",
+      "s44-C",
+      "s44-E2",
+      "s44-E2b",
+      "s44-L-short",
+      "s44-L-long",
+      "s45-A",
+      "s45-B",
+      "s45-C",
+      "s45-E2",
+      "s45-E2b",
+      "s45-L-short",
+      "s45-L-long",
+      "s46-A",
+      "s46-B",
+      "s46-C",
+      "s46-E2",
+      "s46-E2b",
+      "s46-L-short",
+      "s46-L-long"
+    ],
+    "context_limit": 8192,
+    "max_generation_tokens": 512,
+    "population": "Single user with optional leading system, preserving messages, no truncation. Use original source language and official AST scorer. Reject name collisions after conversion, normalized user-text and named-schema overlap with the frozen 4,000-row training pool; require tokenized input plus output limit within context.",
+    "sampling": "Apply eligibility, overlap and duplicate filters before ranking. Within and across categories deduplicate using normalized messages and full named candidate signatures; category precedence live_simple then live_multiple, tie-break within category by SHA-256 of UTF-8 31415|category|id, then raw ID. Keep up to 300 eligible IDs per category by the same rank. Freeze exact item hashes, denominators, exclusion counts and conversion version before any external predictions.",
+    "reporting": "Report complete-call correctness separately per category using the pinned official Python AST scorer; require each expected ID. Empty, malformed or incorrect model output is incorrect; retry incomplete operational attempts with the identical frozen setup."
+  },
+  "exclusions": [
+    "C-LC",
+    "per-example loss",
+    "10 percent budget",
+    "E6",
+    "additional Bprime seeds",
+    "additional training corpora",
+    "crossed-seed diagnostic endpoints"
+  ],
+  "frozen_source_sha256": {
+    "scripts/train_experiment.py": "cff45f3afebe67f48276e4d581b3025ecf392f7112381fc6895d33afd3fd7049",
+    "scripts/experiment_callback.py": "6ce487ebaa5706c1471a9ce8050f69fd8b3db90a6e8e796b517b5ab04036ab08",
+    "scripts/evaluate_experiment.py": "ebcf9078ade3153631985ef422c8279a175af3c179c40d4d899f96840147c730",
+    "scripts/reserve_followup_test.py": "c1cd35024468a27e33f919be4f2923f43ddf40d528fc7c54db718da9a989d41f",
+    "scripts/select_followup.py": "3a12fc7c39b2cc7606a75abf89ea0900e1b0574c102646123001eabbb27a742d",
+    "scripts/select_difficulty_control.py": "3b18f5f52a39d0a4444ce4c0aef41f2e3b239294b015a474eee6c45463221cdd"
+  },
+  "update_policy": "Pre-results protocol. Record substantive amendments as separately timestamped documents and explain any departure. Preserve this original byte-for-byte. No additional arm may enter the registered holdout panel."
+}
