@@ -1,6 +1,6 @@
 # Which 1,000 Tool Calls Should We Train On?
 
-**Ten-minute research talk · six slides.** Given 4,000 candidate examples and a budget to train on 1,000, does it help to select examples by how a small model learns the function name and the argument values? On 2,000 held-out requests, scoring those fields separately improved on whole-answer selection by **1.53 percentage points (pp)**. Uniform random sampling had the highest mean accuracy among the eight subset strategies we tested. The talk explains why both observations matter. [Results and scoring protocol](results.md)
+**Ten-minute research talk · six slides.** Which 1,000 tool calls should we select from 4,000 candidates? The first three seeds suggested that separate field trajectories helped. The two additional seeds averaged −0.05 percentage points for C minus B. Across all five seeds on the same 2,000 requests, C averaged 0.90 points above B and 0.30 below uniform random sampling. Slides 3–5 revisit the initial three-seed results; slide 6 gives the five-seed follow-up. [Results and scoring protocol](results.md)
 
 ## 1. A correct tool can still produce a wrong call
 
@@ -80,13 +80,13 @@
 
 **8:40–10:00 · 1 min 20 s**
 
-**On screen.** Show a decision and one open question. **For a single run with this setup, we would use uniform random sampling.** Next, can a revised selector beat that baseline on 1,500 previously reserved requests?
+**On screen.** Show the five-seed results: A 54.95%, B 53.75%, C 54.65%. The December 5 evaluation will test C against B on 1,500 reserved requests.
 
-**Say.** “We set out to choose training examples for a model that must produce an entire correct call. Field information recovered part of the accuracy that whole-answer sampling lost. Pooled fields captured much of the observed gain, and uniform random sampling had the highest mean accuracy. Random sampling also avoids the roughly 41 minutes on one A40 needed to train and score the proxy.
+**Say.** “We added two seeds on the same test requests. C minus B was +0.40 and −0.50 points. The initial gain shrank, and matching the length distribution of B in random sampling gave nearly the same five-seed accuracy as unrestricted random sampling. We cannot attribute the original deficit to length alone. Random sampling also saves the roughly 41 minutes of proxy training and scoring on one A40.
 
 “We completed the main study, checked sensitivity to the training seed, and trained a full-pool reference. The follow-up added eleven runs for field, length and tool-coverage controls and three for the joint length–difficulty control. The internal finding has a boundary. On a separate 200-request Berkeley Function Calling Leaderboard check, the average difference between C and B was −1.33 points. The internal advantage did not carry over there.
 
-“If we pursue a stronger claim, we can freeze one revised selector, its random control, the seeds, metric and decision rule before opening the 1,500 reserved Turnstile requests. This would give us a test on unseen requests from the same corpus. **If I had to choose 1,000 examples from this pool for one training run, I would draw them at random. I would change that decision if a selector beat random sampling consistently on new requests at an acceptable cost.**” [External benchmark](../results/bfcl-single-turn.json) · [Measured GPU time](../results/compute-time.json) · [Prospective evaluation design](improvement-plan.md)
+“We have frozen 47 model configurations. Our primary comparison on the reserved requests asks whether C beats B across paired seeds. C versus random is a secondary comparison. For a single training run today I would use random sampling. Its accuracy on the original test and its lower cost justify that choice.” [Frozen evaluation protocol](round2-holdout.md) · [Measured GPU time](../results/compute-time.json)
 
 ## Backup questions
 
