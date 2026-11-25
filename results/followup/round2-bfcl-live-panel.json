@@ -1,0 +1,43 @@
+{
+  "protocol": "round2-bfcl-live-v1",
+  "bfcl_revision": "f7cf7359b7ac615a0b294831c5ba2bc95ee4a000",
+  "ordered_ids_sha256": "2993a9938451166b1b4c6022c83e9fe95399414ce6497a53ba8cdb2020bf6be9",
+  "filter_counts": {
+    "live_simple": {
+      "source": 258,
+      "excluded": {},
+      "excluded_after_overlap_filter": {
+        "duplicate": 2
+      },
+      "selected": 256,
+      "selected_with_system": 11,
+      "max_selected_input_tokens": 963
+    },
+    "live_multiple": {
+      "source": 1053,
+      "excluded": {},
+      "excluded_after_overlap_filter": {
+        "beyond_cap": 753
+      },
+      "selected": 300,
+      "selected_with_system": 9,
+      "max_selected_input_tokens": 5660
+    }
+  },
+  "prompts_sha256": "d33da54706e95f0b061f9e0e527daf3f0727e3b7283de0856989c6c65788074b",
+  "training_sha256": "fd0ee69020ff537165b0fc405883f33ea2269ccc14cd4a231f62e5aff32e6001",
+  "tokenizer_sha256": "5f9e4d4901a92b997e463c1f46055088b6cca5ca61a6522d1b9f64c4bb81cb42",
+  "template_sha256": "273d8e0e683b885071fb17e08d71e5f2a5ddfb5309756181681de4f5a1822d80",
+  "manifest_sha256": "677ff1efbc9423af1143c603f247c324339a0fa75d5adfdd58b1ae5c8d69af6a",
+  "source_sha256": {
+    "data/BFCL_v4_live_simple.json": "1af2ac87dca47556db7b7e37e51e28b459a38b594e3c7b3c792b4903598ca0c4",
+    "data/BFCL_v4_live_multiple.json": "fd8ccfad4d911420d0e3341dbe2fff77d1d341da934248b9bb2bda24ab3a10c8",
+    "data/possible_answer/BFCL_v4_live_simple.json": "fec9cfa9744a936f9126981e85a2023da1e63e273eafebc81923a1162fad70ce",
+    "data/possible_answer/BFCL_v4_live_multiple.json": "97e90d59c5bd76c55a2920ce93e5566e9046307d3f558578f085f9d3a56c3084",
+    "constants/enums.py": "2182becfa2a1d071ee1db30db593b4758c6bf866aa12d2d4b8daf09175ea518a",
+    "constants/type_mappings.py": "1702fb67afbe2c492608e58e2b7d02e46381f50166b47f3c952f76e34c7cd3bd",
+    "eval_checker/ast_eval/ast_checker.py": "2aae7a68461a8f76c0be3894c8901b66b56967a1989d3ab066051e3fb97f1538",
+    "model_handler/utils.py": "f78fd3edce603b333dc9a88ee2c041dc547d51f71aa449ffebc044c4b1e353f3"
+  },
+  "scope": "Secondary external benchmark; fixed subset of two live single-turn categories."
+}
