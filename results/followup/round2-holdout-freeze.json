@@ -1,0 +1,14 @@
+{
+  "not_before_utc": "2026-12-05T08:00:00Z",
+  "panel_count": 47,
+  "pretraining_registration_sha256": "c0ac8ddae9138fee9f841753ff77967e932644d55e5c238c9ff00f23d9c6e399",
+  "private_freeze_sha256": "eb402f172f8dd9bd552bd41a4f2451cd26427edc176fa9be913386ee6844a78f",
+  "reserve_sha256": "ecf9f0f9d5ad82aba3d361f6d086cb0bbfbfb5c61cf9cfda5a432aad34b3da9d",
+  "schema": 1,
+  "source_sha256": {
+    "evaluate_experiment.py": "ebcf9078ade3153631985ef422c8279a175af3c179c40d4d899f96840147c730",
+    "round2_holdout.py": "2da26a998239b819f68afef49fba8cee51473871ba68097a652f1c3e689368c8",
+    "round2_holdout_stats.py": "b7e0cb4b40bd5b9a6b1b376bc4e7c9ab446a03eb60a7085631d205b3d7b3909d",
+    "verify_tool_call_loss.py": "a6ad4b0bdf96bc616e6a0e39f846bdbff22ac3a01fb2ae2bc98eb640584f8917"
+  }
+}
