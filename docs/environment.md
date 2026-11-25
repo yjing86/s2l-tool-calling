@@ -106,6 +106,24 @@ PY
 
 For a direct `swift sft` command, activate `local/envs/train` first. The course runner accepts `--training-python "$TRAIN_PY" --eval-python "$VLLM_PY" --bfcl-python "$BFCL_PY"` and puts each interpreter’s bin directory on PATH for its stage. Use the experiment instructions for data preparation, the training budget and the protocol arguments. [Repository instructions](../README.md)
 
+## Restart a training Pod
+
+From the project checkout, inspect the space available for restoring the packages. The preflight reads the two pinned package manifests and works on a Mac.
+
+```bash
+python3 scripts/restore_gpu_envs.py --plan
+df -h /workspace /opt
+```
+
+On the Linux GPU host, run the following commands. The script first checks the historical environments at `/opt/trainenv` and `/opt/evalenv`. On a host with an empty container disk, it creates independent environments and a shared uv cache in Git-ignored `local/envs/round2` on the mounted project volume. The script checks available space before each installation. Choose `--env-root /opt/cs260d-envs` on both commands if the container disk is better suited for the packages; on a stop, those installations may need to be recreated. Keep enough space on the project volume for run artifacts. The first-stage receipt is available as soon as the training environment verifies.
+
+```bash
+python3 scripts/restore_gpu_envs.py --stage train
+python3 scripts/restore_gpu_envs.py --stage vllm
+```
+
+The JSON output for each stage records the interpreter path for the controller, the pinned manifest hash, the CUDA version and the GPU model. On the host each check validates every pinned package, imports the interfaces used in that stage, and runs a small BF16 device calculation. `--check-only` repeats the checks without installing packages or writing files. The full installation logs and JSON verification records are written under the selected environment root. The training and generation checks do not load any model or evaluation examples.
+
 ## What was verified
 
 The three manifests were compared package by package to the saved Linux installation logs, including the final training-package adjustments. The proxy score receipt confirms ms-swift, Transformers, PyTorch and PEFT. The selection receipt records the imported NumPy and scikit-learn versions. The generation receipt records vLLM, PyTorch and Transformers. Host-level packages also appear in the historical metadata dump, e.g. CUDA 12.9 and another NumPy build. The pins here follow the venv installation and the stage-specific runtime receipts.
