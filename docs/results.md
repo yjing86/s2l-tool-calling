@@ -1,5 +1,25 @@
 # Does tracking tool names and argument values separately improve training-data selection?
 
+## Five-seed follow-up
+
+Each entry is mean complete-call accuracy over seeds 42–46 on the same 400 development and 2,000 previously examined test requests.
+
+| Sampling policy | Development | Original test |
+|---|---:|---:|
+| A · Uniform random | 56.10% | 54.95% |
+| B · Whole-answer trajectories | 54.45% | 53.75% |
+| C · Separate name and value trajectories | 53.25% | 54.65% |
+| E2 · Random, matched to B on argument length | 55.65% | 54.90% |
+| E2b · Random, matched to B on difficulty | 54.90% | 55.38% |
+| L-short · Short-argument sampling | 54.65% | 55.36% |
+| L-long · Long-argument sampling | 55.25% | 54.53% |
+
+On the original test, C exceeded B by 0.90 percentage points on average. The first three seeds averaged +1.53 points. The two additional seeds gave +0.40 and −0.50, averaging −0.05. C also trailed uniform random sampling by 0.30 points on this test and trailed B by 1.20 points on development. The additional seeds weaken the initial evidence for a field-selection advantage.
+
+Matching B’s argument-length distribution alone produced an E2 minus A difference of −0.05 points on the original test. Long minus short sampling yielded −0.83 points on that test and +0.60 on development. These results leave the explanation for B’s deficit unresolved. The independent December 5 evaluation will use the frozen model panel. [Paired results by seed](../results/followup/round2-legacy.json) · [Frozen panel commitment](../results/followup/round2-holdout-freeze.json)
+
+## Initial three-seed results
+
 **On 2,000 held-out Turnstile requests requiring a single tool call, field-based selection outperformed whole-answer selection by an average of 1.53 percentage points. The difference was positive for all three seeds. Uniform random sampling had the highest mean accuracy.** With the same target-model training-token budget, complete-call accuracy averaged 55.68% for random sampling (A), 53.70% for whole-answer trajectories (B), and 55.23% for separate field trajectories (C). The paired 95% interval for C minus B was **+0.60 to +2.48** percentage points. C minus A averaged **−0.45** points, with an interval of **−1.42 to +0.53**. On both external BFCL single-turn subsets, C scored below B on average.
 
 ## Experimental comparison
