@@ -1,6 +1,6 @@
 # Round 2 internal evaluation
 
-The registered panel has 47 endpoints: the base, 26 archived adapters and 20 new token-matched training endpoints. Every endpoint is evaluated on the same 1,500 reserved requests, for 70,500 generations. The earliest opening is **December 5, 2026 at 00:00 Los Angeles time (08:00 UTC)**. Complete the external BFCL protocol separately. [Round 2 registration](../results/followup/round2-registration.json)
+The registered panel has 47 endpoints: the base, 26 archived adapters and 20 new token-matched training endpoints. Every endpoint is evaluated on the same 1,500 reserved requests, for 70,500 generations. The original registration set December 5, 2026 at 00:00 Los Angeles time as the earliest opening. A published November 25 amendment authorizes earlier evaluation using the same frozen panel and scoring rules. [Opening-date amendment](round2-opening-amendment.md) Complete the external BFCL protocol separately. [Round 2 registration](../results/followup/round2-registration.json)
 
 ## Before opening
 
@@ -24,7 +24,7 @@ Run from a Git checkout with an up-to-date `origin/main`. Stage the existing pri
 
 ```bash
 git fetch origin main
-python scripts/round2_holdout.py run --anchor-commit "$FREEZE_COMMIT" \
+python scripts/round2_amended_opening.py run \
   --training-python "$TRAIN_PY" --eval-python "$VLLM_PY"
 ```
 
@@ -33,7 +33,7 @@ The runner checks the date, public Git commitment, complete model panel, origina
 For an interrupted run, use the same command, checkout, artifact tree and freeze commit. Finished endpoints are revalidated. A failed worker attempt remains under `holdout-evaluation/attempts/`; the next attempt uses the same weights, settings, input bytes and prompts. A mismatching published freeze, a changed complete output, missing predictions or an incomplete panel stop the workflow. When all 47 endpoints are verified, `holdout-evaluation/summary.json` records the aggregate results and input/output checksums. To reproduce it on a CPU machine with the complete archive:
 
 ```bash
-python scripts/round2_holdout.py summarize --anchor-commit "$FREEZE_COMMIT"
+python scripts/round2_amended_opening.py summarize
 ```
 
 The primary comparison is the preregistered one-sided paired test of C minus B across five seeds. The summary also reports seed-specific differences and their uncertainty, jointly resampled request-group intervals, the separate old/new seed means, and the prespecified descriptive contrasts. Per-request data and model outputs stay under `local/`. [Statistical implementation](../scripts/round2_holdout_stats.py)

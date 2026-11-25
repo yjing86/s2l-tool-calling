@@ -80,7 +80,7 @@
 
 **8:40–10:00 · 1 min 20 s**
 
-**On screen.** Show the five-seed results: A 54.95%, B 53.75%, C 54.65%. The December 5 evaluation will test C against B on 1,500 reserved requests.
+**On screen.** Show the five-seed results: A 54.95%, B 53.75%, C 54.65%. The amended holdout evaluation tests C against B on 1,500 reserved requests.
 
 **Say.** “We added two seeds on the same test requests. C minus B was +0.40 and −0.50 points. The initial gain shrank, and matching the length distribution of B in random sampling gave nearly the same five-seed accuracy as unrestricted random sampling. We cannot attribute the original deficit to length alone. Random sampling also saves the roughly 41 minutes of proxy training and scoring on one A40.
 
