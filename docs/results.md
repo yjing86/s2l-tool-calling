@@ -16,7 +16,22 @@ Each entry is mean complete-call accuracy over seeds 42–46 on the same 400 dev
 
 On the original test, C exceeded B by 0.90 percentage points on average. The first three seeds averaged +1.53 points. The two additional seeds gave +0.40 and −0.50, averaging −0.05. C also trailed uniform random sampling by 0.30 points on this test and trailed B by 1.20 points on development. The additional seeds weaken the initial evidence for a field-selection advantage.
 
-Matching B’s argument-length distribution alone produced an E2 minus A difference of −0.05 points on the original test. Long minus short sampling yielded −0.83 points on that test and +0.60 on development. These results leave the explanation for B’s deficit unresolved. The independent December 5 evaluation will use the frozen model panel. [Paired results by seed](../results/followup/round2-legacy.json) · [Frozen panel commitment](../results/followup/round2-holdout-freeze.json)
+Matching B’s argument-length distribution alone produced an E2 minus A difference of −0.05 points on the original test. Long minus short sampling yielded −0.83 points on that test and +0.60 on development. These results leave the explanation for B’s deficit unresolved. The independent evaluation uses the frozen panel under the [published early-opening amendment](round2-opening-amendment.md). [Paired results by seed](../results/followup/round2-legacy.json) · [Frozen panel commitment](../results/followup/round2-holdout-freeze.json)
+
+## Paired differences and measured compute
+
+Each column compares two trained configurations on the same 2,000 original test requests at a matched seed. Differences are percentage points. The descriptive two-sided 95% t interval uses the five seed differences (4 degrees of freedom) and holds the requests fixed.
+
+| Contrast | 42 | 43 | 44 | 45 | 46 | Mean | 95% CI |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| C − B | +2.40 | +1.05 | +1.15 | +0.40 | -0.50 | +0.90 | [-0.42, +2.22] |
+| C − A | -0.80 | -0.85 | +0.30 | +0.05 | -0.20 | -0.30 | [-0.93, +0.33] |
+| B − A | -3.20 | -1.90 | -0.85 | -0.35 | +0.30 | -1.20 | [-2.91, +0.51] |
+| E2 − A | -1.85 | -0.75 | -1.15 | +0.55 | +2.95 | -0.05 | [-2.40, +2.30] |
+| E2b − A | +0.40 | -1.45 | +0.10 | +0.65 | +2.45 | +0.43 | [-1.30, +2.16] |
+| L-long − L-short | -1.45 | -1.35 | +0.60 | -0.40 | -1.55 | -0.83 | [-1.98, +0.32] |
+
+Across the 20 additional fits on one A40, successful training processes took 5.49 hours, development inference 1.34 hours and original-test inference 5.06 hours (11.89 hours total). These durations include process startup. Pilot runs, failed attempts, BFCL and the independent holdout are outside this total.
 
 ## External evaluation on BFCL Live
 
