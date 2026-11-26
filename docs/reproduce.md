@@ -144,3 +144,44 @@ The CPU difficulty and exposure audit compares proxy loss at a fixed argument le
 On an interrupted run, inspect the last ledger event and the task log. Retry with the same absolute paths, interpreters, deadline, batch and output directory. The driver validates completed tasks against stored arguments and output hashes. An unclean interruption may require confirming that the child process has exited and preserving partial files before retrying. Keep the ignored `local/` archive on storage you control. The public checkout distributes code, synthetic examples, reference checksums and aggregate results. The raw Turnstile material remains subject to its publisher's CC BY-NC 4.0 terms. [Turnstile dataset card](https://huggingface.co/datasets/amazon/Turnstile-Synthetic-Domains)
 
 **Verification scope.** The released A40 results supply the reference files and measured settings. An independent CPU replay regenerated all six split/audit files and both BFCL preparation files byte-for-byte. Given the original five proxy score files, it also regenerated all twelve ordered subset lists across the three seeds. A clean temporary checkout fetched the pinned BFCL tree from GitHub and reconstructed the original smoke input byte-for-byte. The recorded design and eleven locked endpoint labels match the public reference. A new clean-room GPU retrain from this public guide has yet to be run.
+
+## 8. Rebuild the matched-token and 10% follow-up
+
+This stage uses the completed earlier runs as inputs. It reuses the five proxy score files, the archived seed-42 reference adapter, the previous round's cached generation prompts, and its scored 25% controls. The public repository records their identities. The original weights and request-level generations stay in the private run archive. An exact audit requires that archive. A fresh retraining on another GPU can produce different weights even with the same seed.
+
+Run from the clone root on Linux. Set `ARCHIVE` to the absolute directory that contains `course-run/`, `full-reference/` and `followup/` from the earlier stages. The example uses the default layout. Use the training and vLLM interpreters configured in section 2.
+
+```bash
+ARCHIVE="$PWD/local"
+R3="$PWD/local/followup/round3-replay"
+INPUT="$R3/inputs"
+OLD="$ARCHIVE/followup/round2/holdout-evaluation"
+mkdir -p "$INPUT/full10-s42"
+cp "$ARCHIVE/course-run/frozen/train.jsonl" "$INPUT/train.jsonl"
+cp "$ARCHIVE/course-run/training/s42-A/run.json" "$INPUT/reference-run.json"
+cp "$ARCHIVE/followup/holdout-v2/test.jsonl" "$INPUT/test.jsonl"
+cp "$OLD/prompts/"{prompts.jsonl,prepare.json} "$INPUT/"
+cp "$ARCHIVE/full-reference/training/checkpoint-50/"{adapter_model.safetensors,adapter_config.json} "$INPUT/full10-s42/"
+python3 -c 'import json,sys; print(json.dumps(json.load(open(sys.argv[1]))["provenance"]))' "$OLD/summary.json" > "$INPUT/holdout-provenance.json"
+for seed in 42 43 44 45 46; do
+    "$TRAIN_PY" scripts/select_experiment.py --train "$INPUT/train.jsonl" \
+        --scores "$ARCHIVE/course-run/scores" --size 400 --clusters 10 \
+        --seed "$seed" --cluster-seed 42 --out "$INPUT/selection/$seed"
+done
+python3 scripts/register_round3.py "$ARCHIVE" "$INPUT/selection" > "$R3/reconstructed-registration.json"
+python3 -c 'import json,sys; assert json.load(open(sys.argv[1])) == json.load(open(sys.argv[2]))' \
+    "$R3/reconstructed-registration.json" results/followup/round3-registration.json
+```
+
+The selector requires a fresh output directory for each seed. After preparing the inputs, run the following two commands in sequence. The first trains all 19 adapters and freezes 24 evaluation configurations. The second verifies the saved checkpoints and generates 1,500 calls per configuration. Returning to the same output directory reuses completed runs. Existing attempts are kept separately.
+
+```bash
+args=(--inputs "$INPUT" --out "$R3/output" --model "$ARCHIVE/models/Qwen3.5-2B"
+      --train-python "$TRAIN_PY" --eval-python "$VLLM_PY")
+"$TRAIN_PY" scripts/run_round3.py "${args[@]}" --train-only
+"$TRAIN_PY" scripts/run_round3.py "${args[@]}"
+"$TRAIN_PY" scripts/summarize_round3.py --run "$R3/output" --historical "$OLD" \
+    --data "$INPUT/test.jsonl" --out "$R3/results.json"
+```
+
+Inspect `output/training/*/steps.jsonl` for the first optimizer update crossing each token threshold. Inspect `output/freeze.json` for the adapter identities and `output/predictions/*/config.json` for the actual prompts, generation settings and software versions. The last command regrades every raw response and checks the archived controls before calculating the paired effects. The model-by-seed comparison uses five pairs. The 36,000 new outputs cover 1,500 distinct test requests.
