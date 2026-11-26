@@ -1,5 +1,11 @@
 # S2L for Tool Calling
 
+## Project materials
+
+- [Project report (PDF)](deliverables/report.pdf)
+- [Presentation slides (editable PowerPoint)](deliverables/presentation.pptx)
+- [One-page project summary (PDF)](deliverables/summary.pdf)
+
 When the subset shrank to 400 examples, field-aware selection averaged 52.92% exact-call accuracy against 53.41% for uniform sampling (−0.49 percentage points, Holm-adjusted p = 0.564). At the larger matched token budget, full-pool sampling averaged 56.20% against 55.19% for the fixed random subset (+1.01 points, adjusted p = 0.094). Both comparisons reused the same 1,500 requests. Uniform sampling remains a low-cost default when a fixed subset is required.
 
 Across five seeds on 1,500 reserved Turnstile single-call requests, complete-call accuracy averaged 55.19% for uniform random sampling (A), 54.57% for whole-answer trajectories (B), and 54.65% for field trajectories (C). C minus B averaged +0.08 percentage points (preregistered one-sided paired p = 0.456). The primary test did not reach the registered 0.05 threshold. [Full results](docs/results.md)
