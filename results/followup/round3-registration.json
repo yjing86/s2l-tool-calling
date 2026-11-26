@@ -1,0 +1,155 @@
+{
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46
+  ],
+  "pool_examples": 4000,
+  "pool_tokens": 6010456,
+  "target_input_tokens": {
+    "400": 1202092,
+    "1000": 3005228
+  },
+  "frozen_pool_sha256": "fd0ee69020ff537165b0fc405883f33ea2269ccc14cd4a231f62e5aff32e6001",
+  "subsets": {
+    "s42-A": {
+      "sha256": "163c22dfb154b9eea99a3c67389108414f2b80d7795bcad5569c8b2cb014da7b",
+      "size": 400,
+      "mean_value_tokens": 14.76,
+      "functions": 318,
+      "overlap_with_25pct": 104
+    },
+    "s42-B": {
+      "sha256": "91a524681005ac6fd156b22adb243de3463369f2a63eccccacff4ad51be5a249",
+      "size": 400,
+      "mean_value_tokens": 21.445,
+      "functions": 304,
+      "overlap_with_25pct": 400
+    },
+    "s42-C": {
+      "sha256": "39febf4c682bc5f1cdbdbc161abb138d1cea08f9d9933e2686727cd6ad233f0f",
+      "size": 400,
+      "mean_value_tokens": 19.75,
+      "functions": 283,
+      "overlap_with_25pct": 400
+    },
+    "s43-A": {
+      "sha256": "64cd609e29ce6e1409d675c93e27453e6577e227a36072b983647de99bf7e290",
+      "size": 400,
+      "mean_value_tokens": 17.045,
+      "functions": 323,
+      "overlap_with_25pct": 91
+    },
+    "s43-B": {
+      "sha256": "f7f708fb78a130da8614957337cb34b987cfde8301b29264d4c4c1b27cfa75d5",
+      "size": 400,
+      "mean_value_tokens": 23.3075,
+      "functions": 298,
+      "overlap_with_25pct": 400
+    },
+    "s43-C": {
+      "sha256": "737f61311db02f2ff3c106f868e624a4ad01b4e419efad7b86b7c52cbacc76e0",
+      "size": 400,
+      "mean_value_tokens": 18.9025,
+      "functions": 283,
+      "overlap_with_25pct": 400
+    },
+    "s44-A": {
+      "sha256": "6193523e270e19c88e4203b2d9507cb5881c4b40af5ae681a66d6ea2f4d486e6",
+      "size": 400,
+      "mean_value_tokens": 17.3075,
+      "functions": 327,
+      "overlap_with_25pct": 96
+    },
+    "s44-B": {
+      "sha256": "0cd65148b3356b4e30218846cd71f1ffdc08c80b9a04655cbc52f9ced13196bc",
+      "size": 400,
+      "mean_value_tokens": 22.7475,
+      "functions": 297,
+      "overlap_with_25pct": 400
+    },
+    "s44-C": {
+      "sha256": "2cf91677d1a5ca969367dde91dfde94b25d0066b579111cfae7796ec5957d953",
+      "size": 400,
+      "mean_value_tokens": 18.4975,
+      "functions": 280,
+      "overlap_with_25pct": 400
+    },
+    "s45-A": {
+      "sha256": "62032e7cb23789b8f33d5ab2b379f67654ae9f3480f41bfbb44867722c195d44",
+      "size": 400,
+      "mean_value_tokens": 15.4125,
+      "functions": 324,
+      "overlap_with_25pct": 94
+    },
+    "s45-B": {
+      "sha256": "24814bc6d7111f84eb254cbcb9618eb1b3fe28c3a586b41fa1fa564f064a1037",
+      "size": 400,
+      "mean_value_tokens": 23.0975,
+      "functions": 293,
+      "overlap_with_25pct": 400
+    },
+    "s45-C": {
+      "sha256": "0fd72775d42c92ca7db7c3d87a2cfc282d436c670950f65a960ce370add812fa",
+      "size": 400,
+      "mean_value_tokens": 18.58,
+      "functions": 278,
+      "overlap_with_25pct": 400
+    },
+    "s46-A": {
+      "sha256": "80ed5d9252c3907611933b13c807f1384df356cf0c0d596ce7a2faef8b925415",
+      "size": 400,
+      "mean_value_tokens": 15.76,
+      "functions": 310,
+      "overlap_with_25pct": 103
+    },
+    "s46-B": {
+      "sha256": "0f77a90953a5e36447fa3c41f5b96f27e8e17507c5b7618ae877345d3e13874f",
+      "size": 400,
+      "mean_value_tokens": 23.35,
+      "functions": 297,
+      "overlap_with_25pct": 400
+    },
+    "s46-C": {
+      "sha256": "ec65b43bf1a4e520904a749178707f06e5e8106162722ac773099d9417f6e6eb",
+      "size": 400,
+      "mean_value_tokens": 19.4775,
+      "functions": 283,
+      "overlap_with_25pct": 400
+    }
+  },
+  "historical_full_seed42": {
+    "full10": {
+      "step": 50,
+      "weights_sha256": "68334f35e3c406e6d7898a0796fc2d1b07203b2a2b356e68f067f75a1946685e",
+      "config_sha256": "bda9bb2399419952fbed815fe60a26820407fa1123526f220435eec7476bd094"
+    },
+    "full25": {
+      "step": 125,
+      "weights_sha256": "be7ac7b29194a2d1a56c66cda9bd9bc10ddbc22039cd48c1c5d07f010bf65ace",
+      "config_sha256": "bda9bb2399419952fbed815fe60a26820407fa1123526f220435eec7476bd094"
+    }
+  },
+  "target": "Qwen3.5-2B; Round 2 LoRA, constant schedule with five warmup steps, microbatch 4, effective batch 16; complete reference-call objective",
+  "selection": "Frozen 0.8B proxy, steps 0/10/30/80/250; select_experiment.py with size=400, k=10, cluster seed 42; paired selection and training seeds",
+  "planned_fits": "4 full-pool fits seeds 43-46, saving first optimizer crossings of both budgets; 15 subset fits (A,B,C x 5 seeds) saving first crossing of the smaller budget",
+  "evaluation": "Reuse Round 2 prompts, greedy scorer and 1500 previously examined holdout-v2 requests. Freeze all weights before new inference. No development or legacy testing.",
+  "historical_holdout_sha256": "f106a4793ff6a175db9abb997180987139b88098ac42db7f92800cfb14bd64d5",
+  "holdout_sha256": "ecf9f0f9d5ad82aba3d361f6d086cb0bbfbfb5c61cf9cfda5a432aad34b3da9d",
+  "primary": [
+    "full25-A25",
+    "C10-A10"
+  ],
+  "primary_test": "Two-sided paired seed t tests, df=4, Holm familywise alpha 0.05",
+  "secondary": [
+    "B10-A10",
+    "C10-B10",
+    "full10-A10",
+    "(C10-A10)-(C25-A25)"
+  ],
+  "uncertainty": "Report each seed delta, two-sided 95% seed t interval, fixed-model paired request-group bootstrap with 10000 draws and seed 260205",
+  "noise": "Both previously measured splits; sample SD, enumerate all ten triples, noncentral t planning at one-sided alpha .05, power .8 for 1 and 2 points; precision curve at observed C-B SD. Historical triple frequencies are descriptive.",
+  "interpretation": "Follow-up on a previously examined test set. No equivalence claim from nonsignificance, and budget-specific superiority requires a comparison of effects."
+}
