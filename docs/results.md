@@ -1,5 +1,13 @@
 # Does tracking tool names and argument values separately improve training-data selection?
 
+## Third round: seed sensitivity and budget controls
+
+We fixed 15 independent method-by-seed subsets of 400 examples each before training. Each 10% run stops on first crossing 1,202,092 input tokens. Four new full-pool runs also save the first crossing of 3,005,228 tokens. The archived seed-42 full-pool model first crossed the smaller threshold at step 50 (1,203,490 tokens), and that adapter was retained. The two primary comparisons use paired seeds and Holm correction. The 1,500 evaluation requests were already examined in Round 2, including the seed-42 full-pool comparison. [Registration and split hashes](../results/followup/round3-registration.json)
+
+**Completed CPU analysis.** Of the ten triples obtainable from the five observed seeds, four had positive C minus B differences at all three seeds on the original test. None did on the reserved test. These are frequencies within five specific runs. The paired-difference SD was 1.07 points on the original test and 1.52 points on the reserved test. At the latter SD, a planning calculation estimates 16 paired seeds for 80% power to detect a 1-point gain, or six for a 2-point gain (one-sided alpha 0.05). The variance estimate itself comes from only five pairs. This design calculation is separate from the two-sided Holm-adjusted tests for the new fits. [All method SDs, triples and power estimates](../results/followup/round3-seed-noise.json)
+
+![Projected interval half-width for the paired C minus B contrast as the number of seeds increases.](figures/round3-seed-precision.png)
+
 ## Final evaluation on 1,500 reserved requests
 
 Across five seeds on 1,500 reserved Turnstile single-call requests, complete-call accuracy averaged 55.19% for uniform random sampling (A), 54.57% for whole-answer trajectories (B), and 54.65% for field trajectories (C). C minus B averaged +0.08 percentage points (preregistered one-sided paired p = 0.456). The primary test did not reach the registered 0.05 threshold. The descriptive difference between C and uniform random sampling was -0.53 points.
