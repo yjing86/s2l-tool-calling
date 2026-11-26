@@ -1,94 +1,46 @@
-# Which 1,000 Tool Calls Should We Train On?
+# Which 1,000 tool calls should we train on?
 
-Across five seeds on 1,500 reserved Turnstile single-call requests, complete-call accuracy averaged 55.19% for uniform random sampling (A), 54.57% for whole-answer trajectories (B), and 54.65% for field trajectories (C). C minus B averaged +0.08 percentage points (preregistered one-sided paired p = 0.456). The primary test did not reach the registered 0.05 threshold.
+Ten-minute presentation for four speakers. Aim to finish at 9:35. Speaker assignments below are for rehearsal. Each person should describe their actual contribution when asked.
 
-**Ten-minute research talk · six slides.** Which 1,000 tool calls should we select from 4,000 candidates? The first three seeds suggested that separate field trajectories helped. The two additional seeds averaged −0.05 percentage points for C minus B. Across all five seeds on the same 2,000 requests, C averaged 0.90 points above B and 0.30 below uniform random sampling. Slides 3–5 revisit the initial three-seed results; slide 6 gives the five-seed follow-up. [Results and scoring protocol](results.md)
+## 1 · What makes a useful training example? (0:00–1:10, speaker 1)
 
-## 1. A correct tool can still produce a wrong call
+**Show** a request to set a reminder for 3 p.m. and a generated call containing the correct tool and the time `03:00`. Ask the audience to score the response before revealing the answer.
 
-**0:00–1:15 · 1 min 15 s**
+**Say:** “Would you trust this reminder? The model wrote valid JSON and chose the right tool, but it will wake you twelve hours early. Our evaluator gives that call zero credit. Now imagine choosing 1,000 training requests out of 4,000. A whole-answer average gives credit for every predictable token, even when the time is hard to predict. Could a small model select better training examples if we tracked the name and argument values separately? We expected this change to help the target model generate more correct calls.”
 
-**On screen.** Show this invented example in two steps. Reveal the expected call, then change `"15:00"` to `"03:00"` and ask the audience to score it. The JSON illustrates the fields and can be displayed without any dataset records.
+## 2 · What comes from S2L, and what did we change? (1:10–2:30, speaker 1)
 
-> “Set a reminder for 3 p.m. on May 12, 2027.”
+**Show** two example learning curves with similar final loss and different early histories. Label them illustrative. Then show one whole-answer curve per example for B and two field curves for C.
 
-```json
-{"name": "set_reminder", "arguments": {"date": "2027-05-12", "time": "15:00"}}
-```
+**Say:** “SmallToLarge measures how an example’s loss changes while a small proxy model learns. It clusters examples with similar trajectories and samples across clusters. We kept that idea and changed what the proxy measures. At each checkpoint we separately average the losses on the correct function name and on the correct argument values. Imagine a request with a familiar function and an unfamiliar date expression. Two field means can preserve a distinction that one average hides. Whether the distinction helps a larger model is an empirical question.” [S2L paper](https://proceedings.neurips.cc/paper_files/paper/2024/hash/97fe251c25b6f99a2a23b330a75b11d4-Abstract-Conference.html)
 
-**Say.** “The model chose the right tool, supplied both required arguments and produced valid JSON. How much credit should it get for waking you at three in the morning? Under our complete-call metric, zero. We give credit when the output parses and its call count, function and complete argument object match the reference under the scorer's rules. We evaluate the generated call before execution.
+## 3 · How do we isolate the value of selection? (2:30–4:25, speaker 2)
 
-“Now put yourself in the position of the person choosing the training data. A small model can assign high probability to the familiar tool name and punctuation yet struggle with the value that decides whether we wake you up. If we average over the whole response, will we still pick the examples that teach the larger model what it needs? That's the question we tested.” [What the internal scorer checks](results.md#experimental-comparison)
+**Show** one pipeline: 4,000 Turnstile candidates → one 0.8B proxy → steps 0, 10, 30, 80, 250 → selectors → 1,000 examples per run → 2B LoRA fine-tuning. Label A uniform random, B five whole-answer features, C ten field features.
 
-## 2. How a small model selects examples
+**Say:** “We trained the proxy once. At each checkpoint it saw the request and the correct answer prefix. One forward pass gave us token losses that we could average over different positions. Both trajectory selectors standardized their features, used ten clusters and distributed the 1,000 places as evenly as possible. The random baseline skipped the proxy. All target models learned the complete reference call with the same training objective and about three million nonpadding input tokens. C versus B asks whether the representation helps. C versus A asks whether it is worth computing at all. We scored generated calls on the same requests so each comparison is paired.” [Implementation and budgets](reproduce.md)
 
-**1:15–3:00 · 1 min 45 s**
+## 4 · Would our early result repeat? (4:25–6:30, speaker 3)
 
-**On screen.** Draw one row showing **4,000 candidates → 0.8B proxy → five measurements per candidate → 10 clusters → 1,000 selected → 2B target**. Under the measurements, label the five training steps **0, 10, 30, 80, 250**. Use the name and value curves in the [proxy dynamics figure](figures/proxy-dynamics.png) to illustrate why early checkpoints matter.
+**Show** three numbers, one at a time: C minus B was +1.53 points on the original test with three seeds, +0.90 on that same test with five seeds, and +0.08 on new requests with the same five seeds. Then show the reserved-test scores: base 47.27%, A 55.19%, B 54.57%, C 54.65%.
 
-**Say.** “SmallToLarge, or S2L, follows the *same* example over training. At each checkpoint the proxy sees the request and the correct answer prefix. If it assigns a low probability to the next reference token, that token has high loss. Averaging the losses gives one number for the answer. Read the five measurements in order and you get a learning trajectory. An example that starts hard and becomes easy can finish with exactly the same loss as one that was easy all along. Clustering the curves lets us give examples from both patterns a place in the training set.” [Original S2L paper](https://proceedings.neurips.cc/paper_files/paper/2024/hash/97fe251c25b6f99a2a23b330a75b11d4-Abstract-Conference.html)
+**Say:** “The first three runs all favored separate fields. Had we stopped there, we might have recommended them. Adding two seeds weakened the result. We then used 1,500 previously unused request groups with the models and primary test fixed before opening. C beat B in two of five seeds. Across 7,500 paired answers C got six more right. The five-seed interval for the difference runs from −1.80 to +1.96 percentage points. The registered one-sided p-value was 0.456. Our experiment did not establish a repeatable improvement. It still allows modest gains or losses. In contrast, even random-subset fine-tuning improved on the untuned model by 7.92 points.” [Reserved-test figure and results](results.md)
 
-“Our change is about **which tokens supply that curve**. From one forward pass we can average the name tokens and the argument-value tokens separately. By the final checkpoint, 96% of candidates had very low name loss, compared with 30% for values, using the same 0.01 cutoff. We tested whether those two curves were useful for choosing data. We trained the proxy once, then reused its measurements. Both the proxy and every target still trained with the usual loss across the complete reference answer. Once a subset was picked, the 2B model saw ordinary requests paired with complete calls.” [Field-loss validation](field-loss-validation.md) · [Proxy measurements](results.md#from-proxy-loss-to-downstream-errors)
+## 5 · Did the selector choose too many long arguments? (6:30–8:00, speaker 4)
 
-## 3. What does a fair comparison buy us?
+**Show** the observed training-set means of 19.58 argument-value tokens for B and 15.37 for A in the initial analysis. Beside them put the new-test long-minus-short effect of −0.15 points, with its five-seed 95% interval [−1.00, +0.70].
 
-**3:00–4:50 · 1 min 50 s**
+**Say:** “We could see a length bias in what the original selector picked. To test whether that explained the performance gap, we changed the sampling policy directly. We drew randomly within length bins, targeting means of roughly 12 or 24 argument-value tokens, then retrained at the same target-token budget. The long group trailed the short group by only 0.15 points on the new requests. Matching B’s length quotas in a random selector also produced accuracy close to uniform random. We can document the sampling bias. These controls leave its role in downstream accuracy unresolved.” [Sampling controls](results.md)
 
-**On screen.** Use the [held-out accuracy figure](figures/heldout-results.png). Show the unadapted 2B baseline first, then uncover A, B and C. Read the left panel as absolute accuracy and the right panel as a paired difference.
+## 6 · What should we do with the next GPU hour? (8:00–9:35, speaker 4)
 
-| Model or selector | How the 1,000 examples are chosen | Complete calls correct |
-|---|---|---:|
-| Base 2B | Before fine-tuning | 47.20% |
-| A · Random | Uniform draw from the 4,000 candidates | 55.68% |
-| B · Whole answer | Cluster five whole-answer means per candidate | 53.70% |
-| C · Separate fields | Cluster five name means and five value means per candidate | 55.23% |
+**Show** one recommendation, one boundary, and one concrete proposed analysis for the December 11 report.
 
-**Say.** “We grouped exact and near-duplicate requests before splitting to limit leakage across sets. For the two trajectory methods we standardized the features, clustered them and allocated places as evenly as possible across clusters. Only the selector changed. Each target started from the same Qwen3.5-2B weights, used the same LoRA settings and stopped on first reaching about three million non-padding input tokens. That budget includes the prompt. Every model answered the same 2,000 single-call requests. We repeated subset selection and training with three paired seeds and locked the test endpoints in advance.
+**Say:** “For a single fine-tune at this budget, we would sample randomly. On the reserved requests it scored 55.19%, compared with 54.65% for our method, and avoided about 41 minutes of proxy work on an A40. Our evidence covers one target-model family and single-call requests. For the report, we propose using the existing predictions to separate values copied from the request from values requiring a transformation, like converting a relative date. We would define the categories before checking the method differences, annotate without seeing model outputs, report group sizes and paired differences, and mark the analysis exploratory. That would tell us where to look in a new study. The main result is already clear enough to guide a training decision: we have no measured return on the extra selection cost in this setting.”
 
-“Here is what each comparison buys us. Fine-tuning on a random quarter of the pool lifted accuracy from 47.20% to 55.68%. C beat B by 2.40, 1.05 and 1.15 points in the three runs, averaging **+1.53 pp**. But picking data with C finished **0.45 pp below A** on average, with a paired request-group interval of **−1.42 to +0.53**. So we have evidence that the representation matters to this selector, and a cheap baseline that still led on average. Which part of the representation made the difference?” [Primary results](results.md#held-out-turnstile-results)
+## Rehearsal and individual defense
 
-## 4. Where does the field gain come from?
-
-**4:50–6:30 · 1 min 40 s**
-
-**On screen.** Show **B, 53.70% → B′, 54.77% → C, 55.23%**. Under B′ write “pool name and value tokens into one mean per checkpoint.” Under C write “give each field its own mean.” The first two rows of the [follow-up interval figure](figures/followup-effects.png) show the paired contrasts. Differences use unrounded rates.
-
-**Say.** “Moving directly from B to C makes two changes at once. First we remove other answer tokens, including argument keys and syntax. Then we give the name and values separate coordinates. We built the intermediate method B-prime to distinguish these decisions. B-prime scores exactly the tokens C scores. A value with many tokens can dominate its pooled mean. C gives the name and value their own coordinate at each checkpoint.
-
-“Moving from B to B-prime gained **1.07 pp** across seeds, with a request-group interval of **+0.27 to +1.88**. Moving from B-prime to C gained a further **0.47 pp**, with a request-group interval from **−0.40 to +1.32**. The larger observed change came from where we measured loss. Three runs leave the extra benefit of keeping separate curves uncertain.
-
-“There are two kinds of uncertainty here. Take the headline C−B gap. If these trained models faced a different mix of test requests, jointly resampling the requests gives a 95% interval of **+0.60 to +2.48 pp**. Now hold the requests fixed. To see how stable the result is across selection and training seeds, use the three paired seed differences. They give a 95% t interval of **−0.34 to +3.40 pp**. With only three pairs, that second interval is wide. Both refer to the same +1.53-point estimate.” [Three-seed field controls](../results/followup/phase1-results.json) · [Both intervals for the headline contrast](../results/followup/p05-intervals.csv)
-
-## 5. Does the selector favor long or difficult arguments?
-
-**6:30–8:40 · 2 min 10 s**
-
-**On screen.** Build this table one row at a time. Use “length” for the number of tokens in the reference values. Use “difficulty” for how surprising those tokens were to the *initial 0.8B proxy*, measured by their average negative log-probability.
-
-| Selector | Length-bin counts | Difficulty-bin counts | Accuracy | Difference from A |
-|---|---|---|---:|---:|
-| A · Random | Observed in a uniform draw | Observed in the same draw | 55.68% | — |
-| B · Whole answer | Observed after trajectory selection | Observed after trajectory selection | 53.70% | −1.98 pp |
-| E2 · Length control | Matched to B | Free to vary | 54.43% | −1.25 pp |
-| E2b · Length and difficulty control | Matched to A | Matched to B | 55.37% | −0.32 pp |
-
-**Say.** “Why did B trail a uniform draw? B selected examples averaging 19.58 argument-value tokens. A selected examples averaging 15.37. B also selected more examples that the initial proxy found difficult, even among values of the same length. A rare cluster can get many slots when we balance quotas across clusters. This gave us two possible explanations to investigate.” [Training-pool difficulty audit](../results/followup/difficulty/README.md)
-
-“For E2, we copied the number of examples B took from each length bin and drew randomly within the bins. E2 finished below A in all three runs. Next we asked whether B's difficult values alone would reproduce its nearly two-point deficit. E2b kept A's counts by length bin but matched B's counts by difficulty bin. Its mean was just **0.32 pp below A**. The per-seed differences were **+0.40, −1.45 and +0.10 pp**. Both its request-group interval, **−1.20 to +0.58**, and its seed interval, **−2.78 to +2.15**, cover zero.
-
-“Matching B's length quotas cost accuracy in the random-within-bin comparison. Matching its difficulty mix at A-like lengths produced a much smaller average deficit. Narrower claims are warranted here. Different examples and tools enter each subset, length can still vary inside a bin, and E2b versus E2 changes *both* margins. These comparisons describe selection policies. Separate causal effects of length and difficulty would require a different design. We developed these checks after seeing the original test results, and evaluated them on those same requests.” [Phase 1 controls](../results/followup/phase1-results.json) · [E2b counts and paired comparisons](../results/followup/e2b-results.json)
-
-## 6. What can we take to the next experiment?
-
-**8:40–10:00 · 1 min 20 s**
-
-**On screen.** Show the five-seed results: A 54.95%, B 53.75%, C 54.65%. Beside these original-test means, show the reserved-test means of 55.19%, 54.57% and 54.65%.
-
-**Say.** “We added two seeds on the same test requests. C minus B was +0.40 and −0.50 points. The initial gain shrank, and matching the length distribution of B in random sampling gave nearly the same five-seed accuracy as unrestricted random sampling. We cannot attribute the original deficit to length alone. Random sampling also saves the roughly 41 minutes of proxy training and scoring on one A40.
-
-“Does the result travel to another benchmark? On BFCL Live we evaluated all five seeds on the same 556 requests. With one candidate tool, C gained 1.56 points over B but trailed random by 1.02. With multiple candidates, C gained 0.33 points over B and tied random at 72%. That leaves us with little practical reason to pay for the proxy in this setting.” [BFCL Live results](results.md#external-evaluation-on-bfcl-live)
-
-“On the 1,500 reserved requests, C gained six correct calls over B across 7,500 predictions, a difference of 0.08 percentage points. Its five-seed interval ran from −1.80 to +1.96. Random sampling scored 55.19% and avoided the proxy cost. I would use it for a single run at this budget.” [Frozen evaluation protocol](round2-holdout.md) · [Measured GPU time](../results/compute-time.json)
+The rubric assigns 15 points to idea and motivation, 10 to related work, 20 to methodology, 20 to experiments and interpretation, 15 to critical thinking and future directions, 5 to communication and 15 to Q&A. The rubric permits negative results and assigns grades individually. Reserve the last 25 seconds for handoffs or an overrun. Each member should be able to explain both comparisons, the training loss, the paired uncertainty, their own contribution and one limitation without a teammate answering first. If asked about early opening, explain that the date was amended publicly after inspecting the old test and external results and before seeing reserved outcomes. [Opening record](round2-opening-amendment.md)
 
 ## Backup questions
 
