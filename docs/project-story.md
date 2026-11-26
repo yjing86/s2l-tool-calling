@@ -1,5 +1,7 @@
 # Which 1,000 tool calls should we train on?
 
+Across five paired seeds, full-pool training at matched target tokens differed from the 25% random subset by +1.01 percentage points. At the 10% subset budget, field trajectories differed from uniform random by -0.49 points.
+
 Ten-minute presentation for four speakers. Aim to finish at 9:35. Speaker assignments below are for rehearsal. Each person should describe their actual contribution when asked.
 
 ## 1 · What makes a useful training example? (0:00–1:10, speaker 1)

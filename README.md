@@ -1,5 +1,7 @@
 # S2L for Tool Calling
 
+Across five paired seeds, full-pool training at matched target tokens differed from the 25% random subset by +1.01 percentage points. At the 10% subset budget, field trajectories differed from uniform random by -0.49 points.
+
 Across five seeds on 1,500 reserved Turnstile single-call requests, complete-call accuracy averaged 55.19% for uniform random sampling (A), 54.57% for whole-answer trajectories (B), and 54.65% for field trajectories (C). C minus B averaged +0.08 percentage points (preregistered one-sided paired p = 0.456). The primary test did not reach the registered 0.05 threshold. [Full results](docs/results.md)
 
 Can a small language model select better fine-tuning examples by tracking which function to call and which arguments to supply? This repository contains the data preparation, training, exact-match evaluator and results for a controlled experiment with Qwen3.5 and Amazon Turnstile.

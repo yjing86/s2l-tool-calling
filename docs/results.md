@@ -2,11 +2,41 @@
 
 ## Third round: seed sensitivity and budget controls
 
-We fixed 15 independent method-by-seed subsets of 400 examples each before training. Each 10% run stops on first crossing 1,202,092 input tokens. Four new full-pool runs also save the first crossing of 3,005,228 tokens. The archived seed-42 full-pool model first crossed the smaller threshold at step 50 (1,203,490 tokens), and that adapter was retained. The two primary comparisons use paired seeds and Holm correction. The 1,500 evaluation requests were already examined in Round 2, including the seed-42 full-pool comparison. [Registration and split hashes](../results/followup/round3-registration.json)
+We fixed 15 method-by-seed subsets of 400 examples each before training. Each 10% run stops on first crossing 1,202,092 input tokens. Four new full-pool runs also save the first crossing of 3,005,228 tokens. The archived seed-42 full-pool model first crossed the smaller threshold at step 50 (1,203,490 tokens), and that adapter was retained. The two primary comparisons use paired seeds and Holm correction. The 1,500 evaluation requests were already examined in Round 2, including the seed-42 full-pool comparison. [Registration and split hashes](../results/followup/round3-registration.json)
 
 **Completed CPU analysis.** Of the ten triples obtainable from the five observed seeds, four had positive C minus B differences at all three seeds on the original test. None did on the reserved test. These are frequencies within five specific runs. The paired-difference SD was 1.07 points on the original test and 1.52 points on the reserved test. At the latter SD, a planning calculation estimates 16 paired seeds for 80% power to detect a 1-point gain, or six for a 2-point gain (one-sided alpha 0.05). The variance estimate itself comes from only five pairs. This design calculation is separate from the two-sided Holm-adjusted tests for the new fits. [All method SDs, triples and power estimates](../results/followup/round3-seed-noise.json)
 
 ![Projected interval half-width for the paired C minus B contrast as the number of seeds increases.](figures/round3-seed-precision.png)
+
+### Third-round GPU results
+
+Across five paired seeds, full-pool training at matched target tokens differed from the 25% random subset by +1.01 percentage points. At the 10% subset budget, field trajectories differed from uniform random by -0.49 points.
+
+Nineteen new fits produced 24 newly evaluated configurations including the archived seed-42 early checkpoint. Each configuration answered the same 1,500 requests. The full-pool seed-42 reference and 25% random scores were already known on this test. Interpret this as a follow-up on reused requests.
+
+| Policy | 42 | 43 | 44 | 45 | 46 | Mean accuracy |
+|---|---:|---:|---:|---:|---:|---:|
+| A25 | 54.33% | 56.60% | 54.53% | 55.27% | 55.20% | 55.19% |
+| full25 | 56.47% | 57.40% | 55.93% | 55.27% | 55.93% | 56.20% |
+| A10 | 53.40% | 53.40% | 51.73% | 54.47% | 54.07% | 53.41% |
+| B10 | 53.80% | 53.60% | 52.00% | 52.67% | 52.80% | 52.97% |
+| C10 | 53.07% | 53.33% | 53.87% | 52.20% | 52.13% | 52.92% |
+| full10 | 55.27% | 54.20% | 53.47% | 53.60% | 55.00% | 54.31% |
+
+| Contrast (pp) | Five paired differences | Mean | Seed 95% CI | Request-group 95% CI | Holm p |
+|---|---|---:|---|---|---:|
+| full25-A25 | +2.13, +0.80, +1.40, +0.00, +0.73 | +1.01 | [+0.02, +2.01] | [+0.11, +1.91] | 0.0942 |
+| C10-A10 | -0.33, -0.07, +2.13, -2.27, -1.93 | -0.49 | [-2.67, +1.69] | [-1.41, +0.43] | 0.5638 |
+| B10-A10 | +0.40, +0.20, +0.27, -1.80, -1.27 | -0.44 | [-1.70, +0.82] | [-1.37, +0.52] | — |
+| C10-B10 | -0.73, -0.27, +1.87, -0.47, -0.67 | -0.05 | [-1.41, +1.30] | [-0.92, +0.85] | — |
+| full10-A10 | +1.87, +0.80, +1.73, -0.87, +0.93 | +0.89 | [-0.46, +2.25] | [+0.11, +1.73] | — |
+| (C10-A10)-(C25-A25) | -1.20, +2.07, +1.33, -1.27, -0.73 | +0.04 | [-1.89, +1.97] | [-1.13, +1.20] | — |
+
+**full25-A25** — positive mean effect, inconclusive after Holm adjustment.
+
+**C10-A10** — negative mean effect, inconclusive after Holm adjustment.
+
+The two main tests use two-sided paired t tests. Secondary contrasts are descriptive. The two budget policies change both subset size and training tokens, so their interaction compares those joint policies.
 
 ## Final evaluation on 1,500 reserved requests
 
