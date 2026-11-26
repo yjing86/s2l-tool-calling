@@ -1,5 +1,7 @@
 # Which 1,000 Tool Calls Should We Train On?
 
+Across five seeds on 1,500 reserved Turnstile single-call requests, complete-call accuracy averaged 55.19% for uniform random sampling (A), 54.57% for whole-answer trajectories (B), and 54.65% for field trajectories (C). C minus B averaged +0.08 percentage points (preregistered one-sided paired p = 0.456). The primary test did not reach the registered 0.05 threshold.
+
 **Ten-minute research talk · six slides.** Which 1,000 tool calls should we select from 4,000 candidates? The first three seeds suggested that separate field trajectories helped. The two additional seeds averaged −0.05 percentage points for C minus B. Across all five seeds on the same 2,000 requests, C averaged 0.90 points above B and 0.30 below uniform random sampling. Slides 3–5 revisit the initial three-seed results; slide 6 gives the five-seed follow-up. [Results and scoring protocol](results.md)
 
 ## 1. A correct tool can still produce a wrong call
@@ -80,13 +82,13 @@
 
 **8:40–10:00 · 1 min 20 s**
 
-**On screen.** Show the five-seed results: A 54.95%, B 53.75%, C 54.65%. The amended holdout evaluation tests C against B on 1,500 reserved requests.
+**On screen.** Show the five-seed results: A 54.95%, B 53.75%, C 54.65%. Beside these original-test means, show the reserved-test means of 55.19%, 54.57% and 54.65%.
 
 **Say.** “We added two seeds on the same test requests. C minus B was +0.40 and −0.50 points. The initial gain shrank, and matching the length distribution of B in random sampling gave nearly the same five-seed accuracy as unrestricted random sampling. We cannot attribute the original deficit to length alone. Random sampling also saves the roughly 41 minutes of proxy training and scoring on one A40.
 
 “Does the result travel to another benchmark? On BFCL Live we evaluated all five seeds on the same 556 requests. With one candidate tool, C gained 1.56 points over B but trailed random by 1.02. With multiple candidates, C gained 0.33 points over B and tied random at 72%. That leaves us with little practical reason to pay for the proxy in this setting.” [BFCL Live results](results.md#external-evaluation-on-bfcl-live)
 
-“We have frozen 47 model configurations. Our primary comparison on the reserved requests asks whether C beats B across paired seeds. C versus random is a secondary comparison. For a single training run today I would use random sampling. Its accuracy on the original test and its lower cost justify that choice.” [Frozen evaluation protocol](round2-holdout.md) · [Measured GPU time](../results/compute-time.json)
+“On the 1,500 reserved requests, C gained six correct calls over B across 7,500 predictions, a difference of 0.08 percentage points. Its five-seed interval ran from −1.80 to +1.96. Random sampling scored 55.19% and avoided the proxy cost. I would use it for a single run at this budget.” [Frozen evaluation protocol](round2-holdout.md) · [Measured GPU time](../results/compute-time.json)
 
 ## Backup questions
 

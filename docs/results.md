@@ -1,5 +1,65 @@
 # Does tracking tool names and argument values separately improve training-data selection?
 
+## Final evaluation on 1,500 reserved requests
+
+Across five seeds on 1,500 reserved Turnstile single-call requests, complete-call accuracy averaged 55.19% for uniform random sampling (A), 54.57% for whole-answer trajectories (B), and 54.65% for field trajectories (C). C minus B averaged +0.08 percentage points (preregistered one-sided paired p = 0.456). The primary test did not reach the registered 0.05 threshold. The descriptive difference between C and uniform random sampling was -0.53 points.
+
+For a 1,000-example fine-tune under this budget, uniform random sampling is the practical default. C produced six more correct predictions than B across 7,500 paired generations and 40 fewer than random. Its additional proxy training and scoring took about 41 minutes on an A40. The seed interval remains wide enough to include gains and losses of practical interest.
+
+**Design and score.** Each configuration answered the same requests. A correct generation matched the reference call count, function and complete argument object under the frozen scorer. The untuned model scored 709/1,500 (47.27%). The 47 configurations produced 70,500 predictions across 1,500 distinct request groups. The November 25 amendment advanced the original December 5 opening after the original-test and BFCL results were known and before observing any reserved outcomes. The public commitment fixed the models, requests, scoring and primary comparison.
+
+**Variation across seeds and requests.** The paired C minus B differences at seeds 42 through 46 were +1.47, -1.13, +1.93, -0.53, -1.33 points. The first three averaged +0.76 and the last two -0.93. Conditional on these requests, the two-sided 95% paired-seed t interval was [-1.80, +1.96] points (t = 0.12, df = 4). Holding the trained endpoints fixed and resampling request groups 10,000 times gave a 95% interval of [-0.79, +0.93]. The five-seed C minus B difference was +0.90 points on the previously examined test and −1.20 points on development.
+
+| Seed | A correct | B correct | C correct | C only vs B | B only vs C |
+|---:|---:|---:|---:|---:|---:|
+| 42 | 815 | 806 | 828 | 97 | 75 |
+| 43 | 849 | 834 | 817 | 72 | 89 |
+| 44 | 818 | 801 | 830 | 107 | 78 |
+| 45 | 829 | 822 | 814 | 77 | 85 |
+| 46 | 828 | 830 | 810 | 76 | 96 |
+
+![Paired C minus B accuracy differences for all five seeds on each of three splits. Dashed lines show the mean for each split.](figures/round2-replication.png)
+
+**Sampling controls.** Long minus short sampling yielded -0.15 points. Random selection matched to B on length (E2) differed from A by +0.17 points. Difficulty-matched random selection (E2b) differed from A by -0.32. These comparisons estimate the performance of the sampling policies. A gradient-level explanation would require a separate intervention. Against the prespecified practical tolerance of ±1 point, the descriptive 90% interval for E2b minus A was [-1.40, +0.76] across seeds and [-1.09, +0.47] across request groups with models held fixed.
+
+| Method | Seeds | Correct / predictions | Accuracy |
+|---|---:|---:|---:|
+| base | 1 | 709 / 1,500 | 47.27% |
+| A | 5 | 4,139 / 7,500 | 55.19% |
+| B | 5 | 4,093 / 7,500 | 54.57% |
+| C | 5 | 4,099 / 7,500 | 54.65% |
+| E2 | 5 | 4,152 / 7,500 | 55.36% |
+| E2b | 5 | 4,115 / 7,500 | 54.87% |
+| L-short | 5 | 4,122 / 7,500 | 54.96% |
+| L-long | 5 | 4,111 / 7,500 | 54.81% |
+| Bprime | 3 | 2,453 / 4,500 | 54.51% |
+| E3 | 3 | 2,459 / 4,500 | 54.64% |
+| E4 | 3 | 2,478 / 4,500 | 55.07% |
+| full-s42-step125 | 1 | 847 / 1,500 | 56.47% |
+| full-s42-step500 | 1 | 894 / 1,500 | 59.60% |
+
+| Contrast | Paired seeds | Mean difference | Seed 95% CI | Request-group 95% CI, fixed seeds |
+|---|---:|---:|---:|---:|
+| B-A | 5 | -0.61 | [-1.23, +0.01] | [-1.57, +0.35] |
+| Bprime-B | 3 | +0.27 | [-1.18, +1.71] | [-0.69, +1.24] |
+| C-A | 5 | -0.53 | [-2.17, +1.10] | [-1.51, +0.43] |
+| C-B | 5 | +0.08 | [-1.80, +1.96] | [-0.79, +0.93] |
+| C-Bprime | 3 | +0.49 | [-2.17, +3.15] | [-0.53, +1.49] |
+| E2-A | 5 | +0.17 | [-0.84, +1.18] | [-0.67, +1.00] |
+| E2b-A | 5 | -0.32 | [-1.72, +1.08] | [-1.24, +0.61] |
+| E2b-E2 | 5 | -0.49 | [-1.38, +0.40] | [-1.36, +0.36] |
+| E3-A | 3 | -0.51 | [-3.66, +2.64] | [-1.56, +0.58] |
+| E4-A | 3 | -0.09 | [-3.75, +3.57] | [-1.11, +0.96] |
+| L-long-L-short | 5 | -0.15 | [-1.00, +0.70] | [-1.16, +0.85] |
+| L-short-A | 5 | -0.23 | [-0.94, +0.49] | [-1.09, +0.64] |
+| full-s42-step125-A | 1 | +2.13 | — | [+0.47, +3.87] |
+| full-s42-step500-A | 1 | +5.27 | — | [+3.47, +7.07] |
+| length_slope | 5 | -0.01 | [-0.08, +0.06] | [-0.09, +0.07] |
+
+Differences are in percentage points. The length_slope row reports percentage points per additional token of mean training argument length. Single-seed comparisons have no seed interval. Inference is limited to this single-call corpus, model family and training budget. Round 2 registered 20 additional fits. Per-example loss, length-controlled field selection (C-LC), a 10% selection budget and a medium-difficulty arm remain open research questions.
+
+**Verification and runtime.** Successful generation processes across all 47 configurations took 7.00 L4 hours in total. Billed time can also include setup and idle time. A separate local replay verified the committed artifacts, regraded every raw prediction and reproduced all aggregate statistics. [Machine-readable results](../results/followup/round2-holdout.json) · [Opening amendment](round2-opening-amendment.md)
+
 ## Five-seed follow-up
 
 Each entry is mean complete-call accuracy over seeds 42–46 on the same 400 development and 2,000 previously examined test requests.
