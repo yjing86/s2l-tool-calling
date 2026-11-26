@@ -1,44 +1,44 @@
-# Which 1,000 tool calls should we train on?
+# Which tool calls should we train on?
 
-Across five paired seeds, full-pool training at matched target tokens differed from the 25% random subset by +1.01 percentage points. At the 10% subset budget, field trajectories differed from uniform random by -0.49 points.
+When the subset shrank to 400 examples, field-aware selection averaged 52.92% exact-call accuracy against 53.41% for uniform sampling (−0.49 percentage points, Holm-adjusted p = 0.564). At the larger matched token budget, full-pool sampling averaged 56.20% against 55.19% for the fixed random subset (+1.01 points, adjusted p = 0.094). Both comparisons reused the same 1,500 requests. Uniform sampling remains a low-cost default when a fixed subset is required.
 
-Ten-minute presentation for four speakers. Aim to finish at 9:35. Speaker assignments below are for rehearsal. Each person should describe their actual contribution when asked.
+Ten-minute presentation for four speakers. Aim to finish at 9:30. Speaker assignments below are for rehearsal. Each person should describe their actual contribution when asked.
 
-## 1 · What makes a useful training example? (0:00–1:10, speaker 1)
+## 1 · What makes a useful training example? (0:00–2:10, speaker 1)
 
 **Show** a request to set a reminder for 3 p.m. and a generated call containing the correct tool and the time `03:00`. Ask the audience to score the response before revealing the answer.
 
 **Say:** “Would you trust this reminder? The model wrote valid JSON and chose the right tool, but it will wake you twelve hours early. Our evaluator gives that call zero credit. Now imagine choosing 1,000 training requests out of 4,000. A whole-answer average gives credit for every predictable token, even when the time is hard to predict. Could a small model select better training examples if we tracked the name and argument values separately? We expected this change to help the target model generate more correct calls.”
 
-## 2 · What comes from S2L, and what did we change? (1:10–2:30, speaker 1)
+## 2 · What comes from S2L, and what did we change? (2:10–3:20, speaker 2)
 
 **Show** two example learning curves with similar final loss and different early histories. Label them illustrative. Then show one whole-answer curve per example for B and two field curves for C.
 
 **Say:** “SmallToLarge measures how an example’s loss changes while a small proxy model learns. It clusters examples with similar trajectories and samples across clusters. We kept that idea and changed what the proxy measures. At each checkpoint we separately average the losses on the correct function name and on the correct argument values. Imagine a request with a familiar function and an unfamiliar date expression. Two field means can preserve a distinction that one average hides. Whether the distinction helps a larger model is an empirical question.” [S2L paper](https://proceedings.neurips.cc/paper_files/paper/2024/hash/97fe251c25b6f99a2a23b330a75b11d4-Abstract-Conference.html)
 
-## 3 · How do we isolate the value of selection? (2:30–4:25, speaker 2)
+## 3 · How do we isolate the value of selection? (3:20–4:30, speaker 2)
 
 **Show** one pipeline: 4,000 Turnstile candidates → one 0.8B proxy → steps 0, 10, 30, 80, 250 → selectors → 1,000 examples per run → 2B LoRA fine-tuning. Label A uniform random, B five whole-answer features, C ten field features.
 
 **Say:** “We trained the proxy once. At each checkpoint it saw the request and the correct answer prefix. One forward pass gave us token losses that we could average over different positions. Both trajectory selectors standardized their features, used ten clusters and distributed the 1,000 places as evenly as possible. The random baseline skipped the proxy. All target models learned the complete reference call with the same training objective and about three million nonpadding input tokens. C versus B asks whether the representation helps. C versus A asks whether it is worth computing at all. We scored generated calls on the same requests so each comparison is paired.” [Implementation and budgets](reproduce.md)
 
-## 4 · Would our early result repeat? (4:25–6:30, speaker 3)
+## 4 · Would our early result repeat? (4:30–6:00, speaker 3)
 
 **Show** three numbers, one at a time: C minus B was +1.53 points on the original test with three seeds, +0.90 on that same test with five seeds, and +0.08 on new requests with the same five seeds. Then show the reserved-test scores: base 47.27%, A 55.19%, B 54.57%, C 54.65%.
 
 **Say:** “The first three runs all favored separate fields. Had we stopped there, we might have recommended them. Adding two seeds weakened the result. We then used 1,500 previously unused request groups with the models and primary test fixed before opening. C beat B in two of five seeds. Across 7,500 paired answers C got six more right. The five-seed interval for the difference runs from −1.80 to +1.96 percentage points. The registered one-sided p-value was 0.456. Our experiment did not establish a repeatable improvement. It still allows modest gains or losses. In contrast, even random-subset fine-tuning improved on the untuned model by 7.92 points.” [Reserved-test figure and results](results.md)
 
-## 5 · Did the selector choose too many long arguments? (6:30–8:00, speaker 4)
+## 5 · Did the selector choose too many long arguments? (6:00–6:55, speaker 3)
 
 **Show** the observed training-set means of 19.58 argument-value tokens for B and 15.37 for A in the initial analysis. Beside them put the new-test long-minus-short effect of −0.15 points, with its five-seed 95% interval [−1.00, +0.70].
 
 **Say:** “We could see a length bias in what the original selector picked. To test whether that explained the performance gap, we changed the sampling policy directly. We drew randomly within length bins, targeting means of roughly 12 or 24 argument-value tokens, then retrained at the same target-token budget. The long group trailed the short group by only 0.15 points on the new requests. Matching B’s length quotas in a random selector also produced accuracy close to uniform random. We can document the sampling bias. These controls leave its role in downstream accuracy unresolved.” [Sampling controls](results.md)
 
-## 6 · What should we do with the next GPU hour? (8:00–9:35, speaker 4)
+## 6 · What should we do with the next GPU hour? (6:55–9:30, speaker 4)
 
-**Show** one recommendation, one boundary, and one concrete proposed analysis for the December 11 report.
+Show the two five-seed comparisons on separate halves of the results slide. At the 400-example budget C scored 52.92% versus 53.41% for A. At the larger token budget the full sampling pool led the fixed random subset by 1.01 points. The ordinary seed interval narrowly excludes zero, but the two-test Holm-adjusted p-value is 0.094. Both follow-ups used previously examined requests.
 
-**Say:** “For a single fine-tune at this budget, we would sample randomly. On the reserved requests it scored 55.19%, compared with 54.65% for our method, and avoided about 41 minutes of proxy work on an A40. Our evidence covers one target-model family and single-call requests. For the report, we propose using the existing predictions to separate values copied from the request from values requiring a transformation, like converting a relative date. We would define the categories before checking the method differences, annotate without seeing model outputs, report group sizes and paired differences, and mark the analysis exploratory. That would tell us where to look in a new study. The main result is already clear enough to guide a training decision: we have no measured return on the extra selection cost in this setting.”
+Close with two decisions. Use uniform sampling if a fixed subset is necessary. Under a token cap alone, include full-pool sampling as a baseline. For the next analysis, label copied versus transformed values without seeing predictions, check annotator agreement, then compare policies on identical requests. Validate any emerging subgroup result on fresh requests. [Full tables and uncertainty](results.md)
 
 ## Rehearsal and individual defense
 
